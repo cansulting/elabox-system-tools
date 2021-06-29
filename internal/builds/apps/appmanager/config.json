@@ -1,0 +1,10 @@
+{
+    "name": "App Manager",
+    "systemId": "app2234234",
+    "appId": "ela.app-manager",
+    "buildNumber": 1,
+    "version": "1.0.0",
+    "decription": "updates and bug fixes",
+    "minSdk": 1.0,
+    "packagerVer": 1.1
+}
