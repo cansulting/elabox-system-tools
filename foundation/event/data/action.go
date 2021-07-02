@@ -3,10 +3,13 @@ package data
 import "log"
 
 type Action struct {
-	Action string `json:"action"`
-	// optional value
-	AppId string      `json:"appid"`
-	Data  interface{} `json:"data"`
+	// action id, which represents what action to make
+	Id string `json:"id"`
+	// optional. which specific package will handle this action.
+	// if nothing was specified then look for any valid package that can carry out the action
+	PackageId string `json:"pkid"`
+	// optional. data which will be use to execute the action
+	Data interface{} `json:"data"`
 }
 
 // convert Data to Action
@@ -34,4 +37,8 @@ func (a Action) DataToInt() int {
 		log.Panicln("Failed to concert Action to int ", a)
 		return -1
 	}
+}
+
+func (a Action) DataToString() string {
+	return a.Data.(string)
 }

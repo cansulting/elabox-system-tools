@@ -46,7 +46,7 @@ func (s *SocketIOClient) Broadcast(action data.Action) error {
 func (s *SocketIOClient) Open() error {
 	log.Println("Socket Connecting")
 	if s.socket == nil {
-		runtime.GOMAXPROCS(runtime.NumCPU())
+		runtime.GOMAXPROCS(1 /*runtime.NumCPU()*/)
 	}
 
 	s.socket = nil

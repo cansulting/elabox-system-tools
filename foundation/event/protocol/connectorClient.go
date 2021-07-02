@@ -2,6 +2,10 @@ package protocol
 
 import "ela/foundation/event/data"
 
+/*
+	connectorClient.go
+
+*/
 type ConnectorClient interface {
 	GetState() data.ConnectionType
 	Open() error

@@ -1,0 +1,14 @@
+{
+    "name": "hello",
+    "description": "Asdfasd",
+    "packageId": "ela.sample",
+    "version": "0.3.0",
+    "build": 1,
+    "location": "external",
+    "permissions": [
+
+    ],
+    "services:": {
+    },
+    "actionListener": []
+}

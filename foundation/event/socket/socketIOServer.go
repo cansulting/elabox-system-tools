@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	gosocketio "github.com/graarh/golang-socketio"
 	socketio "github.com/graarh/golang-socketio"
 	"github.com/graarh/golang-socketio/transport"
 )
@@ -66,7 +67,7 @@ func (s *SocketIOServer) Broadcast(room string, event string, dataTransfer inter
 	return nil
 }
 
-// implementation for connector subscribe
+// implementation for connector subscribe. makes the server listen to specific room
 func (s *SocketIOServer) Subscribe(room string, callback interface{}) error {
 	log.Println("SocketIOServer", "Subscribe", "room="+room)
 	err := s.socket.On(room, callback)
@@ -79,6 +80,12 @@ func (s *SocketIOServer) Subscribe(room string, callback interface{}) error {
 // implementation for connector subscribe client
 func (s *SocketIOServer) SubscribeClient(socket protocol.ClientInterface, room string) error {
 	return socket.Join(room)
+}
+
+// implementation for broadcasting to specific client
+func (s *SocketIOServer) BroadcastTo(client protocol.ClientInterface, data data.Action) (string, error) {
+	clientCast := client.(*gosocketio.Channel)
+	return clientCast.Ack(data.Id, data, time.Second*constants.TIMEOUT)
 }
 
 /// this closes the server
