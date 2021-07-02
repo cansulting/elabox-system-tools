@@ -1,110 +1,128 @@
 package app
 
-import (
-	"log"
-	"time"
-
-	"ela/foundation/app/data"
-	"ela/foundation/app/protocol"
-	"ela/foundation/constants"
-	"ela/foundation/event"
-	eventdata "ela/foundation/event/data"
-	eventprot "ela/foundation/event/protocol"
-)
-
 /*
 	controller.go
-	Controls the main flow of app and services
+	Provides basic implementation application.
+	Application can contains service, activity and broadcast listener
 */
+import (
+	appd "ela/foundation/app/data"
+	"ela/foundation/app/protocol"
+	"ela/foundation/app/service"
+	"ela/foundation/constants"
+	event "ela/foundation/event"
+	"ela/foundation/event/data"
+	eventp "ela/foundation/event/protocol"
+	"log"
+	"time"
+)
 
-var connector eventprot.ConnectorClient
-var currentApp protocol.AppInterface
-var appData data.AppData
+///////////////////////// FUNCTIONS ////////////////////////////////////
 
-func RunApp(app protocol.AppInterface, data data.AppData) error {
-	appData = data
-	currentApp = app
-	initApp()
+func RunApp(app *Controller) error {
+	// start the app
+	app.OnStart()
+	log.Println("App is now running")
 
 	for app.IsRunning() {
 		time.Sleep(time.Second * 1)
 	}
-	return uninitApp()
-}
 
-// stops a service. sends awake state to service center
-func StartService(service protocol.ServiceInterface) error {
-	_, err := sendServiceCenterRequest(
-		eventdata.Action{
-			Action: constants.SERVICE_CHANGE_STATE,
-			AppId:  appData.Id,
-			Data:   constants.SERVICE_AWAKE})
-	if err != nil {
-		return err
-	}
-	service.OnStart()
-	return nil
-}
-
-// stops a service. send a sleep state to service center
-func StopService(service protocol.ServiceInterface) error {
-	_, err := sendServiceCenterRequest(
-		eventdata.Action{
-			Action: constants.SERVICE_CHANGE_STATE,
-			AppId:  appData.Id,
-			Data:   constants.SERVICE_SLEEP})
-
-	if err != nil {
-		return err
-	}
-	service.OnEnd()
-	return nil
-}
-
-func GetConnector() eventprot.ConnectorClient {
-	return connector
-}
-
-/////////////////////////PRIVATE//////////////////////
-
-// initialization process for the app
-func initApp() error {
-	// step: initialize connection to system
-	connector = event.CreateClientConnector()
-	err := connector.Open()
-	if err != nil {
-		return err
-	}
-
-	// start the app
-	currentApp.OnStart()
-
-	// initialize service
-	service := currentApp.GetService()
-	if service != nil {
-		go StartService(service)
-	}
-	log.Println("App is now running")
-	return nil
-}
-
-// uninitialize the app
-func uninitApp() error {
-	// stops the service
-	service := currentApp.GetService()
-	if service != nil && service.IsRunning() {
-		StopService(service)
-	}
-
-	// end the app
-	currentApp.OnEnd()
 	log.Println("App exit")
+	return app.OnEnd()
+}
+
+//////////////////////// CONTROLLER DEFINITION /////////////////////////////
+// constructor for controller
+func NewController(
+	activity protocol.ActivityInterface,
+	service protocol.ServiceInterface) (*Controller, error) {
+	pk := appd.DefaultPackage()
+	if err := pk.LoadFromSrc(constants.APP_CONFIG_NAME); err != nil {
+		return nil, err
+	}
+	return &Controller{
+		Service:  service,
+		Activity: activity,
+		Config:   pk,
+	}, nil
+}
+
+type Controller struct {
+	Service       protocol.ServiceInterface
+	Activity      protocol.ActivityInterface
+	SystemService *service.Connection // connection to system service
+	Connector     eventp.ConnectorClient
+	Config        *appd.PackageConfig
+	running       bool
+}
+
+// true if this app is running
+func (m *Controller) IsRunning() bool {
+	return true
+}
+
+// callback when this app was started
+func (m *Controller) OnStart() error {
+	// step: init connector
+	m.Connector = event.CreateClientConnector()
+	err := m.Connector.Open()
+	if err != nil {
+		return err
+	}
+	// step: create service center connection
+	m.SystemService, err = service.NewConnection(m.Connector, constants.SYSTEM_SERVICE_ID, onSystemServiceResponse)
+	if err != nil {
+		return err
+	}
+	// step: send running state
+	_, err = m.SystemService.RequestFor(
+		data.Action{
+			Id:        constants.APP_CHANGE_STATE,
+			PackageId: m.Config.PackageId,
+			Data:      constants.APP_AWAKE})
+	if err != nil {
+		return err
+	}
+	// step: start service and activity
+	if m.Service != nil {
+		if err := m.Service.OnStart(); err != nil {
+			return err
+		}
+	}
+	if m.Activity != nil {
+		if err := m.Activity.OnStart(); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
-// this sends action to service center
-func sendServiceCenterRequest(action eventdata.Action) (interface{}, error) {
-	return connector.SendServiceRequest(
-		constants.SERVICE_CENTER_ID,
-		action)
+// callback when this app ended
+func (m *Controller) OnEnd() error {
+	// step: send stop state for application
+	_, err := m.SystemService.RequestFor(
+		data.Action{
+			Id:        constants.APP_CHANGE_STATE,
+			PackageId: m.Config.PackageId,
+			Data:      constants.APP_SLEEP})
+	if err != nil {
+		return err
+	}
+	if m.Activity != nil && m.Activity.IsRunning() {
+		if err := m.Activity.OnEnd(); err != nil {
+			return err
+		}
+	}
+	if m.Service != nil && m.Service.IsRunning() {
+		if err := m.Service.OnEnd(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func onSystemServiceResponse(msg string, data interface{}) {
+
 }
