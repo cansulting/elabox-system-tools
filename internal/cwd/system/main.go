@@ -40,7 +40,7 @@ func main() {
 			}
 			log.Panicln("Requires path to package installation dir")
 		default:
-			log.Panicln("Unsupported command.")
+			log.Panicln("Unsupported command " + command)
 		}
 		return
 	}

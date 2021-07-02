@@ -1,7 +1,5 @@
 package main
 
-//https://dave.cheney.net/2013/10/12/how-to-use-conditional-compilation-with-the-go-build-tool
-//https://golang.org/pkg/archive/zip/#example_Reader
 import (
 	"archive/zip"
 	"bytes"
@@ -13,25 +11,24 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	spath "path"
 )
 
+/*
+	installer.go
+	structure for installing packages to ela system
+*/
 type installer struct {
-	backup        *Backup // backup instance
-	backupEnabled bool    // true if this will create a backup for replaced files
-	silentInstall bool    // true if will install via command line false if uses actions
+	backup        *Backup             // backup instance
+	BackupEnabled bool                // true if instance will create a backup for replaced files
+	SilentInstall bool                // true if will install via command line false if uses actions and broadcast to others
+	packageInfo   *data.PackageConfig // package info for installer
+	subinstaller  []*installer        // list of subpackages/subinstaller
 }
 
 const WRITE_SIZE = 1000
 
-// use to initialize.
-// @silentInstall true if will install via service center command line
-func (t *installer) initInstall(silentInstall bool) {
-	t.silentInstall = silentInstall
-}
-
 // use to uncompress the file to target
-func (this *installer) decompress(sourceFile string) error {
+func (instance *installer) decompress(sourceFile string) error {
 	// step: read package
 	z, err := zip.OpenReader(sourceFile)
 	if err != nil {
@@ -39,17 +36,18 @@ func (this *installer) decompress(sourceFile string) error {
 		return err
 	}
 	defer z.Close()
-	return this.decompressFromReader(z.File)
+	return instance.decompressFromReader(z.File)
 }
 
 // decompress package based from reader
-func (this *installer) decompressFromReader(files []*zip.File) error {
+func (instance *installer) decompressFromReader(files []*zip.File) error {
 	// step: load package
-	packageInfo, error := this._loadPackage(files)
+	packageInfo, error := instance._loadPackage(files)
+	instance.packageInfo = packageInfo
 	if error != nil {
 		return error
 	}
-	log.Println("installer:start installing ", packageInfo.PackageId, "silent=", this.silentInstall)
+	log.Println("installer:start installing ", packageInfo.PackageId, "silent=", instance.SilentInstall)
 	// step: init install location and filters
 	appInstallPath, wwwInstallPath := _getInstallLocation(packageInfo)
 	filters := []filter{
@@ -60,18 +58,18 @@ func (this *installer) decompressFromReader(files []*zip.File) error {
 		{keyword: "www", rename: packageInfo.PackageId, installTo: wwwInstallPath},
 		{keyword: constants.APP_CONFIG_NAME, installTo: appInstallPath + "/" + packageInfo.PackageId},
 		// subpackage
-		{keyword: "packages/", customProcess: this._onSubPackage},
+		{keyword: "packages/", customProcess: instance._onSubPackage},
 	}
 	// step: iterate each file and save it
 	for _, file := range files {
 		// step: open source file
-		log.Println("installer:uncompress extract start", file.Name)
+		log.Println("installer:decompress() extracting", file.Name)
 		reader, err := file.Open()
-		defer reader.Close()
 		if err != nil {
-			log.Println("installer::uncompress error", file.Name, err)
+			log.Println("installer::decompress error", file.Name, err)
 			return err
 		}
+		defer reader.Close()
 		file.DataOffset()
 		isDir := file.FileInfo().IsDir()
 		if isDir {
@@ -101,10 +99,10 @@ func (this *installer) decompressFromReader(files []*zip.File) error {
 		}
 		// step: is valid target path?
 		if targetPath != "" {
-			// step: check if this file already exist. then create backup
-			if this.backupEnabled {
+			// step: check if instance file already exist. then create backup
+			if instance.BackupEnabled {
 				if os.Stat(targetPath); err == nil {
-					error = this.createBackupFor(targetPath)
+					error = instance.createBackupFor(targetPath)
 					if error != nil {
 						return error
 					}
@@ -120,11 +118,8 @@ func (this *installer) decompressFromReader(files []*zip.File) error {
 			io.Copy(newFile, reader)
 		}
 	}
-	this.closeBackup()
+	instance._closeBackup()
 	if err := packageInfo.GetError(); err != nil {
-		return err
-	}
-	if err := this.registerPackage(packageInfo); err != nil {
 		return err
 	}
 	return nil
@@ -143,7 +138,7 @@ func _getInstallLocation(packageInfo *data.PackageConfig) (string, string) {
 }
 
 // package loading
-func (this *installer) _loadPackage(files []*zip.File) (*data.PackageConfig, error) {
+func (instance *installer) _loadPackage(files []*zip.File) (*data.PackageConfig, error) {
 	packageInfo := data.DefaultPackage()
 	for _, file := range files {
 		if file.Name != constants.APP_CONFIG_NAME {
@@ -164,8 +159,8 @@ func (this *installer) _loadPackage(files []*zip.File) (*data.PackageConfig, err
 
 // callback when theres a subpackage
 func (t *installer) _onSubPackage(path string, reader io.ReadCloser, size uint64) error {
-	subPackage := installer{}
-	subPackage.initInstall(t.silentInstall)
+	subPackage := installer{SilentInstall: t.SilentInstall}
+	// step: convert buffer to zip reader
 	newBuffer := bytes.NewBuffer([]byte{})
 	written, err := io.Copy(newBuffer, reader)
 	if err != nil {
@@ -175,60 +170,78 @@ func (t *installer) _onSubPackage(path string, reader io.ReadCloser, size uint64
 	if err != nil {
 		return &InstallError{errorString: "installer: subpackage " + path + "..." + err.Error()}
 	}
+	// step: decompress subpackage file
 	if err := subPackage.decompressFromReader(newReader.File); err != nil {
 		return &InstallError{errorString: "installer: subpackage " + path + "..." + err.Error()}
 	}
+	if t.subinstaller == nil {
+		t.subinstaller = make([]*installer, 0, 4)
+	}
+	// step: add to list
+	t.subinstaller = append(t.subinstaller, &subPackage)
 	return nil
 }
 
 // create backup for file
-func (this *installer) createBackupFor(src string) error {
-	if this.backup == nil {
-		this.backup = &Backup{
+func (instance *installer) createBackupFor(src string) error {
+	if instance.backup == nil {
+		instance.backup = &Backup{
 			PackageId: "",
 		}
 		backupPath := path.GetDefaultBackupPath() + "/system.backup"
-		err := this.backup.Create(backupPath)
+		err := instance.backup.Create(backupPath)
 		if err != nil {
 			return &InstallError{errorString: "Couldn't create backup for " + src + "." + err.Error()}
 		}
 	}
-	this.backup.AddFile(src)
+	instance.backup.AddFile(src)
 	return nil
 }
 
-// start registering the package
-func (t *installer) registerPackage(pk *data.PackageConfig) error {
-	log.Println("Registering package " + pk.PackageId)
-	// register via service
-	if !t.silentInstall {
+// start registering the package and sub packages
+func (t *installer) registerPackage() error {
+	log.Println("Registering package " + t.packageInfo.PackageId)
+	// silent install means register via service
+	if !t.SilentInstall {
 		res, err := appController.SystemService.RequestFor(eventd.Action{})
 		if err != nil {
 			return &InstallError{errorString: "Couldnt register package " + err.Error()}
 		}
 		log.Println(res)
-		return nil
 	} else {
 		//register via commandline
 		systemServiceSrc := path.GetAppMain(constants.SYSTEM_SERVICE_ID, false)
+		// check if main bin exist on path
 		if _, err := os.Stat(systemServiceSrc); err != nil {
-			log.Println("Registration skip for ", pk.PackageId, " System service not found @", systemServiceSrc)
+			log.Println("Registration skip for ", t.packageInfo.PackageId, " System service not found @", systemServiceSrc)
 			return nil
 		}
-		installDir := spath.Dir(pk.Source)
-		cmd := exec.Command(systemServiceSrc, "package-reg "+installDir)
-		err := cmd.Run()
+		// run package registration
+		installDir := path.GetExternalApp() + "/" + t.packageInfo.PackageId
+		if t.packageInfo.IsSystemPackage() {
+			installDir = path.GetSystemApp() + "/" + t.packageInfo.PackageId
+		}
+		cmd := exec.Command(systemServiceSrc, "package-reg", installDir)
+		output, err := cmd.CombinedOutput()
+		log.Println(string(output))
 		if err != nil {
-			return err
+			return &InstallError{errorString: "Couldnt register package " + err.Error()}
 		}
 		return nil
 	}
+	// register subpackages
+	for _, subinstall := range t.subinstaller {
+		if err := subinstall.registerPackage(); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // use to close the backup
-func (this *installer) closeBackup() {
-	if this.backup != nil {
-		err := this.backup.Close()
+func (instance *installer) _closeBackup() {
+	if instance.backup != nil {
+		err := instance.backup.Close()
 		if err != nil {
 			log.Println(err.Error())
 		}

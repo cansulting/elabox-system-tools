@@ -7,7 +7,9 @@ import (
 )
 
 func Initialize(commandline bool) error {
-	servicecenter.RegisterService(constants.SYSTEM_SERVICE_ID, OnRecievedRequest)
+	if !commandline {
+		servicecenter.RegisterService(constants.SYSTEM_SERVICE_ID, OnRecievedRequest)
+	}
 	if err := records.Initialize(); err != nil {
 		return err
 	}

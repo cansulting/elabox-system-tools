@@ -55,7 +55,7 @@ func RetrievePackage(id string) ([]*data.PackageConfig, error) {
 
 func AddPackage(pkData *data.PackageConfig) error {
 	query := `
-		insert into 
+		replace into 
 		packages(id, location, build, version, has_service, has_activity, name, desc, source) 
 		values(?,?,?,?,?,?,?,?,?)`
 	stmt, err := db.Prepare(query)

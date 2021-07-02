@@ -32,7 +32,9 @@ func Initialize(commandline bool) {
 
 /// this closes the server
 func Close() {
-	global.Connector.Close()
+	if global.Connector != nil {
+		global.Connector.Close()
+	}
 }
 
 // use to register a service

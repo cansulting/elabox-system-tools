@@ -14,7 +14,7 @@ func TestRegistration(test *testing.T) {
 		test.Error(err)
 		return
 	}
-	_, err := appman.RegisterPackageSrc("../../builds/ela/system/apps/ela.os")
+	_, err := appman.RegisterPackageSrc("../../builds/ela/external/apps/ela.sample2")
 	if err != nil {
 		test.Error(err)
 	}
@@ -27,7 +27,7 @@ func TestRetrievePackage(test *testing.T) {
 		test.Error(err)
 		return
 	}
-	pk, err := appman.RetrievePackage("ela.os")
+	pk, err := appman.RetrievePackage("ela.system")
 	if err != nil {
 		test.Error(err)
 	}

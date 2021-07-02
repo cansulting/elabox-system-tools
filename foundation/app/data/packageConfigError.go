@@ -5,5 +5,5 @@ type PackageConfigError struct {
 }
 
 func (e *PackageConfigError) Error() string {
-	return "Invalid package " + e.propertyError
+	return "PackageConfig: " + e.propertyError
 }

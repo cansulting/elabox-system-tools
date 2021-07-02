@@ -57,3 +57,7 @@ func (c *PackageConfig) GetError() error {
 	}
 	return nil
 }
+
+func (c *PackageConfig) IsSystemPackage() bool {
+	return c.InstallLocation == "system"
+}
