@@ -1,0 +1,11 @@
+# github.com/gorilla/websocket v1.4.2
+## explicit
+github.com/gorilla/websocket
+# github.com/graarh/golang-socketio v0.0.0-20170510162725-2c44953b9b5f
+## explicit
+github.com/graarh/golang-socketio
+github.com/graarh/golang-socketio/protocol
+github.com/graarh/golang-socketio/transport
+# github.com/mattn/go-sqlite3 v1.14.7
+## explicit
+github.com/mattn/go-sqlite3
