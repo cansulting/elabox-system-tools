@@ -8,38 +8,48 @@ app/service/action listener requests to listen to specific action.
 They should subscribe to specific action via service center.
 Check Service Center for references.
 */
-const ACTION_SUBSCRIBE = "ela.system.action.SUBSCRIBE"
+const ACTION_SUBSCRIBE = "ela.system.SUBSCRIBE"
 
 /*
 app/service/action will broadcast an action to all listening app via service center.
 Check Service Center for references.
 */
-const ACTION_BROADCAST = "ela.system.action.BROADCAST"
+const ACTION_BROADCAST = "ela.system.BROADCAST"
 
 /*
-registers an application package so it will be available on the system.
-Check Service Center for references.
+app/service/action will start an activity.
 */
-const SERVICE_REGISTER = "ela.system.action.REGISTER"
+const ACTION_START_ACTIVITY = "ela.system.START_ACTIVITY"
+
+// system will be in update mode. all system will be terminated and only commandline will be available
+const SYSTEM_UPDATE_MODE = "ela.system.UPDATE"
+
+/*
+servive is ready to serve
+*/
+const SERVICE_OPEN = "ela.system.service.OPEN"
 
 /*
 unregisters a service. After the service is removed, it will not be executed upon
 system initialization.
 Check Service Center for references.
 */
-const SERVICE_UNREGISTER = "ela.system.action.UNREGISTER"
+const SERVICE_CLOSE = "ela.system.service.CLOSE"
 
 /*
 service state was changed. usually contains the state integer value.
 Check Service Center for references.
 */
-const SERVICE_CHANGE_STATE = "ela.system.action.SERVICE_STATE"
+const SERVICE_CHANGE_STATE = "ela.system.SERVICE_STATE"
 
 /*
 App state changed. Check ApplicationState enum for possible values
 */
 const APP_CHANGE_STATE = "ela.system.action.APP_STATE"
-const SERVICE_PENDING_ACTIONS = "ela.system.service.PERNDING_ACTIONS"
+const SERVICE_PENDING_ACTIONS = "ela.system.PENDING_ACTIONS"
+
+// sends terminate action to app
+const APP_TERMINATE = "ela.system.APP_TERMINATE"
 
 type ServiceState int
 

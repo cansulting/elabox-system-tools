@@ -9,7 +9,7 @@ type ConnectorServer interface {
 	/// send data to all room
 	Broadcast(room string, event string, data interface{}) error
 	/// send service response to client
-	BroadcastTo(client ClientInterface, data data.Action) (string, error)
+	BroadcastTo(client ClientInterface, method string, data interface{}) (string, error)
 	/// server listen to room
 	Subscribe(room string, callback interface{}) error
 	/// make the client listen to room

@@ -3,8 +3,6 @@ package servicecenter
 import (
 	"ela/foundation/constants"
 	"ela/foundation/event"
-	event_data "ela/foundation/event/data"
-	"ela/foundation/event/protocol"
 	"ela/internal/cwd/system/global"
 )
 
@@ -24,10 +22,13 @@ func Initialize(commandline bool) {
 	global.Connector.Open()
 
 	// register this service
-	RegisterService(constants.SYSTEM_SERVICE_ID, OnRecievedRequest)
+	//RegisterService(constants.SYSTEM_SERVICE_ID, OnRecievedRequest)
 	// client wants to subscribe to action
-	//connector.Subscribe(constants.ACTION_SUBSCRIBE, onClientSubscribeAction)
-	//connector.Subscribe(constants.ACTION_BROADCAST, onClientBroadcastAction)
+	global.Connector.Subscribe(constants.SERVICE_OPEN, onServiceOpen)
+	global.Connector.Subscribe(constants.SERVICE_CLOSE, onServiceClose)
+	global.Connector.Subscribe(constants.SERVICE_CHANGE_STATE, updateServiceState)
+
+	// start running all services
 }
 
 /// this closes the server
@@ -41,12 +42,4 @@ func Close() {
 // @serviceId: the packageId or the service id
 func RegisterService(serviceId string, callback interface{}) {
 	global.Connector.Subscribe(serviceId, callback)
-}
-
-////////////////////////PRIVATE DEFINITIONS///////////////
-// callback when a client wants to broadcast a specific action
-func onClientBroadcastAction(
-	client protocol.ClientInterface,
-	action event_data.Action) {
-	global.Connector.Broadcast(action.Id, action.Id, action)
 }

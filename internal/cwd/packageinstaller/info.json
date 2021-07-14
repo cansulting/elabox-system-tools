@@ -1,0 +1,16 @@
+{
+    "name": "Package Manager",
+    "description": "Package Installer",
+    "packageId": "ela.installer",
+    "version": "0.1.0",
+    "build": 1,
+    "location": "system",
+    "permissions": [
+
+    ],
+    "activities": ["ela.action.INSTALLER"],
+    "services:": {
+    },
+    "actionListener": [],
+    "restart": true
+}

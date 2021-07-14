@@ -83,9 +83,9 @@ func (s *SocketIOServer) SubscribeClient(socket protocol.ClientInterface, room s
 }
 
 // implementation for broadcasting to specific client
-func (s *SocketIOServer) BroadcastTo(client protocol.ClientInterface, data data.Action) (string, error) {
+func (s *SocketIOServer) BroadcastTo(client protocol.ClientInterface, method string, data interface{}) (string, error) {
 	clientCast := client.(*gosocketio.Channel)
-	return clientCast.Ack(data.Id, data, time.Second*constants.TIMEOUT)
+	return clientCast.Ack(method, data, time.Second*constants.TIMEOUT)
 }
 
 /// this closes the server

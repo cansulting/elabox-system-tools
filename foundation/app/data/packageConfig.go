@@ -1,6 +1,9 @@
 package data
 
 import (
+	"archive/zip"
+	"ela/foundation/constants"
+	"ela/foundation/errors"
 	"encoding/json"
 	"io"
 	"io/ioutil"
@@ -18,11 +21,12 @@ type PackageConfig struct {
 	Activities       []string          `json:"activities"`     // if app has activity. this contains definition of actions that will triggerr activity
 	BroacastListener []string          `json:"actionListener"` // defined actions which action listener will listen to
 	InstallLocation  string            `json:"location"`       // which location the package will be installed
-	Source           string            `json:"-"`
+	Source           string            `json:"-"`              // the source location
+	Restart          bool              `json:"restart"`        // if true system restart upon installation
 }
 
 func DefaultPackage() *PackageConfig {
-	return &PackageConfig{InstallLocation: "external"}
+	return &PackageConfig{InstallLocation: "external", Restart: false}
 }
 
 func (c *PackageConfig) LoadFromSrc(src string) error {
@@ -51,13 +55,38 @@ func (c *PackageConfig) LoadFromBytes(bytes []byte) error {
 	return json.Unmarshal(bytes, &c)
 }
 
-func (c *PackageConfig) GetError() error {
-	if c.PackageId == "" {
-		return &PackageConfigError{propertyError: "Package Id shouldnt be null"}
-	}
-	return nil
+func (c *PackageConfig) IsValid() bool {
+	return c.PackageId != ""
 }
 
 func (c *PackageConfig) IsSystemPackage() bool {
 	return c.InstallLocation == "system"
+}
+
+// load package info from zip
+func (c *PackageConfig) LoadFromPackage(source string) error {
+	reader, err := zip.OpenReader(source)
+	if err != nil {
+		return errors.SystemNew("Load Package error. @"+source, err)
+	}
+	defer reader.Close()
+	return c.LoadFromZipFiles(reader.File)
+}
+
+func (c *PackageConfig) LoadFromZipFiles(files []*zip.File) error {
+	for _, file := range files {
+		if file.Name != constants.APP_CONFIG_NAME {
+			continue
+		}
+		reader, err := file.Open()
+		if err != nil {
+			return err
+		}
+		err = c.LoadFromReader(reader)
+		if err != nil {
+			return err
+		}
+		break
+	}
+	return nil
 }

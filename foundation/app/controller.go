@@ -10,6 +10,7 @@ import (
 	"ela/foundation/app/protocol"
 	"ela/foundation/app/service"
 	"ela/foundation/constants"
+	"ela/foundation/errors"
 	event "ela/foundation/event"
 	"ela/foundation/event/data"
 	eventp "ela/foundation/event/protocol"
@@ -21,14 +22,16 @@ import (
 
 func RunApp(app *Controller) error {
 	// start the app
-	app.OnStart()
+	if err := app.OnStart(); err != nil {
+		return err
+	}
 	log.Println("App is now running")
 
 	for app.IsRunning() {
 		time.Sleep(time.Second * 1)
 	}
 
-	log.Println("App exit")
+	defer log.Println("App exit")
 	return app.OnEnd()
 }
 
@@ -37,62 +40,83 @@ func RunApp(app *Controller) error {
 func NewController(
 	activity protocol.ActivityInterface,
 	service protocol.ServiceInterface) (*Controller, error) {
-	pk := appd.DefaultPackage()
-	if err := pk.LoadFromSrc(constants.APP_CONFIG_NAME); err != nil {
+	config := appd.DefaultPackage()
+	if err := config.LoadFromSrc(constants.APP_CONFIG_NAME); err != nil {
 		return nil, err
 	}
 	return &Controller{
-		Service:  service,
-		Activity: activity,
-		Config:   pk,
+		AppService: service,
+		Activity:   activity,
+		Config:     config,
 	}, nil
 }
 
 type Controller struct {
-	Service       protocol.ServiceInterface
+	AppService    protocol.ServiceInterface // current service for this app
 	Activity      protocol.ActivityInterface
-	SystemService *service.Connection // connection to system service
+	SystemService service.IConnection // connection to system service. system service handles system main operation like app registration
 	Connector     eventp.ConnectorClient
 	Config        *appd.PackageConfig
-	running       bool
+	forceEnd      bool
 }
 
 // true if this app is running
 func (m *Controller) IsRunning() bool {
-	return true
+	if m.forceEnd {
+		return false
+	}
+	if m.Activity != nil && m.Activity.IsRunning() {
+		return true
+	}
+	if m.AppService != nil && m.AppService.IsRunning() {
+		return true
+	}
+	return false
 }
 
 // callback when this app was started
 func (m *Controller) OnStart() error {
+	log.Println("app.Controller: Starting App", m.Config.PackageId)
 	// step: init connector
 	m.Connector = event.CreateClientConnector()
-	err := m.Connector.Open()
+	err := m.Connector.Open(-1)
 	if err != nil {
-		return err
+		return errors.SystemNew("Controller: Failed to start. Couldnt create client connector.", err)
 	}
 	// step: create service center connection
-	m.SystemService, err = service.NewConnection(m.Connector, constants.SYSTEM_SERVICE_ID, onSystemServiceResponse)
-	if err != nil {
-		return err
+	if m.SystemService == nil {
+		m.SystemService, err = service.NewConnection(
+			m.Connector,
+			constants.SYSTEM_SERVICE_ID,
+			m.onSystemServiceResponse,
+		)
+		if err != nil {
+			return errors.SystemNew(
+				"Controller: Failed to start. Couldnt connect to service "+constants.SYSTEM_SERVICE_ID, err)
+		}
 	}
 	// step: send running state
-	_, err = m.SystemService.RequestFor(
-		data.Action{
-			Id:        constants.APP_CHANGE_STATE,
-			PackageId: m.Config.PackageId,
-			Data:      constants.APP_AWAKE})
+	res, err := m.SystemService.RequestFor(
+		data.NewAction(
+			constants.APP_CHANGE_STATE,
+			m.Config.PackageId,
+			constants.APP_AWAKE))
 	if err != nil {
 		return err
 	}
+	log.Println("controller.OnStart() pendingActions =", res)
+	pendingActions := res.ToActionGroup()
 	// step: start service and activity
-	if m.Service != nil {
-		if err := m.Service.OnStart(); err != nil {
-			return err
+	if m.AppService != nil {
+		log.Println("app.Controller: OnStart", "Service")
+		if err := m.AppService.OnStart(); err != nil {
+			return errors.SystemNew("app.Controller couldnt start app service", err)
 		}
 	}
 	if m.Activity != nil {
-		if err := m.Activity.OnStart(); err != nil {
-			return err
+		log.Println("app.Controller: OnStart", "Activity")
+		if err := m.Activity.OnStart(pendingActions.Activity); err != nil {
+			return errors.SystemNew("app.Controller couldnt start app activity", err)
 		}
 	}
 	return nil
@@ -100,22 +124,25 @@ func (m *Controller) OnStart() error {
 
 // callback when this app ended
 func (m *Controller) OnEnd() error {
-	// step: send stop state for application
-	_, err := m.SystemService.RequestFor(
-		data.Action{
-			Id:        constants.APP_CHANGE_STATE,
-			PackageId: m.Config.PackageId,
-			Data:      constants.APP_SLEEP})
-	if err != nil {
-		return err
+	log.Println("Controller: OnEnd")
+	if m.forceEnd {
+		// step: send stop state for application
+		_, err := m.SystemService.RequestFor(
+			data.NewAction(
+				constants.APP_CHANGE_STATE,
+				m.Config.PackageId,
+				constants.APP_SLEEP))
+		if err != nil {
+			return err
+		}
 	}
 	if m.Activity != nil && m.Activity.IsRunning() {
 		if err := m.Activity.OnEnd(); err != nil {
 			return err
 		}
 	}
-	if m.Service != nil && m.Service.IsRunning() {
-		if err := m.Service.OnEnd(); err != nil {
+	if m.AppService != nil && m.AppService.IsRunning() {
+		if err := m.AppService.OnEnd(); err != nil {
 			return err
 		}
 	}
@@ -123,6 +150,25 @@ func (m *Controller) OnEnd() error {
 	return nil
 }
 
-func onSystemServiceResponse(msg string, data interface{}) {
+// this will end the app
+func (c *Controller) End() {
+	c.forceEnd = true
+}
 
+// use to start an  from other applications
+func (m *Controller) StartActivity(action data.Action) error {
+	log.Println("Controller:StartActivity", action.Id)
+	res, err := m.SystemService.RequestFor(data.NewAction(constants.ACTION_START_ACTIVITY, "", action))
+	if err != nil {
+		return err
+	}
+	log.Println("Controller:StartActivity response", res.ToString())
+	return nil
+}
+
+func (c *Controller) onSystemServiceResponse(msg string, data interface{}) {
+	switch msg {
+	case constants.APP_TERMINATE:
+		c.End()
+	}
 }

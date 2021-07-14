@@ -1,14 +1,17 @@
 package appman
 
 import (
+	"bytes"
+	"ela/foundation/app/data"
 	"ela/foundation/constants"
-	"ela/foundation/event/data"
 	eventd "ela/foundation/event/data"
 	"ela/foundation/event/protocol"
+	"ela/foundation/path"
 	"ela/internal/cwd/system/global"
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 )
 
 /*
@@ -17,49 +20,75 @@ import (
 type AppConnect struct {
 	location string
 	//Config         data.PackageConfig
-	pendingActions *data.ActionGroup
+	pendingActions *eventd.ActionGroup
 	client         protocol.ClientInterface
 	packageId      string
 	process        *os.Process
 	launched       bool // true if this app was launched
 }
 
+func newAppConnect(pk *data.PackageConfig) *AppConnect {
+	return &AppConnect{
+		pendingActions: eventd.NewActionGroup(),
+		packageId:      pk.PackageId,
+		location:       path.GetAppMain(pk.PackageId, !pk.IsSystemPackage())}
+}
+
 // send pending actions
 func (app *AppConnect) sendPendingActions() error {
-	_, err := app.broadcastToApp(constants.SERVICE_PENDING_ACTIONS, app.pendingActions)
+	_, err := app.BroadcastToApp(constants.SERVICE_PENDING_ACTIONS, app.pendingActions)
 	if err == nil {
 		app.pendingActions.ClearAll()
 	}
 	return err
 }
 
-func (app *AppConnect) broadcastToApp(action string, data interface{}) (string, error) {
-	return global.Connector.BroadcastTo(app.client, eventd.Action{
-		Id:   action,
-		Data: data,
-	})
+func (app *AppConnect) BroadcastToApp(action string, data interface{}) (string, error) {
+	return global.Connector.BroadcastTo(app.client, action, eventd.NewAction(action, "", data))
 }
 
-func (app *AppConnect) launch() error {
+func (app *AppConnect) Launch() error {
 	if app.launched {
 		return app.sendPendingActions()
 	}
-	app.pendingActions = eventd.NewActionGroup()
-	cmd := exec.Command(app.location, "")
-	app.process = cmd.Process
+	cmd := exec.Command(app.location)
+	cmd.Dir = filepath.Dir(app.location)
 	app.launched = true
-	go asyncRun(app.packageId, cmd)
+	go asyncRun(app, cmd)
 	return nil
 }
 
-func (app *AppConnect) forceTerminate() error {
+func (app *AppConnect) ForceTerminate() error {
 	app.launched = false
-	return app.process.Kill()
+	if app.process != nil {
+		if err := app.process.Kill(); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
-func asyncRun(packageId string, cmd *exec.Cmd) {
-	if err := cmd.Run(); err != nil {
-		log.Println("ERROR ", err)
+// this terminate the app naturally
+func (app *AppConnect) Terminate() error {
+	_, err := app.BroadcastToApp(constants.APP_TERMINATE, nil)
+	if err != nil {
+		return err
 	}
-	delete(running, packageId)
+	return nil
+}
+
+func asyncRun(app *AppConnect, cmd *exec.Cmd) {
+	defer delete(running, app.packageId)
+	var buffer bytes.Buffer
+	cmd.Stdout = &buffer
+	cmd.Stderr = &buffer
+	if err := cmd.Start(); err != nil {
+		log.Println("ERROR launching "+app.packageId, err)
+		return
+	}
+	app.process = cmd.Process
+	if err := cmd.Wait(); err != nil {
+		defer log.Println("ERROR launching "+app.packageId, err)
+	}
+	println(app.packageId, "\n", buffer.String())
 }

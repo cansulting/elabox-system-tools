@@ -9,18 +9,19 @@ import (
 	"time"
 )
 
-var running bool = true
-
 func main() {
 	commandline := false
 	if len(os.Args) > 1 {
 		commandline = true
 	}
 
-	global.Initialize()
+	//global.Initialize()
 	servicecenter.Initialize(commandline)
 	defer servicecenter.Close()
-	appman.Initialize(commandline)
+	if err := appman.Initialize(commandline); err != nil {
+		log.Panicln("installer failed to initialize " + err.Error())
+		return
+	}
 
 	// process commandlines
 	if commandline {
@@ -32,21 +33,22 @@ func main() {
 				dir := os.Args[2]
 				data, err := appman.RegisterPackageSrc(dir)
 				if err != nil {
-					log.Panicln(err)
+					log.Fatalln(err.Error())
 					return
 				}
 				log.Println("Success, ", data.PackageId, "was registered!")
 				return
 			}
-			log.Panicln("Requires path to package installation dir")
+			log.Fatalln("Requires path to package installation dir")
 		default:
-			log.Panicln("Unsupported command " + command)
+			log.Fatalln("Unsupported command " + command)
 		}
 		return
 	}
 
 	// this runs the server
-	for running {
+	for global.Running {
 		time.Sleep(time.Second * 1)
 	}
+	log.Println("System termination")
 }

@@ -3,9 +3,11 @@ package records
 import (
 	"database/sql"
 	"ela/foundation/app/data"
+	"ela/foundation/errors"
 )
 
-func RetrievePackageRows(packageId string, columns []string) (*sql.Rows, error) {
+// retrieve all packages
+func RetrievePackagesRaw(packageId string, columns []string) (*sql.Rows, error) {
 	columnsStr := "*"
 	if len(columns) > 0 {
 		columnsStr = ""
@@ -20,26 +22,24 @@ func RetrievePackageRows(packageId string, columns []string) (*sql.Rows, error) 
 	if packageId != "" {
 		query += ` where id = ?`
 	}
-	stmt, err := db.Prepare(query)
-	if err != nil {
-		return nil, err
-	}
 
 	var row *sql.Rows
+	var err error
 	if packageId != "" {
-		row, err = stmt.Query(packageId)
+		row, err = selectQuery(query, packageId)
 	} else {
-		row, err = stmt.Query()
+		row, err = selectQuery(query)
 	}
 	if err != nil {
-		return nil, err
+		return nil, errors.SystemNew("records.RetrievePackagesRaw failed to retrieve packages ", err)
 	}
 
 	return row, nil
 }
 
-func RetrievePackage(id string) ([]*data.PackageConfig, error) {
-	row, err := RetrievePackageRows(id, []string{"id, source, name"})
+// retrieve all packages
+func RetrievePackages(id string) ([]*data.PackageConfig, error) {
+	row, err := RetrievePackagesRaw(id, []string{"id, source, name, location"})
 	if err != nil {
 		return nil, err
 	}
@@ -47,40 +47,30 @@ func RetrievePackage(id string) ([]*data.PackageConfig, error) {
 	results := make([]*data.PackageConfig, 0, 10)
 	if row.Next() {
 		pk := data.DefaultPackage()
-		row.Scan(&pk.PackageId, &pk.Source, &pk.InstallLocation)
+		row.Scan(&pk.PackageId, &pk.Source, &pk.Name, &pk.InstallLocation)
 		results = append(results, pk)
 	}
 	return results, nil
 }
 
+// add package data to db
 func AddPackage(pkData *data.PackageConfig) error {
 	query := `
 		replace into 
-		packages(id, location, build, version, has_service, has_activity, name, desc, source) 
-		values(?,?,?,?,?,?,?,?,?)`
-	stmt, err := db.Prepare(query)
-	if err != nil {
-		return err
-	}
-	hasService := 0
-	hasActivity := 0
-	if len(pkData.Services) > 0 {
-		hasService = 1
-	}
-	res, err := stmt.Exec(
+		packages(id, location, build, version, name, desc, source) 
+		values(?,?,?,?,?,?,?)`
+	err := executeQuery(
+		query,
 		pkData.PackageId,
 		pkData.InstallLocation,
 		pkData.Build,
 		pkData.Version,
-		hasService,
-		hasActivity,
 		pkData.Name,
 		pkData.Description,
 		pkData.Source,
 	)
 	if err != nil {
-		return err
+		return errors.SystemNew("records.AddPackage Failed to add "+pkData.PackageId, err)
 	}
-	println(res)
 	return nil
 }

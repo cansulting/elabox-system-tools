@@ -54,6 +54,10 @@ func GetAppMain(packageId string, external bool) string {
 	}
 }
 
+func GetCacheDir() string {
+	return PATH_CACHES
+}
+
 // return true if external is exist
 func HasExternal() bool {
 	return true

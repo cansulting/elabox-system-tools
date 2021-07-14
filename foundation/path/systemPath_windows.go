@@ -1,66 +1,61 @@
 package path
 
-import (
-	"os"
-)
-
 func GetSystemApp() string {
-	path, _ := os.Getwd()
-	path += "/../../builds"
-	path += "/ela/system/apps"
+	path := "C:"
+	path += "\\ela\\system\\apps"
 	return path
 }
 
 func GetExternalApp() string {
-	path, _ := os.Getwd()
-	path += "/../../builds"
-	path += "/ela/external/apps"
+	path := "c:"
+	path += "\\ela\\external\\apps"
 	return path
 }
 
 func GetSystemWWW() string {
-	path, _ := os.Getwd()
-	path += "/../../builds"
-	path += "/ela/system/www"
+	path := "c:"
+	path += "\\ela\\system\\www"
 	return path
 }
 
 func GetExternalWWW() string {
-	path, _ := os.Getwd()
-	path += "/../../builds"
-	path += "/ela/external/www"
+	path := "c:"
+	path += "\\ela\\external\\www"
 	return path
 }
 
 // return path for system backup
 func GetDefaultBackupPath() string {
-	path, _ := os.Getwd()
-	path += "/../../builds"
-	path += "/ela/system/backup"
+	path := "c:"
+	path += "\\ela\\system\\backup"
 	return path
 }
 
 func GetSystemAppData(packageId string) string {
-	path, _ := os.Getwd()
-	path += "/../../builds"
-	path += "/ela/system/data/" + packageId
+	path := "c:"
+	path += "\\ela\\system\\data\\" + packageId
 	return path
 }
 
 func GetExternalAppData(packageId string) string {
-	path, _ := os.Getwd()
-	path += "/../../builds"
-	path += "/ela/external/data/" + packageId
+	path := "c:"
+	path += "\\ela\\external\\data\\" + packageId
 	return path
 }
 
 // get the app main executable
 func GetAppMain(packageId string, external bool) string {
 	if external {
-		return GetExternalApp() + "/" + packageId + "/main.exe"
+		return GetExternalApp() + "\\" + packageId + "\\main.exe"
 	} else {
-		return GetSystemApp() + "/" + packageId + "/main.exe"
+		return GetSystemApp() + "\\" + packageId + "\\main.exe"
 	}
+}
+
+func GetCacheDir() string {
+	path := "c:"
+	path += "\\ela\\caches"
+	return path
 }
 
 // return true if external is exist
