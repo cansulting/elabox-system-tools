@@ -1,21 +1,30 @@
 package app
 
 import (
+	"ela/foundation/app/service"
 	"ela/foundation/event/data"
 )
 
-type DummySystemService struct {
+type DummyRPC struct {
 	pending data.ActionGroup
 }
 
-func NewDummy(pendingActions data.ActionGroup) *DummySystemService {
-	return &DummySystemService{pending: pendingActions}
+func NewDummy(pendingActions data.ActionGroup) *DummyRPC {
+	return &DummyRPC{pending: pendingActions}
 }
 
-func (t *DummySystemService) RequestFor(action data.Action) (*data.Response, error) {
+func (t *DummyRPC) Call(packageId string, action data.Action) (*data.Response, error) {
 	return &data.Response{Value: t.pending.ToJson()}, nil
 }
 
-func (t *DummySystemService) Disconnect() error {
+func (t *DummyRPC) CallSystem(action data.Action) (*data.Response, error) {
+	return &data.Response{Value: t.pending.ToJson()}, nil
+}
+
+func (t *DummyRPC) OnRecieved(event string, onServiceResponse service.ServiceDelegate) {
+
+}
+
+func (t *DummyRPC) Disconnect() error {
 	return nil
 }

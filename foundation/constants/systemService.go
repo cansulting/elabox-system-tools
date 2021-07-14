@@ -14,7 +14,7 @@ const ACTION_SUBSCRIBE = "ela.system.SUBSCRIBE"
 app/service/action will broadcast an action to all listening app via service center.
 Check Service Center for references.
 */
-const ACTION_BROADCAST = "ela.system.BROADCAST"
+const SYSTEM_BROADCAST = "ela.system.BROADCAST"
 
 /*
 app/service/action will start an activity.
@@ -24,17 +24,8 @@ const ACTION_START_ACTIVITY = "ela.system.START_ACTIVITY"
 // system will be in update mode. all system will be terminated and only commandline will be available
 const SYSTEM_UPDATE_MODE = "ela.system.UPDATE"
 
-/*
-servive is ready to serve
-*/
-const SERVICE_OPEN = "ela.system.service.OPEN"
-
-/*
-unregisters a service. After the service is removed, it will not be executed upon
-system initialization.
-Check Service Center for references.
-*/
-const SERVICE_CLOSE = "ela.system.service.CLOSE"
+// called when an activity returns a result
+const SYSTEM_ACTIVITY_RESULT = "ela.system.ACTIVITY_RESULT"
 
 /*
 service state was changed. usually contains the state integer value.

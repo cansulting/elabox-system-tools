@@ -15,6 +15,7 @@ const PATH_APPDATA = PATH_HOME + "/data"           // where non system bin/apps 
 const PATH_DOWNLOADS = PATH_APPDATA + "/downloads" // where downloaded files will be stored
 const PATH_SYSTEM_WWW = "/usr/www"
 const PATH_EXTERNAL_WWW = PATH_HOME + "/www"
+const MAIN_EXEC_NAME = "main"
 
 func GetSystemApp() string {
 	return PATH_SYSTEM

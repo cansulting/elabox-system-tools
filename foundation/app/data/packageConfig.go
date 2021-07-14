@@ -4,29 +4,34 @@ import (
 	"archive/zip"
 	"ela/foundation/constants"
 	"ela/foundation/errors"
+	"ela/foundation/path"
 	"encoding/json"
 	"io"
 	"io/ioutil"
 	"os"
 )
 
+const SYSTEM = "system"
+const EXTERNAL = "external"
+
 type PackageConfig struct {
-	Name             string            `json:"name"`
-	Description      string            `json:"description"`
-	PackageId        string            `json:"packageId"`      // company.package
-	Build            int16             `json:"build"`          // major.minor.patch
-	Version          string            `json:"version"`        // current version
-	Permissions      []string          `json:"permissions"`    // declared actions to be called inside the app
-	Services         map[string]string `json:"services"`       // if app has a service. this contains definition of commands available to service
-	Activities       []string          `json:"activities"`     // if app has activity. this contains definition of actions that will triggerr activity
-	BroacastListener []string          `json:"actionListener"` // defined actions which action listener will listen to
-	InstallLocation  string            `json:"location"`       // which location the package will be installed
-	Source           string            `json:"-"`              // the source location
-	Restart          bool              `json:"restart"`        // if true system restart upon installation
+	Name             string   `json:"name"`
+	Description      string   `json:"description"`
+	PackageId        string   `json:"packageId"`      // company.package
+	Build            int16    `json:"build"`          // major.minor.patch
+	Version          string   `json:"version"`        // current version
+	Permissions      []string `json:"permissions"`    // declared actions to be called inside the app
+	ExportServices   bool     `json:"exportService"`  // true if the package contains services
+	Activities       []string `json:"activities"`     // if app has activity. this contains definition of actions that will triggerr activity
+	BroacastListener []string `json:"actionListener"` // defined actions which action listener will listen to
+	InstallLocation  string   `json:"location"`       // which location the package will be installed
+	Source           string   `json:"-"`              // the source location
+	Restart          bool     `json:"restart"`        // if true system restart upon installation
+	//Services         map[string]string `json:"services"`       // if app has a service. this contains definition of commands available to service
 }
 
 func DefaultPackage() *PackageConfig {
-	return &PackageConfig{InstallLocation: "external", Restart: false}
+	return &PackageConfig{InstallLocation: EXTERNAL, Restart: false}
 }
 
 func (c *PackageConfig) LoadFromSrc(src string) error {
@@ -55,16 +60,28 @@ func (c *PackageConfig) LoadFromBytes(bytes []byte) error {
 	return json.Unmarshal(bytes, &c)
 }
 
+// use to check if this package is valid
 func (c *PackageConfig) IsValid() bool {
 	return c.PackageId != ""
 }
 
+// returns true if this package is part of the system
 func (c *PackageConfig) IsSystemPackage() bool {
-	return c.InstallLocation == "system"
+	return c.InstallLocation == SYSTEM
+}
+
+// if current locatio is external. move it to system
+func (c *PackageConfig) ChangeToSystemLocation() {
+	c.InstallLocation = SYSTEM
+}
+
+// return true is this package contains services
+func (c *PackageConfig) HasServices() bool {
+	return c.ExportServices
 }
 
 // load package info from zip
-func (c *PackageConfig) LoadFromPackage(source string) error {
+func (c *PackageConfig) LoadFromZipPackage(source string) error {
 	reader, err := zip.OpenReader(source)
 	if err != nil {
 		return errors.SystemNew("Load Package error. @"+source, err)
@@ -89,4 +106,25 @@ func (c *PackageConfig) LoadFromZipFiles(files []*zip.File) error {
 		break
 	}
 	return nil
+}
+
+// return where this package should be installed
+func (c *PackageConfig) GetInstallDir() string {
+	if c.InstallLocation == SYSTEM || !path.HasExternal() {
+		return path.GetSystemApp() + "/" + c.PackageId
+	} else {
+		return path.GetExternalApp() + "/" + c.PackageId
+	}
+}
+
+func (c *PackageConfig) GetDataDir() string {
+	if c.InstallLocation == SYSTEM || !path.HasExternal() {
+		return path.GetSystemAppData(c.PackageId)
+	} else {
+		return path.GetExternalAppData(c.PackageId)
+	}
+}
+
+func (c *PackageConfig) GetMainExec() string {
+	return path.GetAppMain(c.PackageId, c.InstallLocation == EXTERNAL)
 }

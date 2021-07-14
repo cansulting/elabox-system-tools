@@ -13,7 +13,7 @@ import (
 	"ela/foundation/errors"
 	event "ela/foundation/event"
 	"ela/foundation/event/data"
-	eventp "ela/foundation/event/protocol"
+	protocolE "ela/foundation/event/protocol"
 	"log"
 	"time"
 )
@@ -22,7 +22,7 @@ import (
 
 func RunApp(app *Controller) error {
 	// start the app
-	if err := app.OnStart(); err != nil {
+	if err := app.onStart(); err != nil {
 		return err
 	}
 	log.Println("App is now running")
@@ -32,7 +32,7 @@ func RunApp(app *Controller) error {
 	}
 
 	defer log.Println("App exit")
-	return app.OnEnd()
+	return app.onEnd()
 }
 
 //////////////////////// CONTROLLER DEFINITION /////////////////////////////
@@ -52,12 +52,11 @@ func NewController(
 }
 
 type Controller struct {
-	AppService    protocol.ServiceInterface // current service for this app
-	Activity      protocol.ActivityInterface
-	SystemService service.IConnection // connection to system service. system service handles system main operation like app registration
-	Connector     eventp.ConnectorClient
-	Config        *appd.PackageConfig
-	forceEnd      bool
+	AppService protocol.ServiceInterface // current service for this app
+	Activity   protocol.ActivityInterface
+	RPC        service.RPCInterface //
+	Config     *appd.PackageConfig
+	forceEnd   bool
 }
 
 // true if this app is running
@@ -75,28 +74,21 @@ func (m *Controller) IsRunning() bool {
 }
 
 // callback when this app was started
-func (m *Controller) OnStart() error {
+func (m *Controller) onStart() error {
 	log.Println("app.Controller: Starting App", m.Config.PackageId)
 	// step: init connector
-	m.Connector = event.CreateClientConnector()
-	err := m.Connector.Open(-1)
+	connector := event.CreateClientConnector()
+	err := connector.Open(-1)
 	if err != nil {
 		return errors.SystemNew("Controller: Failed to start. Couldnt create client connector.", err)
 	}
-	// step: create service center connection
-	if m.SystemService == nil {
-		m.SystemService, err = service.NewConnection(
-			m.Connector,
-			constants.SYSTEM_SERVICE_ID,
-			m.onSystemServiceResponse,
-		)
-		if err != nil {
-			return errors.SystemNew(
-				"Controller: Failed to start. Couldnt connect to service "+constants.SYSTEM_SERVICE_ID, err)
-		}
+	// step: create RPC
+	if m.RPC == nil {
+		m.RPC = service.NewRPCHandler(connector)
+		m.RPC.OnRecieved(constants.APP_TERMINATE, m.onTerminate)
 	}
 	// step: send running state
-	res, err := m.SystemService.RequestFor(
+	res, err := m.RPC.CallSystem(
 		data.NewAction(
 			constants.APP_CHANGE_STATE,
 			m.Config.PackageId,
@@ -106,13 +98,14 @@ func (m *Controller) OnStart() error {
 	}
 	log.Println("controller.OnStart() pendingActions =", res)
 	pendingActions := res.ToActionGroup()
-	// step: start service and activity
+	// step: initialize service
 	if m.AppService != nil {
 		log.Println("app.Controller: OnStart", "Service")
 		if err := m.AppService.OnStart(); err != nil {
 			return errors.SystemNew("app.Controller couldnt start app service", err)
 		}
 	}
+	// step: initialize activity
 	if m.Activity != nil {
 		log.Println("app.Controller: OnStart", "Activity")
 		if err := m.Activity.OnStart(pendingActions.Activity); err != nil {
@@ -123,11 +116,11 @@ func (m *Controller) OnStart() error {
 }
 
 // callback when this app ended
-func (m *Controller) OnEnd() error {
+func (m *Controller) onEnd() error {
 	log.Println("Controller: OnEnd")
 	if m.forceEnd {
 		// step: send stop state for application
-		_, err := m.SystemService.RequestFor(
+		_, err := m.RPC.CallSystem(
 			data.NewAction(
 				constants.APP_CHANGE_STATE,
 				m.Config.PackageId,
@@ -158,7 +151,7 @@ func (c *Controller) End() {
 // use to start an  from other applications
 func (m *Controller) StartActivity(action data.Action) error {
 	log.Println("Controller:StartActivity", action.Id)
-	res, err := m.SystemService.RequestFor(data.NewAction(constants.ACTION_START_ACTIVITY, "", action))
+	res, err := m.RPC.CallSystem(data.NewAction(constants.ACTION_START_ACTIVITY, "", action))
 	if err != nil {
 		return err
 	}
@@ -166,9 +159,20 @@ func (m *Controller) StartActivity(action data.Action) error {
 	return nil
 }
 
-func (c *Controller) onSystemServiceResponse(msg string, data interface{}) {
-	switch msg {
-	case constants.APP_TERMINATE:
-		c.End()
+// use to return result to the caller of this app
+func (c *Controller) SetActivityResult(val interface{}) {
+	res, err := c.RPC.CallSystem(data.NewAction(constants.SYSTEM_ACTIVITY_RESULT, c.Config.PackageId, val))
+	if err != nil {
+		log.Println("SetActivityResult() response failure", err.Error())
+		return
 	}
+	if res != nil {
+		log.Println("SetActivityResult() response ", res.ToString())
+	}
+}
+
+// callback from system. this app will be terminated
+func (c *Controller) onTerminate(client protocolE.ClientInterface, data data.Action) string {
+	c.End()
+	return ""
 }

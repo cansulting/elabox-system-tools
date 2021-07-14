@@ -1,5 +1,7 @@
 package path
 
+const MAIN_EXEC_NAME = "main.exe"
+
 func GetSystemApp() string {
 	path := "C:"
 	path += "\\ela\\system\\apps"
@@ -46,9 +48,9 @@ func GetExternalAppData(packageId string) string {
 // get the app main executable
 func GetAppMain(packageId string, external bool) string {
 	if external {
-		return GetExternalApp() + "\\" + packageId + "\\main.exe"
+		return GetExternalApp() + "\\" + packageId + "\\" + MAIN_EXEC_NAME
 	} else {
-		return GetSystemApp() + "\\" + packageId + "\\main.exe"
+		return GetSystemApp() + "\\" + packageId + "\\" + MAIN_EXEC_NAME
 	}
 }
 

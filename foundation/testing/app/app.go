@@ -6,6 +6,6 @@ import (
 )
 
 func RunTestApp(controller *_app.Controller, pendingAction data.ActionGroup) {
-	controller.SystemService = NewDummy(pendingAction)
+	controller.RPC = NewDummy(pendingAction)
 	_app.RunApp(controller)
 }
