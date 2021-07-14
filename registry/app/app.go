@@ -34,7 +34,7 @@ func RegisterPackage(pkData *data.PackageConfig) error {
 	log.Println("Registering package " + pkData.PackageId)
 	query := `
 		replace into 
-		packages(id, location, build, version, name, desc, source) 
+		packages(id, location, build, version, name, desc, source, nodejs) 
 		values(?,?,?,?,?,?,?)`
 	err := util.ExecuteQuery(
 		query,
@@ -45,6 +45,7 @@ func RegisterPackage(pkData *data.PackageConfig) error {
 		pkData.Name,
 		pkData.Description,
 		pkData.Source,
+		pkData.Nodejs,
 	)
 	if err != nil {
 		return errors.SystemNew("records.AddPackage Failed to add "+pkData.PackageId, err)

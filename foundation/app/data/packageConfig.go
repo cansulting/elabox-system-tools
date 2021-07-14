@@ -26,12 +26,13 @@ type PackageConfig struct {
 	BroacastListener []string `json:"actionListener"` // defined actions which action listener will listen to
 	InstallLocation  string   `json:"location"`       // which location the package will be installed
 	Source           string   `json:"-"`              // the source location
-	Restart          bool     `json:"restart"`        // if true system restart upon installation
+	Nodejs           bool     `json:"nodejs"`         // true if this package includes node js
+	//Restart          bool     `json:"restart"`        // if true system restart upon installation
 	//Services         map[string]string `json:"services"`       // if app has a service. this contains definition of commands available to service
 }
 
 func DefaultPackage() *PackageConfig {
-	return &PackageConfig{InstallLocation: EXTERNAL, Restart: false}
+	return &PackageConfig{InstallLocation: EXTERNAL /*, Restart: false*/}
 }
 
 func (c *PackageConfig) LoadFromSrc(src string) error {
