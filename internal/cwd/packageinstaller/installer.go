@@ -4,18 +4,13 @@ import (
 	"archive/zip"
 	"bytes"
 	"ela/foundation/app/data"
-	"ela/foundation/app/service"
 	"ela/foundation/constants"
 	"ela/foundation/errors"
-	"ela/foundation/event"
-	eventd "ela/foundation/event/data"
 	"ela/foundation/path"
+	"ela/registry/app"
 	"io"
 	"log"
 	"os"
-	"os/exec"
-	"path/filepath"
-	"time"
 )
 
 /*
@@ -25,12 +20,9 @@ import (
 type installer struct {
 	backup        *Backup             // backup instance
 	BackupEnabled bool                // true if instance will create a backup for replaced files
-	SilentInstall bool                // true if will install via command line false if uses actions and broadcast to others
 	PackageInfo   *data.PackageConfig // package info for installer
 	subinstaller  []*installer        // list of subpackages/subinstaller
 }
-
-var isSystemStopped bool = false
 
 // use to uncompress the file to target
 func (instance *installer) Decompress(sourceFile string) error {
@@ -57,8 +49,11 @@ func (instance *installer) decompressFromReader(files []*zip.File) error {
 	if !instance.PackageInfo.IsValid() {
 		return errors.SystemNew("installer.decompressFromReader invalid package info", nil)
 	}
-
-	log.Println("installer:start installing ", packageInfo.PackageId, "silent=", instance.SilentInstall)
+	// step: delete the package first
+	if err := deletePackage(packageInfo.PackageId, false); err != nil {
+		return err
+	}
+	log.Println("installer:start installing ", packageInfo.PackageId, "silent=")
 	// step: init install location and filters
 	appInstallPath, wwwInstallPath := _getInstallLocation(packageInfo)
 	filters := []filter{
@@ -135,10 +130,12 @@ func (instance *installer) decompressFromReader(files []*zip.File) error {
 	return nil
 }
 
+// initialize directories
 func (t *installer) initializeAppDirs() {
 	dataDir := path.GetExternalAppData(t.PackageInfo.PackageId)
 	if t.PackageInfo.IsSystemPackage() || !path.HasExternal() {
 		dataDir = path.GetSystemAppData(t.PackageInfo.PackageId)
+		t.PackageInfo.ChangeToSystemLocation()
 	}
 	if err := os.MkdirAll(dataDir, 0740); err != nil {
 		log.Println("installer.initializeAppDirs failed", err)
@@ -159,7 +156,7 @@ func _getInstallLocation(packageInfo *data.PackageConfig) (string, string) {
 
 // callback when theres a subpackage
 func (t *installer) _onSubPackage(path string, reader io.ReadCloser, size uint64) error {
-	subPackage := installer{SilentInstall: t.SilentInstall}
+	subPackage := installer{}
 	// step: convert buffer to zip reader
 	newBuffer := bytes.NewBuffer([]byte{})
 	written, err := io.Copy(newBuffer, reader)
@@ -200,40 +197,8 @@ func (instance *installer) createBackupFor(src string) error {
 
 // start registering the package and sub packages
 func (t *installer) RegisterPackage() error {
-	log.Println("Registering package " + t.PackageInfo.PackageId)
-	// silent install means register via service
-	if !t.SilentInstall {
-		res, err := appController.SystemService.RequestFor(eventd.Action{})
-		if err != nil {
-			return errors.SystemNew("Couldnt register package ", err)
-		}
-		log.Println(res)
-	} else {
-		//register via commandline
-		systemServiceSrc := path.GetAppMain(constants.SYSTEM_SERVICE_ID, false)
-		// check if main bin exist on path
-		if _, err := os.Stat(systemServiceSrc); err != nil {
-			log.Println("Registration skip for ", t.PackageInfo.PackageId, " System service not found @", systemServiceSrc)
-			return nil
-		}
-		// run package registration
-		isExternal := !t.PackageInfo.IsSystemPackage()
-		installDir := path.GetExternalApp() + "/" + t.PackageInfo.PackageId
-		mainExec := path.GetAppMain(t.PackageInfo.PackageId, isExternal)
-		if !isExternal {
-			installDir = path.GetSystemApp() + "/" + t.PackageInfo.PackageId
-		}
-		// check if theres a binary then register
-		if _, err := os.Stat(mainExec); err == nil {
-			cmd := exec.Command(systemServiceSrc, "package-reg", installDir)
-			output, err := cmd.CombinedOutput()
-			log.Println(string(output))
-			if err != nil {
-				return errors.SystemNew("installer.RegisterPackage failed", err)
-			}
-		} else {
-			log.Println("Registration skipped for", t.PackageInfo.PackageId, "executable not found")
-		}
+	if err := app.RegisterPackage(t.PackageInfo); err != nil {
+		return err
 	}
 	// register subpackages
 	for _, subinstall := range t.subinstaller {
@@ -252,47 +217,4 @@ func (instance *installer) _closeBackup() {
 			log.Println(err.Error())
 		}
 	}
-}
-
-// use to turn off the system
-func (instance *installer) TerminateSystem() error {
-	// step: connect to system
-	var systemService service.IConnection
-	if appController == nil || appController.Connector == nil {
-		connector := event.CreateClientConnector()
-		if err := connector.Open(TERMINATE_TIMEOUT); err != nil {
-			return errors.SystemNew("Failed to terminate system. Unable to connect to system via connector.", err)
-		}
-		var err error
-		systemService, err = service.NewConnection(
-			connector,
-			constants.SYSTEM_SERVICE_ID,
-			func(message string, data interface{}) {
-
-			})
-		if err != nil {
-			return errors.SystemNew("Failed to terminate system. Unable to connect to system via connector.", err)
-		}
-	} else {
-		systemService = appController.SystemService
-	}
-	// step: send update mode
-	response, err := systemService.RequestFor(eventd.Action{Id: constants.SYSTEM_UPDATE_MODE})
-	if err != nil {
-		return errors.SystemNew("Failed to terminate system. Unable to connect to system via connector.", err)
-	}
-	log.Println("System Will Start Update mode", response.ToString())
-	return nil
-}
-
-func (instance *installer) RestartSystem() error {
-	systemPath := path.GetAppMain(constants.SYSTEM_SERVICE_ID, false)
-	cmd := exec.Command(systemPath)
-	cmd.Dir = filepath.Dir(systemPath)
-	if err := cmd.Start(); err != nil {
-		return errors.SystemNew("Restart system failed", err)
-	}
-	time.Sleep(time.Second * 3)
-	os.Exit(0)
-	return nil
 }
