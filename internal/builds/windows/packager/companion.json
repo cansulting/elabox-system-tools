@@ -1,0 +1,10 @@
+{
+    "cwd": "",
+    "config": "../packageConfig/companion.json",
+    "binDir": "",
+    "bin": "",
+    "packages": [],
+    "www": "../www/companion",
+    "customInstaller": "",
+    "nodejs": ""
+}

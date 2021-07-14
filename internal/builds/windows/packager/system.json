@@ -1,0 +1,8 @@
+{
+    "cwd": "",
+    "config": "../packageConfig/system.json",
+    "binDir": "",
+    "bin": "../bins/system.exe",
+    "packages": ["ela.installer.ela", "ela.companion.ela"],
+    "customInstaller": "../bins/packageinstaller.exe"
+}

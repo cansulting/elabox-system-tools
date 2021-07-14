@@ -1,0 +1,9 @@
+{
+    "name": "Ela Companion",
+    "description": "Companion App",
+    "packageId": "ela.companion",
+    "version": "0.3.0",
+    "build": 1,
+    "location": "system",
+    "nodejs": true
+}
