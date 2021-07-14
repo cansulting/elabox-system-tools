@@ -1,7 +1,9 @@
 package appman
 
 import (
+	"ela/foundation/event/data"
 	"ela/foundation/event/protocol"
+	registry "ela/registry/app"
 	"log"
 )
 
@@ -13,27 +15,32 @@ func GetAllRunningApps() map[string]*AppConnect {
 }
 
 // use to run process for specific package. return true if success, false if already running
-func getAppConnect(packageId string, client protocol.ClientInterface) *AppConnect {
+func GetAppConnect(packageId string, client protocol.ClientInterface) *AppConnect {
 	app, ok := running[packageId]
 
 	// is already running? return false
 	if ok {
-		if app.client == nil {
-			app.client = client
+		if client != nil {
+			app.Client = client
 		}
 		return app
 	}
-	pk, _ := RetrievePackage(packageId)
+	// retrieve if already exist
+	pk, _ := registry.RetrievePackage(packageId)
 	if pk == nil {
 		return nil
 	}
-	app = newAppConnect(pk)
-	app.client = client
+	// create service if exist
+	//var service *ServiceConnect = nil
+	//if pk.HasServices() {
+	//service = onServiceOpen(client, pk.PackageId)
+	//}
+	app = newAppConnect(pk, client)
 	running[packageId] = app
 	return app
 }
 
-func lookupAppConnect(packageId string) *AppConnect {
+func LookupAppConnect(packageId string) *AppConnect {
 	pk, ok := running[packageId]
 	// is already running? return false
 	if ok {
@@ -42,17 +49,30 @@ func lookupAppConnect(packageId string) *AppConnect {
 	return nil
 }
 
+// use to check if app is currently running or not
+func IsAppRunning(packageId string) bool {
+	app := LookupAppConnect(packageId)
+	if app == nil {
+		return false
+	}
+	return true
+}
+
 func RemoveAppConnect(packageId string, terminate bool) {
-	app := lookupAppConnect(packageId)
+	app := LookupAppConnect(packageId)
 	if app != nil {
 		if terminate {
 			if err := app.Terminate(); err != nil {
-				log.Println("appConnectManager.TerminateAllApp failed terminate "+app.packageId+". Trying force terminate.", err)
+				log.Println("appConnectManager.TerminateAllApp failed terminate "+app.PackageId+". Trying force terminate.", err)
 				if err := app.ForceTerminate(); err != nil {
 					log.Println("appConnectManager.TerminateAllApp failed force terminate ", err)
 				}
 			}
 		}
+		// close service
+		// if app.Service != nil {
+		// 	onServiceClose(packageId)
+		// }
 		delete(running, packageId)
 	}
 }
@@ -63,4 +83,19 @@ func TerminateAllApp() {
 	for pkid := range running {
 		RemoveAppConnect(pkid, true)
 	}
+}
+
+// this launches the activity
+func LaunchAppActivity(
+	packageId string,
+	caller protocol.ClientInterface,
+	pendingActivity data.Action) error {
+	// start launching the activity
+	app := GetAppConnect(packageId, nil)
+	app.PendingActions.AddPendingActivity(pendingActivity)
+	err := app.Launch()
+	if err != nil {
+		return err
+	}
+	return nil
 }

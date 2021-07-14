@@ -6,6 +6,8 @@ import (
 	"ela/foundation/event/data"
 	"ela/foundation/event/protocol"
 	"ela/internal/cwd/system/global"
+	"ela/internal/cwd/system/system_update"
+
 	"ela/registry/app"
 	"log"
 )
@@ -124,9 +126,14 @@ func processBroadcastAction(action data.Action) string {
 	return ""
 }
 
+// client requested to activate update mode
 func activateUpdateMode(client protocol.ClientInterface, action data.Action) string {
-	log.Println("appman.activateUpdateMode() started")
-	TerminateAllApp()
+	pkconfig, err := app.RetrievePackage(global.INSTALLER_PKG_ID)
+	if err != nil {
+		log.Println("Package retrieve error", err.Error())
+		return err.Error()
+	}
+	system_update.Start(action.DataToString(), pkconfig)
 	global.Running = false
 	return "success"
 }

@@ -1,7 +1,6 @@
 package servicecenter
 
 import (
-	"ela/foundation/constants"
 	"ela/foundation/event"
 	"ela/internal/cwd/system/global"
 )
@@ -20,14 +19,6 @@ func Initialize(commandline bool) {
 	}
 	global.Connector = event.CreateServerConnector()
 	global.Connector.Open()
-
-	// register this service
-	//RegisterService(constants.SYSTEM_SERVICE_ID, OnRecievedRequest)
-	// client wants to subscribe to action
-	global.Connector.Subscribe(constants.SERVICE_OPEN, onServiceOpen)
-	global.Connector.Subscribe(constants.SERVICE_CLOSE, onServiceClose)
-	global.Connector.Subscribe(constants.SERVICE_CHANGE_STATE, updateServiceState)
-
 	// start running all services
 }
 

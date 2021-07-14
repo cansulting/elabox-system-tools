@@ -18,41 +18,47 @@ import (
 	struct that connects that connects and communicate to specific app
 */
 type AppConnect struct {
-	location string
+	Location string
 	//Config         data.PackageConfig
-	pendingActions *eventd.ActionGroup
-	client         protocol.ClientInterface
-	packageId      string
+	PendingActions *eventd.ActionGroup
+	StartedBy      string                   // which package who started this app
+	Client         protocol.ClientInterface // socket who handles this app
+	PackageId      string                   // package id of this app
 	process        *os.Process
-	launched       bool // true if this app was launched
+	launched       bool       // true if this app was launched
+	RPC            *RPCBridge // not null if this is service provider
 }
 
-func newAppConnect(pk *data.PackageConfig) *AppConnect {
+func newAppConnect(
+	pk *data.PackageConfig,
+	client protocol.ClientInterface) *AppConnect {
 	return &AppConnect{
-		pendingActions: eventd.NewActionGroup(),
-		packageId:      pk.PackageId,
-		location:       path.GetAppMain(pk.PackageId, !pk.IsSystemPackage())}
+		PendingActions: eventd.NewActionGroup(),
+		PackageId:      pk.PackageId,
+		Location:       path.GetAppMain(pk.PackageId, !pk.IsSystemPackage()),
+		RPC:            NewRPCBridge(pk.PackageId, client, global.Connector),
+	}
 }
 
 // send pending actions
 func (app *AppConnect) sendPendingActions() error {
-	_, err := app.BroadcastToApp(constants.SERVICE_PENDING_ACTIONS, app.pendingActions)
+	_, err := app.RPCCall(constants.SERVICE_PENDING_ACTIONS, app.PendingActions)
 	if err == nil {
-		app.pendingActions.ClearAll()
+		app.PendingActions.ClearAll()
 	}
 	return err
 }
 
-func (app *AppConnect) BroadcastToApp(action string, data interface{}) (string, error) {
-	return global.Connector.BroadcastTo(app.client, action, eventd.NewAction(action, "", data))
+func (app *AppConnect) RPCCall(action string, data interface{}) (string, error) {
+	return app.RPC.Call(action, data), nil
 }
 
 func (app *AppConnect) Launch() error {
 	if app.launched {
 		return app.sendPendingActions()
 	}
-	cmd := exec.Command(app.location)
-	cmd.Dir = filepath.Dir(app.location)
+	cmd := exec.Command(app.Location)
+	cmd.Dir = filepath.Dir(app.Location)
 	app.launched = true
 	go asyncRun(app, cmd)
 	return nil
@@ -70,7 +76,7 @@ func (app *AppConnect) ForceTerminate() error {
 
 // this terminate the app naturally
 func (app *AppConnect) Terminate() error {
-	_, err := app.BroadcastToApp(constants.APP_TERMINATE, nil)
+	_, err := app.RPCCall(constants.APP_TERMINATE, nil)
 	if err != nil {
 		return err
 	}
@@ -78,17 +84,17 @@ func (app *AppConnect) Terminate() error {
 }
 
 func asyncRun(app *AppConnect, cmd *exec.Cmd) {
-	defer delete(running, app.packageId)
+	defer delete(running, app.PackageId)
 	var buffer bytes.Buffer
 	cmd.Stdout = &buffer
 	cmd.Stderr = &buffer
 	if err := cmd.Start(); err != nil {
-		log.Println("ERROR launching "+app.packageId, err)
+		log.Println("ERROR launching "+app.PackageId, err)
 		return
 	}
 	app.process = cmd.Process
 	if err := cmd.Wait(); err != nil {
-		defer log.Println("ERROR launching "+app.packageId, err)
+		defer log.Println("ERROR launching "+app.PackageId, err)
 	}
-	println(app.packageId, "\n", buffer.String())
+	println(app.PackageId, "\n", buffer.String())
 }
