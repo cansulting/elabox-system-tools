@@ -19,11 +19,11 @@ func main() {
 
 func load(path string) error {
 	log.Println("Ela Packager")
-	pkger := &Config{}
-	if err := pkger.LoadFrom(path); err != nil {
+	pkg := &Package{}
+	if err := pkg.LoadConfig(path); err != nil {
 		return err
 	}
-	if err := pkger.Compile("."); err != nil {
+	if err := pkg.Compile("."); err != nil {
 		return err
 	}
 	return nil
