@@ -51,6 +51,7 @@ func createPackageTable(db *sql.DB) error {
 		version varchar(10) not null,
 		source varchar(400) not null,
 		nodejs tinyint(1) not null,
+		exportService tinyint(1) not null
 	)`
 	stmt, err := db.Prepare(packageQuery)
 	if err != nil {

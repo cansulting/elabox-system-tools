@@ -15,6 +15,7 @@ func GetAllRunningApps() map[string]*AppConnect {
 }
 
 // use to run process for specific package. return true if success, false if already running
+// client: the app's client
 func GetAppConnect(packageId string, client protocol.ClientInterface) *AppConnect {
 	app, ok := running[packageId]
 
@@ -98,4 +99,24 @@ func LaunchAppActivity(
 		return err
 	}
 	return nil
+}
+
+func LaunchApp(packageId string,
+	caller protocol.ClientInterface) error {
+	app := GetAppConnect(packageId, nil)
+	return app.Launch()
+}
+
+// run all start up apps
+func InitializeStartups() {
+	log.Println("Services are starting up...")
+	pkgs, err := registry.RetrieveStartupPackages()
+	if err != nil {
+		log.Println(err)
+	}
+	for _, pkg := range pkgs {
+		if err := LaunchApp(pkg.PackageId, nil); err != nil {
+			log.Println(err)
+		}
+	}
 }

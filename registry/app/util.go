@@ -37,6 +37,33 @@ func retrievePackagesRaw(packageId string, columns []string) (*sql.Rows, error) 
 	return row, nil
 }
 
+func retrievePackagesWhere(columns []string, where string) (*sql.Rows, error) {
+	columnsStr := "*"
+	if len(columns) > 0 {
+		columnsStr = ""
+		for index, column := range columns {
+			columnsStr += column
+			if index < len(columns)-1 {
+				columnsStr += ","
+			}
+		}
+	}
+	query := `select ` + columnsStr + ` from packages`
+	if where != "" {
+		query += ` where ` + where
+	}
+
+	var row *sql.Rows
+	var err error
+	row, err = util.SelectQuery(query)
+
+	if err != nil {
+		return nil, errors.SystemNew("records.RetrievePackagesRaw failed to retrieve packages ", err)
+	}
+
+	return row, nil
+}
+
 func CloseDB() error {
 	return util.Db.Close()
 }

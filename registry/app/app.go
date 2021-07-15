@@ -34,8 +34,8 @@ func RegisterPackage(pkData *data.PackageConfig) error {
 	log.Println("Registering package " + pkData.PackageId)
 	query := `
 		replace into 
-		packages(id, location, build, version, name, desc, source, nodejs) 
-		values(?,?,?,?,?,?,?)`
+		packages(id, location, build, version, name, desc, source, nodejs, exportService) 
+		values(?,?,?,?,?,?,?,?,?)`
 	err := util.ExecuteQuery(
 		query,
 		pkData.PackageId,
@@ -46,6 +46,7 @@ func RegisterPackage(pkData *data.PackageConfig) error {
 		pkData.Description,
 		pkData.Source,
 		pkData.Nodejs,
+		pkData.ExportServices,
 	)
 	if err != nil {
 		return errors.SystemNew("records.AddPackage Failed to add "+pkData.PackageId, err)
@@ -82,4 +83,22 @@ func RetrievePackage(id string) (*data.PackageConfig, error) {
 
 func RetrievePackagesWithActivity(action string) ([]string, error) {
 	return RetrievePackagesForActivity(action)
+}
+
+// retrieve all packages that needs to execute upon startup
+func RetrieveStartupPackages() ([]*data.PackageConfig, error) {
+	row, err := retrievePackagesWhere(
+		[]string{"id, source, name, location"},
+		"nodejs = 1 || exportService = 1")
+	if err != nil {
+		return nil, err
+	}
+	defer row.Close()
+	results := make([]*data.PackageConfig, 0, 10)
+	if row.Next() {
+		pk := data.DefaultPackage()
+		row.Scan(&pk.PackageId, &pk.Source, &pk.Name, &pk.InstallLocation, &pk.Nodejs, &pk.ExportServices)
+		results = append(results, pk)
+	}
+	return results, nil
 }
