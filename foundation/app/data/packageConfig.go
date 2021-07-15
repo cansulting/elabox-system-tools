@@ -13,6 +13,7 @@ import (
 
 const SYSTEM = "system"
 const EXTERNAL = "external"
+const NODE_JS = "nodejs"
 
 type PackageConfig struct {
 	Name             string   `json:"name"`
@@ -38,7 +39,7 @@ func DefaultPackage() *PackageConfig {
 func (c *PackageConfig) LoadFromSrc(src string) error {
 	bytes, err := os.ReadFile(src)
 	if err != nil {
-		return &PackageConfigError{propertyError: "Error loading package. " + err.Error()}
+		return &PackageConfigError{propertyError: "Error loading package." + err.Error()}
 
 	}
 	c.Source = src
@@ -126,6 +127,14 @@ func (c *PackageConfig) GetDataDir() string {
 	}
 }
 
+func (c *PackageConfig) GetNodejsDir() string {
+	return c.GetInstallDir() + "/" + NODE_JS
+}
+
 func (c *PackageConfig) GetMainExec() string {
 	return path.GetAppMain(c.PackageId, c.InstallLocation == EXTERNAL)
+}
+
+func (c *PackageConfig) GetLibraryDir() string {
+	return path.GetLibPath() + "/" + c.PackageId
 }
