@@ -60,6 +60,11 @@ func GetCacheDir() string {
 	return path
 }
 
+func GetLibPath() string {
+	path := "c:"
+	path += "\\ela\\lib"
+}
+
 // return true if external is exist
 func HasExternal() bool {
 	return true

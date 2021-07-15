@@ -1,5 +1,21 @@
 Scripts to perform various build, install, analysis, etc operations.
 
-These scripts keep the root level Makefile small and simple (e.g., https://github.com/hashicorp/terraform/blob/master/Makefile).
+For Windows:
+Enable WSL for windows
+NOTE: run under wsl environment
+Install Go for WSL
+    sudo nano /etc/profile
+    append to export path to end of file
+    source /etc/profile
+For Arm64 Linux install this:
+    sudo apt install gcc-aarch64-linux-gnu
+For Other linux arch install this:
+    sudo apt install gcc-multilib -y  // extra libraries for other arch
+    sudo apt install x86_64-linux-gnu-gcc // for amd
+For windows x86 x64 install this:
+    sudo apt-get install gcc-mingw-w64
+Execute this to build:
+    cd <this working dir>/build
+    export ELA_COMPANION=<path to your ela companion>
+    source ./windows.sh -o=<can linux/windows/macos> -a=<can be arm64/arm64>
 
-See the /scripts directory for examples.

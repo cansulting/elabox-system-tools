@@ -3,6 +3,6 @@
     "config": "../packageConfig/system.json",
     "binDir": "",
     "bin": "../bins/system",
-    "packages": ["ela.installer.ela"],
+    "packages": ["ela.installer.box"],
     "customInstaller": "../bins/packageinstaller"
 }

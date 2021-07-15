@@ -16,6 +16,7 @@ const PATH_DOWNLOADS = PATH_APPDATA + "/downloads" // where downloaded files wil
 const PATH_SYSTEM_WWW = "/usr/www"
 const PATH_EXTERNAL_WWW = PATH_HOME + "/www"
 const MAIN_EXEC_NAME = "main"
+const PATH_LIB = "/usr/local/lib"
 
 func GetSystemApp() string {
 	return PATH_SYSTEM
@@ -53,6 +54,10 @@ func GetAppMain(packageId string, external bool) string {
 	} else {
 		return GetSystemApp() + "/" + packageId + "/main"
 	}
+}
+
+func GetLibPath() string {
+	return PATH_LIB
 }
 
 func GetCacheDir() string {
