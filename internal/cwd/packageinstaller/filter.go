@@ -10,7 +10,7 @@ import (
 // delegate type
 type process func(string, io.ReadCloser, uint64) error
 
-// use filter to customize the installTo or change name
+// use filter files from package. use to move a file to specific location or make subprocess
 type filter struct {
 	keyword       string  // for query. add asteriest as prefix if keyword can be anywhere
 	rename        string  // use to replace the path based from keyword. nil if skip replace

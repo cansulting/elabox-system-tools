@@ -7,6 +7,7 @@ import (
 	"ela/foundation/constants"
 	"ela/foundation/errors"
 	"ela/foundation/path"
+	"ela/internal/cwd/packageinstaller/utils"
 	"ela/registry/app"
 	"io"
 	"log"
@@ -18,7 +19,7 @@ import (
 	structure for installing packages to ela system
 */
 type installer struct {
-	backup        *Backup             // backup instance
+	backup        *utils.Backup       // backup instance
 	BackupEnabled bool                // true if instance will create a backup for replaced files
 	PackageInfo   *data.PackageConfig // package info for installer
 	subinstaller  []*installer        // list of subpackages/subinstaller
@@ -49,22 +50,29 @@ func (instance *installer) decompressFromReader(files []*zip.File) error {
 	if !instance.PackageInfo.IsValid() {
 		return errors.SystemNew("installer.decompressFromReader invalid package info", nil)
 	}
+	// step: create backup for app bin
+	if err := instance.backup.AddFiles(packageInfo.GetInstallDir()); err != nil {
+		log.Println("installer failed to backup app dir "+packageInfo.GetInstallDir(), "continue...")
+	}
 	// step: delete the package first
-	if err := deletePackage(packageInfo.PackageId, false); err != nil {
+	if err := utils.UninstallPackage(packageInfo.PackageId, false); err != nil {
 		return err
 	}
 	log.Println("installer:start installing ", packageInfo.PackageId, "silent=")
 	// step: init install location and filters
 	appInstallPath, wwwInstallPath := _getInstallLocation(packageInfo)
 	filters := []filter{
-		// skip
-		{keyword: "*.DS_Store"},
-		// move to location
+		// bin
 		{keyword: "bin", rename: packageInfo.PackageId, installTo: appInstallPath},
+		// library
+		{keyword: "lib", rename: packageInfo.PackageId, installTo: path.GetLibPath()},
+		// www
 		{keyword: "www", rename: packageInfo.PackageId, installTo: wwwInstallPath},
 		{keyword: constants.APP_CONFIG_NAME, installTo: appInstallPath + "/" + packageInfo.PackageId},
-		// subpackage
+		// subpackages
 		{keyword: "packages/", customProcess: instance._onSubPackage},
+		// node js
+		{keyword: "nodejs", installTo: packageInfo.GetInstallDir()},
 	}
 	// step: iterate each file and save it
 	for _, file := range files {
@@ -182,7 +190,7 @@ func (t *installer) _onSubPackage(path string, reader io.ReadCloser, size uint64
 // create backup for file
 func (instance *installer) createBackupFor(src string) error {
 	if instance.backup == nil {
-		instance.backup = &Backup{
+		instance.backup = &utils.Backup{
 			PackageId: "",
 		}
 		backupPath := path.GetDefaultBackupPath() + "/system.backup"

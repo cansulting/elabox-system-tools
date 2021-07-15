@@ -1,6 +1,7 @@
 package main
 
 import (
+	"C"
 	"ela/foundation/app"
 	"ela/internal/cwd/packageinstaller/global"
 	"ela/internal/cwd/packageinstaller/logging"

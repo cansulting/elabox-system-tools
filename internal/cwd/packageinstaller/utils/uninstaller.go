@@ -1,4 +1,4 @@
-package main
+package utils
 
 import (
 	"ela/foundation/errors"
@@ -7,8 +7,8 @@ import (
 	"os"
 )
 
-// delete package based from installed information
-func deletePackage(packageId string, deleteData bool) error {
+// delete package based package id
+func UninstallPackage(packageId string, deleteData bool) error {
 	log.Println("Deleting old package", packageId)
 	// step: retrieve package location
 	pk, err := app.RetrievePackage(packageId)
@@ -25,11 +25,11 @@ func deletePackage(packageId string, deleteData bool) error {
 		log.Println("")
 		return nil
 	}
-	// step: remove directory
+	// step: remove app directory
 	if err := os.RemoveAll(location); err != nil {
 		return errors.SystemNew("Delete package failed "+packageId, err)
 	}
-	// step: remove data
+	// step: remove app data
 	if deleteData {
 		if err := os.RemoveAll(pk.GetDataDir()); err != nil {
 			log.Println("Remove pacakage data failed", err.Error())

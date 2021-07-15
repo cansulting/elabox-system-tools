@@ -1,9 +1,11 @@
-package main
+package utils
 
 import (
 	"archive/zip"
+	"ela/foundation/errors"
 	"encoding/json"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	"strconv"
@@ -13,10 +15,10 @@ const CONFIG_FILENAME = "config"
 
 type Backup struct {
 	PackageId  string       // package id of backup
-	Version    string       // version of this backup
+	Version    string       // version of instance backup
 	Files      []BackupFile // files for backup
-	sourceFile string       // location of this backup
-	FileCount  uint16       // number of files in this backup
+	sourceFile string       // location of instance backup
+	FileCount  uint16       // number of files in instance backup
 	archive    *zip.Writer
 }
 
@@ -26,21 +28,21 @@ type BackupFile struct {
 }
 
 // generate the backup to target location. call close after
-func (this *Backup) Create(target string) error {
+func (instance *Backup) Create(target string) error {
 	log.Println("Creating backup @ " + target)
-	this.sourceFile = target
+	instance.sourceFile = target
 	// step: create zip file
 	backupFile, err := os.Create(target)
 	if err != nil {
 		return err
 	}
-	this.archive = zip.NewWriter(backupFile)
-	this.Files = make([]BackupFile, 0, 5)
+	instance.archive = zip.NewWriter(backupFile)
+	instance.Files = make([]BackupFile, 0, 5)
 	return nil
 }
 
 // load the backup file
-func (this *Backup) LoadAndApply(src string) error {
+func (instance *Backup) LoadAndApply(src string) error {
 	// init cache dir
 	tempDir, _ := os.Getwd()
 	tempDir += "/temp"
@@ -59,15 +61,15 @@ func (this *Backup) LoadAndApply(src string) error {
 		if err != nil {
 			return err
 		}
-		// step: if file is config then convert and initialize this
+		// step: if file is config then convert and initialize instance
 		if file.Name == CONFIG_FILENAME {
 			configBytes, _readErr := io.ReadAll(zipFile)
 			if _readErr != nil {
-				return &BackupError{errorStr: CONFIG_FILENAME + " coulnt load file." + _readErr.Error()}
+				return errors.SystemNew(CONFIG_FILENAME+" coulnt load file.", _readErr)
 			}
-			err = json.Unmarshal(configBytes, this)
+			err = json.Unmarshal(configBytes, instance)
 			if err != nil {
-				return &BackupError{errorStr: CONFIG_FILENAME + " coudnt be load from backup. " + err.Error()}
+				return errors.SystemNew(CONFIG_FILENAME+" coudnt be load from backup.", _readErr)
 			}
 			continue
 		}
@@ -83,7 +85,7 @@ func (this *Backup) LoadAndApply(src string) error {
 		}
 	}
 	// step: move files to source
-	for _, file := range this.Files {
+	for _, file := range instance.Files {
 		os.MkdirAll(file.Src, 0765)
 		// remove old files
 		if _, err := os.Stat(file.Src); err == nil {
@@ -97,16 +99,16 @@ func (this *Backup) LoadAndApply(src string) error {
 	return nil
 }
 
-func (this *Backup) AddFile(src string) error {
+func (instance *Backup) AddFile(src string) error {
 	// add file to list
-	id := strconv.Itoa(int(this.FileCount))
-	this.Files = append(this.Files, BackupFile{
+	id := strconv.Itoa(int(instance.FileCount))
+	instance.Files = append(instance.Files, BackupFile{
 		Id:  id,
 		Src: src,
 	})
-	this.FileCount++
+	instance.FileCount++
 	// add file to archive
-	compressedFile, err := this.archive.Create(id)
+	compressedFile, err := instance.archive.Create(id)
 	if err != nil {
 		return err
 	}
@@ -123,21 +125,34 @@ func (this *Backup) AddFile(src string) error {
 	return nil
 }
 
-// save this backup
-func (this *Backup) Close() error {
-	// ste: files is empty dont create backup
-	if this.FileCount == 0 {
-		this.archive.Close()
-		os.Remove(this.sourceFile)
-		return nil
-	}
-	defer this.archive.Close()
-	// step: write config
-	configBytes, err := json.Marshal(this)
+func (instance *Backup) AddFiles(srcDir string) error {
+	files, err := ioutil.ReadDir(srcDir)
 	if err != nil {
 		return err
 	}
-	compressedConfig, err := this.archive.Create(CONFIG_FILENAME)
+	for _, file := range files {
+		if err := instance.AddFile(srcDir + "/" + file.Name()); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// save instance backup
+func (instance *Backup) Close() error {
+	// ste: files is empty dont create backup
+	if instance.FileCount == 0 {
+		instance.archive.Close()
+		os.Remove(instance.sourceFile)
+		return nil
+	}
+	defer instance.archive.Close()
+	// step: write config
+	configBytes, err := json.Marshal(instance)
+	if err != nil {
+		return err
+	}
+	compressedConfig, err := instance.archive.Create(CONFIG_FILENAME)
 	_, errConfig := compressedConfig.Write(configBytes)
 	if errConfig != nil {
 		return err
