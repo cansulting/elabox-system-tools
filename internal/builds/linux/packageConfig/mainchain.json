@@ -1,0 +1,8 @@
+{
+    "name": "Mainchain",
+    "description": "Mainchain Node",
+    "packageId": "ela.mainchain",
+    "version": "0.3.0",
+    "build": 1,
+    "location": "system"
+}

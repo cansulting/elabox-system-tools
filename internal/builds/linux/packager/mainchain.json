@@ -1,0 +1,9 @@
+{
+    "cwd": "",
+    "config": "../packageConfig/mainchain.json",
+    "binDir": "",
+    "bin": "",
+    "packages": [],
+    "customInstaller": "",
+    "lib": "../libs/mainchain"
+}

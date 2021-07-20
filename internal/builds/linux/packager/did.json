@@ -1,0 +1,9 @@
+{
+    "cwd": "",
+    "config": "../packageConfig/did.json",
+    "binDir": "",
+    "bin": "",
+    "packages": [],
+    "customInstaller": "",
+    "lib": "../libs/did"
+}

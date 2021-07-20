@@ -1,0 +1,9 @@
+{
+    "cwd": "",
+    "config": "../packageConfig/carrier.json",
+    "binDir": "",
+    "bin": "",
+    "packages": [],
+    "customInstaller": "",
+    "lib": "../libs/carrier"
+}

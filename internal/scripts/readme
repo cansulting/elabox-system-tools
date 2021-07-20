@@ -3,19 +3,16 @@ Scripts to perform various build, install, analysis, etc operations.
 For Windows:
 Enable WSL for windows
 NOTE: run under wsl environment
-Install Go for WSL
-    sudo nano /etc/profile
-    append to export path to end of file
-    source /etc/profile
-For Arm64 Linux install this:
-    sudo apt install gcc-aarch64-linux-gnu
-For Other linux arch install this:
-    sudo apt install gcc-multilib -y  // extra libraries for other arch
-    sudo apt install x86_64-linux-gnu-gcc // for amd
-For windows x86 x64 install this:
-    sudo apt-get install gcc-mingw-w64
-Execute this to build:
-    cd <this working dir>/build
-    export ELA_COMPANION=<path to your ela companion>
-    source ./windows.sh -o=<can linux/windows/macos> -a=<can be arm64/arm64>
 
+setup.sh
+- use to install necessary files to build
+
+build.sh
+- generate package and binaries
+- to use:
+    cd <scripts directory>
+    export ELA_COMPANION=<path to your ela companion parent directory>
+    ./windows.sh -o <can linux/windows/macos> -a <can be amd64/arm64/386>
+
+uninstall.sh
+- use to uninstall the system

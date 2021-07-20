@@ -6,5 +6,5 @@
     "packages": [],
     "www": "../www/companion",
     "customInstaller": "",
-    "nodejs": ""
+    "nodejs": "../nodejs/companion"
 }

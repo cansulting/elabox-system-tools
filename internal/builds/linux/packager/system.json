@@ -3,6 +3,12 @@
     "config": "../packageConfig/system.json",
     "binDir": "",
     "bin": "../bins/system",
-    "packages": ["ela.installer.box"],
-    "customInstaller": "../bins/packageinstaller"
+    "packages": [
+        "ela.installer.box", 
+        "ela.companion.box", 
+        "ela.did.box", 
+        "ela.carrier.box", 
+        "ela.mainchain.box"],
+    "customInstaller": "../bins/packageinstaller",
+    "lib": ""
 }
