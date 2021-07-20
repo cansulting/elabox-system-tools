@@ -27,9 +27,13 @@ type BackupFile struct {
 	Src string `json:"src"`
 }
 
+func (instance *Backup) GetSource() string {
+	return instance.sourceFile
+}
+
 // generate the backup to target location. call close after
 func (instance *Backup) Create(target string) error {
-	log.Println("Creating backup @ " + target)
+	log.Println("Creating backup @ "+target, "packageId", instance.PackageId)
 	instance.sourceFile = target
 	// step: create zip file
 	backupFile, err := os.Create(target)

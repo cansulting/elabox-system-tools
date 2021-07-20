@@ -7,6 +7,7 @@ import (
 	"ela/foundation/constants"
 	"ela/foundation/errors"
 	"ela/foundation/path"
+	"ela/foundation/perm"
 	"ela/internal/cwd/packageinstaller/utils"
 	"ela/registry/app"
 	"io"
@@ -19,14 +20,19 @@ import (
 	structure for installing packages to ela system
 */
 type installer struct {
-	backup        *utils.Backup       // backup instance
-	BackupEnabled bool                // true if instance will create a backup for replaced files
-	PackageInfo   *data.PackageConfig // package info for installer
-	subinstaller  []*installer        // list of subpackages/subinstaller
+	backup              *utils.Backup       // backup instance
+	BackupEnabled       bool                // true if instance will create a backup for replaced files
+	PackageInfo         *data.PackageConfig // package info for installer
+	subinstaller        []*installer        // list of subpackages/subinstaller
+	customInstaller     *utils.CustomExec   // custom installer instance
+	srcFile             string              //
+	RunCustomInstaller  bool                // true if will run custom installer if available, false by default
+	customInstallerUsed bool                // true if used custom installer
 }
 
 // use to uncompress the file to target
 func (instance *installer) Decompress(sourceFile string) error {
+	instance.srcFile = sourceFile
 	// step: read package
 	z, err := zip.OpenReader(sourceFile)
 	if err != nil {
@@ -50,29 +56,62 @@ func (instance *installer) decompressFromReader(files []*zip.File) error {
 	if !instance.PackageInfo.IsValid() {
 		return errors.SystemNew("installer.decompressFromReader invalid package info", nil)
 	}
+	// step: initialize installer extension
+	extension, err := utils.GetSHConfig(packageInfo, files)
+	if err != nil {
+		log.Println("Error in initializing installer extensions. continue...", err)
+	} else {
+		instance.customInstaller = extension
+		// custom installer available ?
+		if extension != nil && instance.RunCustomInstaller && extension.IsCustomInstallerAvail {
+			if err := extension.RunCustomInstaller(instance.srcFile); err != nil {
+				extension.Clean()
+				return errors.SystemNew("Error running custom installer", err)
+			}
+			log.Println("Custom installer run success.")
+			instance.customInstallerUsed = true
+			return nil
+		}
+	}
+	// initialize backup
+	if instance.BackupEnabled && instance.backup == nil {
+		instance.backup = &utils.Backup{
+			PackageId: instance.PackageInfo.PackageId,
+		}
+		backupPath := path.GetDefaultBackupPath() + "/system.backup"
+		err := instance.backup.Create(backupPath)
+		if err != nil {
+			return errors.SystemNew("Couldn't create backup for @"+backupPath, err)
+		}
+	}
 	// step: create backup for app bin
-	if err := instance.backup.AddFiles(packageInfo.GetInstallDir()); err != nil {
-		log.Println("installer failed to backup app dir "+packageInfo.GetInstallDir(), "continue...")
+	if instance.BackupEnabled {
+		if err := instance.backup.AddFiles(packageInfo.GetInstallDir()); err != nil {
+			log.Println("installer failed to backup app dir "+packageInfo.GetInstallDir(), err.Error(), "continue...")
+		}
+	}
+	if err := instance.preinstall(); err != nil {
+		return err
 	}
 	// step: delete the package first
 	if err := utils.UninstallPackage(packageInfo.PackageId, false); err != nil {
 		return err
 	}
-	log.Println("installer:start installing ", packageInfo.PackageId, "silent=")
+	log.Println("installer:start installing ", packageInfo.PackageId)
 	// step: init install location and filters
-	appInstallPath, wwwInstallPath := _getInstallLocation(packageInfo)
-	filters := []filter{
+	appInstallPath /*wwwInstallPath*/, _ := _getInstallLocation(packageInfo)
+	filters := []utils.Filter{
 		// bin
-		{keyword: "bin", rename: packageInfo.PackageId, installTo: appInstallPath},
+		{Keyword: "bin", Rename: packageInfo.PackageId, InstallTo: appInstallPath, Perm: perm.PRIVATE},
 		// library
-		{keyword: "lib", rename: packageInfo.PackageId, installTo: path.GetLibPath()},
+		{Keyword: "lib", Rename: packageInfo.PackageId, InstallTo: path.GetLibPath(), Perm: perm.PUBLIC_VIEW},
 		// www
-		{keyword: "www", rename: packageInfo.PackageId, installTo: wwwInstallPath},
-		{keyword: constants.APP_CONFIG_NAME, installTo: appInstallPath + "/" + packageInfo.PackageId},
+		{Keyword: "www" /*Rename: packageInfo.PackageId,*/, InstallTo: path.GetSystemWWW() + "/../" /*wwwInstallPath*/, Perm: perm.PUBLIC_VIEW},
+		{Keyword: constants.APP_CONFIG_NAME, InstallTo: appInstallPath + "/" + packageInfo.PackageId, Perm: perm.PUBLIC_VIEW},
 		// subpackages
-		{keyword: "packages/", customProcess: instance._onSubPackage},
+		{Keyword: "packages/", CustomProcess: instance._onSubPackage, Perm: perm.PUBLIC},
 		// node js
-		{keyword: "nodejs", installTo: packageInfo.GetInstallDir()},
+		{Keyword: "nodejs", InstallTo: packageInfo.GetInstallDir(), Perm: perm.PRIVATE},
 	}
 	// step: iterate each file and save it
 	for _, file := range files {
@@ -90,47 +129,39 @@ func (instance *installer) decompressFromReader(files []*zip.File) error {
 			continue
 		}
 		targetPath := file.Name
-		//step: apply filter and resolve directories
-		filterApplied := false
-		for _, filter := range filters {
-			// use filter to customize the destination or change name
-			newPath, err, applied := filter.applyTo(targetPath, 0764, reader, file.CompressedSize64)
+		//step: apply Filter and resolve directories
+		var filterApplied *utils.Filter
+		for _, Filter := range filters {
+			// use Filter to customize the destination or change name
+			newPath, err, applied := Filter.CanApply(targetPath, reader, file.CompressedSize64)
 			if err != nil {
-				log.Println(err)
+				log.Println("error", "installer::uncompress to file ", file.Name, "...", err)
 				return nil
 			}
-			// filter was applied. break
+			// Filter was applied. break
 			if applied {
-				targetPath = newPath
-				filterApplied = true
+				filterApplied = &Filter
+				if newPath != "" {
+					// step: check if instance file already exist. then create backup
+					if instance.BackupEnabled {
+						if os.Stat(targetPath); err == nil {
+							err = instance.createBackupFor(targetPath)
+							if err != nil {
+								return err
+							}
+						}
+					}
+					if err := Filter.Save(newPath, reader); err != nil {
+						return errors.SystemNew("Unable to save "+file.Name, err)
+					}
+				}
 				break
 			}
 		}
-		// no filter was applied. use the default destination
-		if !filterApplied {
-			log.Println("installer no filter. skipped ", targetPath)
+		// no Filter was applied. use the default destination
+		if filterApplied == nil {
+			log.Println("installer no Filter. skipped ", targetPath)
 			continue
-		}
-		// step: is valid target path?
-		if targetPath != "" {
-			// step: check if instance file already exist. then create backup
-			if instance.BackupEnabled {
-				if os.Stat(targetPath); err == nil {
-					err = instance.createBackupFor(targetPath)
-					if err != nil {
-						return err
-					}
-				}
-			}
-			// step: create dest file
-			newFile, err := os.Create(targetPath)
-			if err != nil {
-				log.Println("error", "installer::uncompress to file ", file.Name, "...", err)
-				return err
-			}
-			// step: write to file
-			io.Copy(newFile, reader)
-			newFile.Close()
 		}
 	}
 	instance.initializeAppDirs()
@@ -145,7 +176,7 @@ func (t *installer) initializeAppDirs() {
 		dataDir = path.GetSystemAppData(t.PackageInfo.PackageId)
 		t.PackageInfo.ChangeToSystemLocation()
 	}
-	if err := os.MkdirAll(dataDir, 0740); err != nil {
+	if err := os.MkdirAll(dataDir, perm.PUBLIC_WRITE); err != nil {
 		log.Println("installer.initializeAppDirs failed", err)
 	}
 }
@@ -189,29 +220,58 @@ func (t *installer) _onSubPackage(path string, reader io.ReadCloser, size uint64
 
 // create backup for file
 func (instance *installer) createBackupFor(src string) error {
-	if instance.backup == nil {
-		instance.backup = &utils.Backup{
-			PackageId: "",
-		}
-		backupPath := path.GetDefaultBackupPath() + "/system.backup"
-		err := instance.backup.Create(backupPath)
-		if err != nil {
-			return errors.SystemNew("Couldn't create backup for "+src+".", err)
-		}
-	}
 	instance.backup.AddFile(src)
 	return nil
 }
 
+func (t *installer) preinstall() error {
+	if t.customInstaller != nil {
+		if err := t.customInstaller.StartPreInstall(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (t *installer) Postinstall() error {
+	if t.customInstallerUsed {
+		return nil
+	}
+	if err := t.registerPackage(); err != nil {
+		return errors.SystemNew("Unable to register package "+t.backup.PackageId, err)
+	}
+	if t.customInstaller != nil {
+		defer t.customInstaller.Clean()
+		if err := t.customInstaller.StartPostInstall(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// use to revert changes based from backup
+func (t *installer) RevertChanges() error {
+	if t.BackupEnabled && t.backup != nil {
+		log.Println("Reverting changes...")
+		bkSrc := t.backup.GetSource()
+		t._closeBackup()
+		bk := utils.Backup{}
+		if err := bk.LoadAndApply(bkSrc); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // start registering the package and sub packages
-func (t *installer) RegisterPackage() error {
+func (t *installer) registerPackage() error {
 	if err := app.RegisterPackage(t.PackageInfo); err != nil {
 		return err
 	}
 	// register subpackages
 	for _, subinstall := range t.subinstaller {
-		if err := subinstall.RegisterPackage(); err != nil {
-			return err
+		if err := subinstall.registerPackage(); err != nil {
+			return errors.SystemNew("Failed to register subpackage", err)
 		}
 	}
 	return nil

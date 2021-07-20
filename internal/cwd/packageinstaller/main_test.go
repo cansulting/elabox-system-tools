@@ -23,19 +23,13 @@ const pkid = "ela.installer"
 // use to build installer. and put it to installation path
 func TestBuildInstaller(test *testing.T) {
 	log.Println("Building installer")
-	buildFname := "packageinstaller.exe"
-	//sourcePath := "./internal/cwd/packageinstaller"
-	outputPath := "../../builds"
-	targetPath := path.GetAppMain(pkid, false)
-	cmd := exec.Command("go", "install")
+	outputPath := "../../builds/linux/bins/packageinstaller"
+	cmd := exec.Command("go", "build", "-o", outputPath)
 	bytes, err := cmd.CombinedOutput()
 	log.Println(string(bytes))
 	if err != nil {
 		test.Error(err)
 		return
-	}
-	if err := os.Rename(outputPath+"/bins/"+buildFname, targetPath); err != nil {
-		test.Error(err)
 	}
 }
 
@@ -57,23 +51,20 @@ func copyInstallerBinary(pkconfig *appd.PackageConfig) (string, error) {
 // test install a package and register it
 func TestSystemUpdateCommandline(test *testing.T) {
 	wd, _ := os.Getwd()
-	pkpath := wd + "/../../builds/windows/packager/ela.installer.ela"
+	pkpath := wd + "/../../builds/linux/packager/ela.system.box"
 	pki, err := reg.RetrievePackage(pkid)
 	if err != nil {
+		log.Println(err)
 		test.Error(err)
 		return
 	}
-	// if err := reg.CloseDB(); err != nil {
-	// 	test.Error(err)
-	// 	return
-	// }
 	dest, err := copyInstallerBinary(pki)
 	if err != nil {
 		log.Println(err.Error())
 		test.Error(err)
 		return
 	}
-	cmd := exec.Command(dest, pkpath)
+	cmd := exec.Command("sudo "+dest, pkpath)
 	cmd.Dir = filepath.Dir(dest)
 	bytes, err := cmd.CombinedOutput()
 	if err != nil {
@@ -81,6 +72,18 @@ func TestSystemUpdateCommandline(test *testing.T) {
 		return
 	}
 	log.Println(string(bytes))
+}
+
+// test install a package and register it
+func TestSystemUpdateCommandline2(test *testing.T) {
+	wd, _ := os.Getwd()
+	pkpath := wd + "/../../builds/linux/packager/ela.system.box"
+	newInstall := installer{BackupEnabled: true, RunCustomInstaller: true}
+	// step: start install
+	if err := newInstall.Decompress(pkpath); err != nil {
+		log.Fatal(err.Error())
+		return
+	}
 }
 
 // test installer via activity
