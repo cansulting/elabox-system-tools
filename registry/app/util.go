@@ -2,9 +2,20 @@ package app
 
 import (
 	"database/sql"
+	"ela/foundation/app/data"
 	"ela/foundation/errors"
 	"ela/registry/util"
 )
+
+func convertRawToPackageConfig(rows *sql.Rows) []*data.PackageConfig {
+	results := make([]*data.PackageConfig, 0, 10)
+	for rows.Next() {
+		pk := data.DefaultPackage()
+		rows.Scan(&pk.PackageId, &pk.Source, &pk.Name, &pk.InstallLocation, &pk.Nodejs)
+		results = append(results, pk)
+	}
+	return results
+}
 
 // retrieve all packages
 func retrievePackagesRaw(packageId string, columns []string) (*sql.Rows, error) {

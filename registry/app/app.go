@@ -14,18 +14,13 @@ import (
 */
 
 // retrieve all packages
-func RetrieveAllPackages(id string) ([]*data.PackageConfig, error) {
-	row, err := retrievePackagesRaw(id, []string{"id, source, name, location"})
+func RetrieveAllPackages() ([]*data.PackageConfig, error) {
+	row, err := retrievePackagesRaw("", []string{"id, source, name, location, nodejs"})
 	if err != nil {
 		return nil, err
 	}
 	defer row.Close()
-	results := make([]*data.PackageConfig, 0, 10)
-	if row.Next() {
-		pk := data.DefaultPackage()
-		row.Scan(&pk.PackageId, &pk.Source, &pk.Name, &pk.InstallLocation)
-		results = append(results, pk)
-	}
+	results := convertRawToPackageConfig(row)
 	return results, nil
 }
 
@@ -71,12 +66,13 @@ func RegisterPackageSrc(srcDir string) (*data.PackageConfig, error) {
 }
 
 func RetrievePackage(id string) (*data.PackageConfig, error) {
-	pks, err := RetrieveAllPackages(id)
+	pks, err := retrievePackagesRaw(id, []string{"id, source, name, location, nodejs"})
 	if err != nil {
 		return nil, errors.SystemNew("appman.RetrievePackage failed", err)
 	}
-	if len(pks) > 0 {
-		return pks[0], nil
+	results := convertRawToPackageConfig(pks)
+	if len(results) > 0 {
+		return results[0], nil
 	}
 	return nil, nil
 }
@@ -88,14 +84,14 @@ func RetrievePackagesWithActivity(action string) ([]string, error) {
 // retrieve all packages that needs to execute upon startup
 func RetrieveStartupPackages() ([]*data.PackageConfig, error) {
 	row, err := retrievePackagesWhere(
-		[]string{"id, source, name, location"},
-		"nodejs = 1 || exportService = 1")
+		[]string{"id, source, name, location, nodejs, exportService"},
+		"nodejs=true or exportService=true")
 	if err != nil {
 		return nil, err
 	}
 	defer row.Close()
 	results := make([]*data.PackageConfig, 0, 10)
-	if row.Next() {
+	for row.Next() {
 		pk := data.DefaultPackage()
 		row.Scan(&pk.PackageId, &pk.Source, &pk.Name, &pk.InstallLocation, &pk.Nodejs, &pk.ExportServices)
 		results = append(results, pk)

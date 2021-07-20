@@ -5,6 +5,7 @@ import (
 	"ela/foundation/constants"
 	"ela/foundation/errors"
 	"ela/foundation/path"
+	"ela/foundation/perm"
 	"ela/internal/cwd/system/global"
 	"log"
 	"os"
@@ -21,8 +22,10 @@ func initialize() error {
 	srcDir := path.GetSystemAppData(constants.SYSTEM_SERVICE_ID)
 	src := srcDir + "/" + global.DB_NAME
 	log.Println("Registry:", "DB Initialize @", src)
-	if err := os.MkdirAll(srcDir, 0700); err != nil {
-		return err
+	if _, err := os.Stat(srcDir); err != nil {
+		if err := os.MkdirAll(srcDir, perm.PUBLIC_VIEW); err != nil {
+			return err
+		}
 	}
 	_db, err := sql.Open("sqlite3", src)
 	if err != nil {

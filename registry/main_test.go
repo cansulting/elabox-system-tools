@@ -4,6 +4,7 @@ import (
 	"ela/internal/cwd/system/appman"
 	"ela/internal/cwd/system/servicecenter"
 	"ela/registry/app"
+	"log"
 	"testing"
 )
 
@@ -20,16 +21,19 @@ func TestPacakageRegistration(test *testing.T) {
 	}
 }
 
-func TestRetrievePackage(test *testing.T) {
+func TestRetrieveAllPackages(test *testing.T) {
 	//global.Initialize()
 	servicecenter.Initialize(true)
 	if err := appman.Initialize(true); err != nil {
 		test.Error(err)
 		return
 	}
-	pk, err := app.RetrievePackage("ela.sample")
+	pks, err := app.RetrieveAllPackages()
 	if err != nil {
 		test.Error(err)
 	}
-	test.Log(pk)
+	for _, pk := range pks {
+		log.Println(pk.ToString())
+	}
+
 }
