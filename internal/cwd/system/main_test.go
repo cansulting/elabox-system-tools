@@ -1,34 +1,50 @@
 package main
 
 import (
-	"ela/internal/cwd/system/appman"
-	"ela/internal/cwd/system/servicecenter"
+	"ela/internal/cwd/system/system_update"
+	reg "ela/registry/app"
+	"log"
+	"os"
+	"os/exec"
 	"testing"
 )
 
-func TestPacakageRegistration(test *testing.T) {
-	//global.Initialize()
-	servicecenter.Initialize(true)
-	if err := appman.Initialize(true); err != nil {
+// test install a package and register it
+func TestCommandline(test *testing.T) {
+	wd, _ := os.Getwd()
+	pkpath := wd + "/../../builds/packages/packageinstaller.ela"
+	pki, err := reg.RetrievePackage("ela.installer")
+	if err != nil {
 		test.Error(err)
 		return
 	}
-	_, err := appman.RegisterPackageSrc("../../builds/ela/system/apps/ela.system")
+	// if err := reg.CloseDB(); err != nil {
+	// 	test.Error(err)
+	// 	return
+	// }
+	dest, err := system_update.CopyInstallerBinary(pki)
+	if err != nil {
+		log.Println(err.Error())
+		test.Error(err)
+		return
+	}
+	cmd := exec.Command(dest, pkpath)
+	cmd.Dir = pki.GetInstallDir()
+	bytes, err := cmd.CombinedOutput()
+	log.Println(string(bytes))
 	if err != nil {
 		test.Error(err)
+		return
 	}
-}
 
-func TestRetrievePackage(test *testing.T) {
-	//global.Initialize()
-	servicecenter.Initialize(true)
-	if err := appman.Initialize(true); err != nil {
-		test.Error(err)
-		return
-	}
-	pk, err := appman.RetrievePackage("ela.installer")
-	if err != nil {
-		test.Error(err)
-	}
-	test.Log(pk)
+	/*
+		newInstall := installer{BackupEnabled: true, SilentInstall: true}
+		err := newInstall.Decompress("../../builds/packages/packageinstaller.ela")
+		if err != nil {
+			test.Error(err)
+		}
+		if err := newInstall.RegisterPackage(); err != nil {
+			test.Error(err)
+			return
+		}*/
 }

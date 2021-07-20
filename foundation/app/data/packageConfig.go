@@ -138,3 +138,15 @@ func (c *PackageConfig) GetMainExec() string {
 func (c *PackageConfig) GetLibraryDir() string {
 	return path.GetLibPath() + "/" + c.PackageId
 }
+
+func (c *PackageConfig) HasMainExec() bool {
+	if _, err := os.Stat(c.GetMainExec()); err == nil {
+		return true
+	}
+	return false
+}
+
+func (c *PackageConfig) ToString() string {
+	json, _ := json.Marshal(c)
+	return string(json)
+}

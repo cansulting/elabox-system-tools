@@ -13,10 +13,10 @@ const PATH_SYSTEM_DATA = "/var/ela/data"           // dir where system data will
 const PATH_APPS = PATH_HOME + "/apps"              // where non system bin/apps will be installed
 const PATH_APPDATA = PATH_HOME + "/data"           // where non system bin/apps data will be persist
 const PATH_DOWNLOADS = PATH_APPDATA + "/downloads" // where downloaded files will be stored
-const PATH_SYSTEM_WWW = "/usr/www"
+const PATH_SYSTEM_WWW = "/var/www"
 const PATH_EXTERNAL_WWW = PATH_HOME + "/www"
 const MAIN_EXEC_NAME = "main"
-const PATH_LIB = "/usr/local/lib"
+const PATH_LIB = "/usr/local/lib/ela"
 
 func GetSystemApp() string {
 	return PATH_SYSTEM

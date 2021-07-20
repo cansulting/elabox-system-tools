@@ -109,7 +109,7 @@ func LaunchApp(packageId string,
 
 // run all start up apps
 func InitializeStartups() {
-	log.Println("Services are starting up...")
+	log.Println("appman.Services are starting up...")
 	pkgs, err := registry.RetrieveStartupPackages()
 	if err != nil {
 		log.Println(err)

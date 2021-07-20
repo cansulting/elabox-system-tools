@@ -7,7 +7,6 @@ package app
 */
 import (
 	appd "ela/foundation/app/data"
-	"ela/foundation/app/nodejs"
 	"ela/foundation/app/protocol"
 	"ela/foundation/app/service"
 	"ela/foundation/constants"
@@ -58,7 +57,6 @@ type Controller struct {
 	RPC        service.RPCInterface //
 	Config     *appd.PackageConfig
 	forceEnd   bool
-	nodejs     *nodejs.Nodejs
 }
 
 // true if this app is running
@@ -114,13 +112,6 @@ func (m *Controller) onStart() error {
 			return errors.SystemNew("app.Controller couldnt start app activity", err)
 		}
 	}
-	// step: initialize node js
-	if m.Config.Nodejs {
-		m.nodejs = &nodejs.Nodejs{Config: m.Config}
-		if err := m.nodejs.Run(); err != nil {
-			log.Println("nodejs.start() failed ", err)
-		}
-	}
 	return nil
 }
 
@@ -146,11 +137,6 @@ func (m *Controller) onEnd() error {
 	if m.AppService != nil && m.AppService.IsRunning() {
 		if err := m.AppService.OnEnd(); err != nil {
 			log.Println("Controller.AppService stop failed", err.Error())
-		}
-	}
-	if m.nodejs != nil {
-		if err := m.nodejs.Stop(); err != nil {
-			log.Println("Controller.nodejs stop failed", err.Error())
 		}
 	}
 	return nil

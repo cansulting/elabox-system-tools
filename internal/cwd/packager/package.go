@@ -7,27 +7,29 @@ import (
 	"ela/foundation/errors"
 	"ela/foundation/path"
 	"encoding/json"
-	"io/ioutil"
+	"io/fs"
 	"log"
 	"os"
 	"path/filepath"
 )
 
 type Package struct {
-	Cwd             string   `json:"cwd"`             // current working directory
-	PackageConfig   string   `json:"config"`          // the package config file
-	BinDir          string   `json:"binDir"`          // bin directory. if bin file property was provided this will be skip
-	Bin             string   `json:"bin"`             // bin file
-	Lib             string   `json:"lib"`             // shared library for this package.
-	Packages        []string `json:"packages"`        // list of packages to be included
+	Cwd             string   `json:"cwd"`      // current working directory
+	PackageConfig   string   `json:"config"`   // the package config file
+	BinDir          string   `json:"binDir"`   // bin directory. if bin file property was provided this will be skip
+	Bin             string   `json:"bin"`      // bin file
+	Lib             string   `json:"lib"`      // shared library for this package.
+	Packages        []string `json:"packages"` // list of packages to be included
+	Www             string   `json:"www"`      // www front end to be included in source
+	Nodejs          string   `json:"nodejs"`   // add node js directory if the package contain node js app
+	PostInstall     string   `json:"postinstall"`
+	PreInstall      string   `json:"preinstaller"`
 	CustomInstaller string   `json:"customInstaller"` // custom installer
-	Www             string   `json:"www"`             // www front end to be included in source
-	Nodejs          string   `json:"nodejs"`          // add node js directory if the package contain node js app
 }
 
 // load packager config file from path
 func (c *Package) LoadConfig(src string) error {
-	log.Println("Packaging @", src)
+	log.Println("Reading packager config @", src)
 	bytes, err := os.ReadFile(src)
 	if err != nil {
 		return errors.SystemNew("Package.LoadFrom() failed "+src, err)
@@ -47,9 +49,10 @@ func (c *Package) LoadConfig(src string) error {
 
 // use to loadPackageConfig parameters before packaging
 func (c *Package) loadPackageConfig() (*data.PackageConfig, error) {
-	if c.Bin == "" && c.BinDir == "" && c.Www == "" && c.Nodejs == "" {
-		return nil, errors.SystemNew("Package.loadPackageConfig() failed, bin/binDir/www/nodejs shouldnt be empty", nil)
-	}
+	/*
+		if c.Bin == "" && c.BinDir == "" && c.Www == "" && c.Nodejs == "" {
+			return nil, errors.SystemNew("Package.loadPackageConfig() failed, bin/binDir/www/nodejs shouldnt be empty", nil)
+		}*/
 	if c.PackageConfig == "" {
 		return nil, errors.SystemNew("Package.loadPackageConfig() failed, config shouldnt be empty", nil)
 	}
@@ -112,7 +115,7 @@ func (c *Package) Compile(destdir string) error {
 	if c.Www != "" {
 		log.Println("Compile() adding wwww")
 		if err := addDir("www", c.Www, zipwriter); err != nil {
-			return errors.SystemNew("Package.Compile() failed adding node js direcory @ "+c.Nodejs, err)
+			return errors.SystemNew("Package.Compile() failed adding node js direcory @ "+c.Www, err)
 		}
 	}
 	// add node js app
@@ -125,18 +128,33 @@ func (c *Package) Compile(destdir string) error {
 	// add custom installer
 	if c.CustomInstaller != "" {
 		log.Println("Compile() adding custom installer")
-		if err := addFile("installer/installer"+
+		if err := addFile("scripts/installer"+
 			filepath.Ext(c.CustomInstaller), c.CustomInstaller, zipwriter); err != nil {
 			return errors.SystemNew("Package.Compile() failed adding custom installer "+c.CustomInstaller, err)
+		}
+	}
+	// scripts
+	if c.PreInstall != "" {
+		if err := addFile("scripts/"+constants.PREINSTALL_SH, c.PreInstall, zipwriter); err != nil {
+			return errors.SystemNew("Package.Compile() failed adding script "+c.PreInstall, err)
+		}
+	}
+	if c.PostInstall != "" {
+		if err := addFile("scripts/"+constants.POSTINSTALL_SH, c.PostInstall, zipwriter); err != nil {
+			return errors.SystemNew("Package.Compile() failed adding script "+c.PreInstall, err)
 		}
 	}
 	// close
 	if err := zipwriter.Close(); err != nil {
 		return errors.SystemNew("Package.Compile() close failed.", err)
 	}
+	log.Println("Package success", pkconfig.PackageId)
 	return nil
 }
 
+// add file
+// @name: header for zip
+// @src: location of the file so it can be read
 func addFile(name string, src string, w *zip.Writer) error {
 	f, err := w.Create(name)
 	if err != nil {
@@ -154,16 +172,25 @@ func addFile(name string, src string, w *zip.Writer) error {
 }
 
 func addDir(newDirName string, srcDir string, w *zip.Writer) error {
-	files, err := ioutil.ReadDir(srcDir)
+	files, err := os.ReadDir(srcDir)
 	if err != nil {
 		return err
 	}
 	for _, file := range files {
-		if err := addFile(
-			newDirName+"/"+file.Name(),
-			srcDir+"/"+file.Name(),
-			w); err != nil {
-			return err
+		if file.Type() == fs.ModeDir {
+			if err := addDir(
+				newDirName+"/"+file.Name(),
+				srcDir+"/"+file.Name(),
+				w); err != nil {
+				return err
+			}
+		} else {
+			if err := addFile(
+				newDirName+"/"+file.Name(),
+				srcDir+"/"+file.Name(),
+				w); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
