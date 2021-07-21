@@ -3,3 +3,10 @@ internal/builds/windows/nodejs/
 internal/builds/windows/www/
 internal/builds/linux/www/
 internal/builds/linux/nodejs/
+internal/builds/linux/libs/carrier/bootstrapd.conf
+internal/builds/linux/libs/carrier/ela-bootstrapd
+internal/builds/linux/libs/did/config.json
+internal/builds/linux/libs/did/did
+internal/builds/linux/libs/mainchain/config.json
+internal/builds/linux/libs/mainchain/ela
+internal/builds/linux/libs/mainchain/ela-cli
