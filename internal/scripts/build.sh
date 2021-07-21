@@ -77,38 +77,46 @@ go env -u CXX
 #########################
 # build companion app?
 #########################
-build_companion=0
-if [ "$build_companion" != "1" ]; then
-    echo "Rebuild companion app (y/n)?"
-    read answer
-    if [ "$answer" == "y" ]; then 
-        build_companion=1
-    fi
-fi 
-if [ "$build_companion" == "1" ]; then
-    echo "Start building companion app, please wait this will take awhile..." 
+built=0
+echo "Rebuild companion client & server? 1 - All, 2 - Client, 3 - Server, Enter - none"
+read answer
+# client building
+if [[ "$answer" == "1" || "$answer" == "2" ]]; then 
+    echo "Start building client companion app, please wait this will take awhile..." 
     initDir=$PWD
     cd $ELA_COMPANION/src_client
     sudo npm install
     sudo npm run build
     cd $initDir
-    # move front end and node js back end
-    rm -r .../builds/$target/www/companion
+    rm -r ../builds/$target/www/companion
     mkdir -p ../builds/$target/www/companion
+    cp -r $ELA_COMPANION/src_client/build/* ../builds/$target/www/companion
+    built=1
+fi
+# server building
+if [[ "$answer" == "1" || "$answer" == "3" ]]; then 
+    echo "Start building server companion app, please wait this will take awhile..." 
+    initDir=$PWD
+    cd $ELA_COMPANION/src_server
+    sudo npm install
+    sudo npm run build
+    cd $initDir
     mkdir -p ../builds/$target/nodejs/companion
-    mv $ELA_COMPANION/src_client/build/* ../builds/$target/www/companion
     cp -r $ELA_COMPANION/src_server/* ../builds/$target/nodejs/companion
-    echo "Build success! Moved to" ../builds/$target/www/companion
+    built=1
+fi
+if [ "$built" == "1" ]; then 
+    echo "Build success!"
     echo "Packaging..."
     pkgerPath=../builds/$cos/bins/$packager
     $pkgerPath ../builds/$target/packager/companion.json
-fi 
+fi
 
 ##################################
 # elastos mainchain, did, cli
 ##################################
 targetdir=../builds/$target/libs
-echo "Copying mainchain, did and cli @"$ELA_NODES
+echo "Copying mainchain, did and cli @$ELA_NODES"
 mkdir -p $targetdir/mainchain
 mkdir -p $targetdir/did
 mkdir -p $targetdir/carrier

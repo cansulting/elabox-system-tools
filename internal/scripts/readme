@@ -7,7 +7,7 @@ NOTE: run under wsl environment
 setup.sh 
 - use to install necessary files to build
 
-build.sh
+build.sh 
 - generate package and binaries
 - to use:
     cd <scripts directory>

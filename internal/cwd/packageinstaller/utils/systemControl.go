@@ -37,7 +37,7 @@ func RestartSystem() error {
 }
 
 func TerminateSystem() error {
-	log.Println("Restarting system...")
+	log.Println("Terminating system...")
 	// step: execute system binary
 	systemPath := path.GetAppMain(constants.SYSTEM_SERVICE_ID, false)
 	if _, err := os.Stat(systemPath); err != nil {
@@ -49,7 +49,5 @@ func TerminateSystem() error {
 	if err := cmd.Start(); err != nil {
 		return err
 	}
-	time.Sleep(time.Second * 3)
-	os.Exit(1)
 	return nil
 }
