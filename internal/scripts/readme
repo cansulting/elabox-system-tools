@@ -4,7 +4,7 @@ For Windows:
 Enable WSL for windows
 NOTE: run under wsl environment
 
-setup.sh
+setup.sh 
 - use to install necessary files to build
 
 build.sh

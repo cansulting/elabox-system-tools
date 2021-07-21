@@ -13,8 +13,11 @@ do
         a) carc=${OPTARG};;
     esac
 done
+# download go lang
 wget https://golang.org/dl/go1.16.6.$cos-$carc.tar.gz
 rm -rf /usr/local/go && tar -C /usr/local -xzf go1.16.6.$cos-$carc.tar.gz
+rm go1.16.6.$cos-$carc.tar.gz
+
 export PATH=$PATH:/usr/local/go/bin
 echo ""export PATH=$PATH:/usr/local/go/bin"" >> ~/.bash_profile
 
