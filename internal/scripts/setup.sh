@@ -16,7 +16,7 @@ done
 wget https://golang.org/dl/go1.16.6.$cos-$carc.tar.gz
 rm -rf /usr/local/go && tar -C /usr/local -xzf go1.16.6.$cos-$carc.tar.gz
 export PATH=$PATH:/usr/local/go/bin
-sudo source $HOME/.profile
+echo ""export PATH=$PATH:/usr/local/go/bin"" >> ~/.bash_profile
 
 # install gcc pipelines
 sudo apt install gcc-aarch64-linux-gnu
