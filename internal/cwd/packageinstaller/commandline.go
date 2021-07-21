@@ -15,9 +15,20 @@ import (
 */
 
 func startCommandline() {
-	log.Println("Elabox Installer Commandline")
-	log.Println("note: make sure the system is terminated before running this to avoid any issues.")
+	println("Elabox Installer Commandline")
+	println("type help or -h for arguments.")
 
+	// step: commandline help?
+	if IsArgExist("help") || IsArgExist("-h") {
+		println("usage:")
+		println("command <path to package> -r(to restart the system)")
+		return
+	}
+
+	// step: terminate the system first
+	if err := utils.TerminateSystem(); err != nil {
+		log.Println("Terminate system error", err)
+	}
 	// step: check if this is parent or not base on lock file
 	isParentInstaller := true
 	lockFile := path.GetCacheDir() + "/installer.lock"
@@ -71,8 +82,20 @@ func startCommandline() {
 	}
 	log.Println("Installed success.")
 	// step: restart system
-	if err := utils.RestartSystem(); err != nil {
-		log.Fatal(err.Error())
-		return
+	if IsArgExist("-r") {
+		if err := utils.RestartSystem(); err != nil {
+			log.Fatal(err.Error())
+			return
+		}
 	}
+}
+
+func IsArgExist(arg string) bool {
+	args := os.Args[1:]
+	for _, _arg := range args {
+		if arg == _arg {
+			return true
+		}
+	}
+	return false
 }

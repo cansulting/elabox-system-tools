@@ -26,6 +26,10 @@ func NewAction(id string, packageId string, data interface{}) Action {
 	return action
 }
 
+func NewActionById(id string) Action {
+	return NewAction(id, "", nil)
+}
+
 // convert Data to Action
 func (a *Action) DataToActionData() Action {
 	//if a.valueAction != nil {

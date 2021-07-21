@@ -10,8 +10,8 @@ import (
 	This struct connects the bridge between the service client and consumer
 */
 type RPCBridge struct {
-	PackageId string
-	Client    protocol.ClientInterface
+	PackageId string                   // the target package
+	Client    protocol.ClientInterface // the client of package
 	Connector protocol.ConnectorServer
 }
 
@@ -36,6 +36,9 @@ func (c *RPCBridge) onBridge(consumer protocol.ClientInterface, data data.Action
 
 // to call the owning package
 func (c *RPCBridge) CallAct(data data.Action) string {
+	if c.Client == nil {
+		return "Ignored no client connected."
+	}
 	response, err := c.Connector.BroadcastTo(c.Client, data.Id, data)
 	if err != nil {
 		log.Println("RPCBridge.Call Response from", c.PackageId, "error "+err.Error())
@@ -44,6 +47,7 @@ func (c *RPCBridge) CallAct(data data.Action) string {
 	return response
 }
 
+// call the owning package
 func (c *RPCBridge) Call(action string, _data interface{}) string {
 	return c.CallAct(data.NewAction(action, "", _data))
 }

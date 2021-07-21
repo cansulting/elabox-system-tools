@@ -58,6 +58,7 @@ func (app *AppConnect) sendPendingActions() error {
 	return err
 }
 
+// sends action to app client
 func (app *AppConnect) RPCCall(action string, data interface{}) (string, error) {
 	return app.RPC.Call(action, data), nil
 }
@@ -85,6 +86,10 @@ func (app *AppConnect) Launch() error {
 	return nil
 }
 
+func (app *AppConnect) IsClientConnected() bool {
+	return app.Client != nil
+}
+
 func (app *AppConnect) ForceTerminate() error {
 	app.launched = false
 	if app.process != nil {
@@ -97,6 +102,14 @@ func (app *AppConnect) ForceTerminate() error {
 
 // this terminate the app naturally
 func (app *AppConnect) Terminate() error {
+	if app.nodejs != nil {
+		if err := app.nodejs.Stop(); err != nil {
+			log.Println("AppConnect nodejs "+app.PackageId, "failed to terminate.", err.Error())
+		}
+	}
+	if !app.IsClientConnected() {
+		return nil
+	}
 	_, err := app.RPCCall(constants.APP_TERMINATE, nil)
 	if err != nil {
 		return err

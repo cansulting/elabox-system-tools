@@ -13,6 +13,11 @@ import (
 	"path/filepath"
 )
 
+/*
+	package.go
+	This struct handles the packaging.
+	Config file needs to be loaded first before it can be used.
+*/
 type Package struct {
 	Cwd             string   `json:"cwd"`      // current working directory
 	PackageConfig   string   `json:"config"`   // the package config file
@@ -153,7 +158,7 @@ func (c *Package) Compile(destdir string) error {
 }
 
 // add file
-// @name: header for zip
+// @name: header for zip file
 // @src: location of the file so it can be read
 func addFile(name string, src string, w *zip.Writer) error {
 	f, err := w.Create(name)

@@ -7,22 +7,39 @@ import (
 )
 
 type Nodejs struct {
-	Config *data.PackageConfig
-	cmd    *exec.Cmd
+	Config  *data.PackageConfig
+	cmd     *exec.Cmd
+	running bool
 }
 
 func (n *Nodejs) Run() {
+	n.running = true
 	path := n.Config.GetNodejsDir() + "/index.js"
-	n.cmd = exec.Command("node", path)
-	n.cmd.Dir = n.Config.GetNodejsDir()
-	output, err := n.cmd.CombinedOutput()
-	log.Println("System.Nodejs:", n.Config.PackageId, string(output))
-	if err != nil {
+	cmd := exec.Command("node", path)
+	n.cmd = cmd
+	cmd.Dir = n.Config.GetNodejsDir()
+	cmd.Stdout = n
+	cmd.Stderr = n
+	if err := cmd.Start(); err != nil {
+		log.Println("System.Nodejs:", n.Config.PackageId, "ERROR", err)
+		return
+	}
+	if err := cmd.Wait(); err != nil {
 		log.Println("System.Nodejs:", n.Config.PackageId, "ERROR", err)
 	}
-	n.Stop()
+	n.running = false
+	//n.Stop()
+}
+
+// callback when system has log
+func (n *Nodejs) Write(data []byte) (int, error) {
+	log.Print(string(data))
+	return len(data), nil
 }
 
 func (n *Nodejs) Stop() error {
+	if !n.running {
+		return nil
+	}
 	return n.cmd.Process.Kill()
 }

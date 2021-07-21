@@ -27,6 +27,9 @@ const SYSTEM_UPDATE_MODE = "ela.system.UPDATE"
 // called when an activity returns a result
 const SYSTEM_ACTIVITY_RESULT = "ela.system.ACTIVITY_RESULT"
 
+// system will terminate
+const SYSTEM_TERMINATE = "ela.system.TERMINATE"
+
 /*
 service state was changed. usually contains the state integer value.
 Check Service Center for references.

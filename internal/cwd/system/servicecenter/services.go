@@ -1,10 +1,11 @@
-package appman
+package servicecenter
 
 import (
 	"ela/foundation/constants"
 	"ela/foundation/errors"
 	"ela/foundation/event/data"
 	"ela/foundation/event/protocol"
+	"ela/internal/cwd/system/appman"
 	"ela/internal/cwd/system/global"
 	"ela/internal/cwd/system/system_update"
 
@@ -35,6 +36,8 @@ func OnRecievedRequest(
 		return onReturnActivityResult(action)
 	case constants.SYSTEM_UPDATE_MODE:
 		return activateUpdateMode(client, action)
+	case constants.SYSTEM_TERMINATE:
+		return terminate()
 	}
 	return ""
 }
@@ -46,7 +49,7 @@ func onAppChangeState(
 
 	// if awake then send pending actions to client
 	if state == constants.APP_AWAKE {
-		app := GetAppConnect(action.PackageId, client)
+		app := appman.GetAppConnect(action.PackageId, client)
 		if app != nil {
 			return app.PendingActions
 		} else {
@@ -57,7 +60,7 @@ func onAppChangeState(
 		}
 	} else if state == constants.APP_SLEEP {
 		// if sleep then wait to terminate the app
-		RemoveAppConnect(action.PackageId, false)
+		appman.RemoveAppConnect(action.PackageId, false)
 	}
 	return ""
 }
@@ -88,7 +91,7 @@ func startActivity(action data.Action, client protocol.ClientInterface) string {
 			return "cant find package with action " + action.Id
 		}
 	}
-	if err := LaunchAppActivity(packageId, client, action); err != nil {
+	if err := appman.LaunchAppActivity(packageId, client, action); err != nil {
 		return `{"code":401, "message":` + err.Error() + ` }`
 	}
 	return `{"code":200, "message":"Launched"}`
@@ -100,17 +103,17 @@ func onReturnActivityResult(action data.Action) string {
 	if packageId == "" {
 		return `{"code":400, "message": "package id should be the activity whho return the result"}`
 	}
-	if !IsAppRunning(packageId) {
+	if !appman.IsAppRunning(packageId) {
 		return `{"code":401, "message": "cant find the app that would recieve result"}`
 	}
-	app := GetAppConnect(packageId, nil)
+	app := appman.GetAppConnect(packageId, nil)
 	if app.StartedBy == "" {
 		return `{"code":401, "message": "Cant find who app who will recieve result"}`
 	}
-	if !IsAppRunning(app.StartedBy) {
+	if !appman.IsAppRunning(app.StartedBy) {
 		return `{"code":401, "message": "cant find the app that would recieve result"}`
 	}
-	originApp := GetAppConnect(app.StartedBy, nil)
+	originApp := appman.GetAppConnect(app.StartedBy, nil)
 	return originApp.RPC.CallAct(action)
 }
 
@@ -134,6 +137,12 @@ func activateUpdateMode(client protocol.ClientInterface, action data.Action) str
 		return err.Error()
 	}
 	system_update.Start(action.DataToString(), pkconfig)
+	global.Running = false
+	return "success"
+}
+
+func terminate() string {
+	appman.TerminateAllApp()
 	global.Running = false
 	return "success"
 }

@@ -21,12 +21,8 @@ func isSystemRunning() bool {
 	return true
 }
 
-// use restart the main system
+// restart the main system
 func RestartSystem() error {
-	// step: skip if current system is already running
-	if !isSystemRunning() {
-		return nil
-	}
 	log.Println("Restarting system...")
 	// step: execute system binary
 	systemPath := path.GetAppMain(constants.SYSTEM_SERVICE_ID, false)
@@ -34,6 +30,24 @@ func RestartSystem() error {
 	cmd.Dir = filepath.Dir(systemPath)
 	if err := cmd.Start(); err != nil {
 		return errors.SystemNew("Restart system failed", err)
+	}
+	time.Sleep(time.Second * 3)
+	os.Exit(1)
+	return nil
+}
+
+func TerminateSystem() error {
+	log.Println("Restarting system...")
+	// step: execute system binary
+	systemPath := path.GetAppMain(constants.SYSTEM_SERVICE_ID, false)
+	if _, err := os.Stat(systemPath); err != nil {
+		log.Println("Terminate skipped. System is not installed.")
+		return nil
+	}
+	cmd := exec.Command(systemPath, "terminate")
+	cmd.Dir = filepath.Dir(systemPath)
+	if err := cmd.Start(); err != nil {
+		return err
 	}
 	time.Sleep(time.Second * 3)
 	os.Exit(1)
