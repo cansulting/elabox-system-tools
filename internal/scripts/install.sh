@@ -1,5 +1,5 @@
 echo "Installing system"
 os=$(go env GOOS)
-cd ../builds/$os/bins
-echo Running at $PWD
-sudo ./packageinstaller ../packager/ela.system.box
+path=../builds/$os/packageinstaller/bin/
+echo Running at $path
+sudo $path/packageinstaller $path../../system/ela.system.box

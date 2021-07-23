@@ -46,7 +46,7 @@ func TerminateSystem() error {
 	}
 	cmd := exec.Command(systemPath, "terminate")
 	cmd.Dir = filepath.Dir(systemPath)
-	if err := cmd.Start(); err != nil {
+	if err := cmd.Run(); err != nil {
 		return err
 	}
 	return nil

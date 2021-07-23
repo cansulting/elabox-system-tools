@@ -6,6 +6,7 @@ import (
 	"ela/foundation/constants"
 	"ela/foundation/errors"
 	"ela/foundation/path"
+	cwdg "ela/internal/cwd/global"
 	"encoding/json"
 	"io/fs"
 	"log"
@@ -27,7 +28,7 @@ type Package struct {
 	Packages        []string `json:"packages"` // list of packages to be included
 	Www             string   `json:"www"`      // www front end to be included in source
 	Nodejs          string   `json:"nodejs"`   // add node js directory if the package contain node js app
-	PostInstall     string   `json:"postinstall"`
+	Finalize        string   `json:"postinstall"`
 	PreInstall      string   `json:"preinstaller"`
 	CustomInstaller string   `json:"customInstaller"` // custom installer
 }
@@ -96,6 +97,10 @@ func (c *Package) Compile(destdir string) error {
 		if err := addFile("bin/"+path.MAIN_EXEC_NAME, c.Bin, zipwriter); err != nil {
 			return errors.SystemNew("Package.Compile() failed adding binary.", err)
 		}
+	} else if c.BinDir != "" {
+		if err := addDir("bin", c.BinDir, zipwriter); err != nil {
+			return errors.SystemNew("Package.Compile() failed adding binary dir.", err)
+		}
 	}
 	// add shared libraries
 	if c.Lib != "" {
@@ -133,19 +138,20 @@ func (c *Package) Compile(destdir string) error {
 	// add custom installer
 	if c.CustomInstaller != "" {
 		log.Println("Compile() adding custom installer")
-		if err := addFile("scripts/installer"+
-			filepath.Ext(c.CustomInstaller), c.CustomInstaller, zipwriter); err != nil {
+		if err := addFile(
+			cwdg.PACKAGEKEY_CUSTOM_INSTALLER+filepath.Ext(c.CustomInstaller),
+			c.CustomInstaller, zipwriter); err != nil {
 			return errors.SystemNew("Package.Compile() failed adding custom installer "+c.CustomInstaller, err)
 		}
 	}
 	// scripts
 	if c.PreInstall != "" {
-		if err := addFile("scripts/"+constants.PREINSTALL_SH, c.PreInstall, zipwriter); err != nil {
+		if err := addFile("scripts/"+cwdg.PREINSTALL_SH, c.PreInstall, zipwriter); err != nil {
 			return errors.SystemNew("Package.Compile() failed adding script "+c.PreInstall, err)
 		}
 	}
-	if c.PostInstall != "" {
-		if err := addFile("scripts/"+constants.POSTINSTALL_SH, c.PostInstall, zipwriter); err != nil {
+	if c.Finalize != "" {
+		if err := addFile("scripts/"+cwdg.POSTINSTALL_SH, c.Finalize, zipwriter); err != nil {
 			return errors.SystemNew("Package.Compile() failed adding script "+c.PreInstall, err)
 		}
 	}

@@ -3,10 +3,10 @@ package utils
 import (
 	"archive/zip"
 	"ela/foundation/app/data"
-	"ela/foundation/constants"
 	"ela/foundation/errors"
-	"ela/foundation/path"
 	"ela/foundation/perm"
+	cwdg "ela/internal/cwd/global"
+	"ela/internal/cwd/packageinstaller/global"
 	"log"
 	"os"
 	"os/exec"
@@ -14,35 +14,25 @@ import (
 
 /*
 	CustomExec.go
-	this struct handles execution of scripts and custom installer attach to it
+	this struct handles execution of scripts/sh and custom installer attach to it
 */
 
 const sh = "/bin/sh"
-const customInstallerName = "scripts/installer"
 
 type CustomExec struct {
-	config                 *data.PackageConfig
-	preInstall             string
-	postInstall            string
-	IsCustomInstallerAvail bool // true if custom installer availbable
-}
-
-func getLocation() string {
-	return path.GetCacheDir() + "/custominstall"
-}
-
-func getCustomInstallerLocation() string {
-	return getLocation() + "/" + customInstallerName
+	config      *data.PackageConfig
+	preInstall  string // temp path of preinstall script
+	postInstall string // temp path of post install script
 }
 
 func GetSHConfig(config *data.PackageConfig, files []*zip.File) (*CustomExec, error) {
-	cinstallerDir := getLocation()
+	cinstallerDir := global.GetTempPath()
 
 	// export installer and scripts
 	filters := []Filter{
-		{Keyword: "scripts/" + constants.PREINSTALL_SH, InstallTo: cinstallerDir, Perm: perm.PUBLIC},
-		{Keyword: "scripts/" + constants.POSTINSTALL_SH, InstallTo: cinstallerDir, Perm: perm.PUBLIC},
-		{Keyword: customInstallerName, InstallTo: cinstallerDir, Perm: perm.PUBLIC},
+		{Keyword: cwdg.PKEY_POST_INSTALL_SH, InstallTo: cinstallerDir, Perm: perm.PUBLIC},
+		{Keyword: cwdg.PKEY_PRE_INSTALL_SH, InstallTo: cinstallerDir, Perm: perm.PUBLIC},
+		{Keyword: cwdg.PACKAGEKEY_CUSTOM_INSTALLER, InstallTo: cinstallerDir, Perm: perm.PUBLIC},
 	}
 	found := false
 	// initialize scripts and files and move to cache directory
@@ -66,15 +56,10 @@ func GetSHConfig(config *data.PackageConfig, files []*zip.File) (*CustomExec, er
 		}
 	}
 	if found {
-		isInstallerExisted := false
-		if _, err := os.Stat(getCustomInstallerLocation()); err == nil {
-			isInstallerExisted = true
-		}
 		newInstance := &CustomExec{
-			preInstall:             cinstallerDir + "/" + constants.PREINSTALL_SH,
-			postInstall:            cinstallerDir + "/" + constants.POSTINSTALL_SH,
-			IsCustomInstallerAvail: isInstallerExisted,
-			config:                 config,
+			preInstall:  cinstallerDir + "/" + cwdg.PKEY_PRE_INSTALL_SH,
+			postInstall: cinstallerDir + "/" + cwdg.PKEY_POST_INSTALL_SH,
+			config:      config,
 		}
 		return newInstance, nil
 	}
@@ -86,46 +71,55 @@ func (instance *CustomExec) execScript(script string) error {
 	if _, err := os.Stat(instance.config.GetInstallDir()); err == nil {
 		cmd.Dir = instance.config.GetInstallDir()
 	}
-	output, err := cmd.CombinedOutput()
-	log.Println(string(output))
-	if err != nil {
+	cmd.Stdout = instance
+	cmd.Stderr = instance
+	if err := cmd.Run(); err != nil {
 		return err
 	}
 	return nil
 }
 
+// start running pre install script
 func (instance CustomExec) StartPreInstall() error {
 	// has pre install script?
-	if _, err := os.Stat(instance.preInstall + "/" + constants.PREINSTALL_SH); err == nil {
-		log.Println("Started Preinstall script")
+	if _, err := os.Stat(instance.preInstall); err == nil {
+		log.Println("-------------Execute pre install script-------------")
 		return instance.execScript(instance.preInstall)
 	}
 	return nil
 }
 
+// start running post install script
 func (instance CustomExec) StartPostInstall() error {
 	// has pre install script?
-	if _, err := os.Stat(instance.postInstall + "/" + constants.PREINSTALL_SH); err == nil {
-		log.Println("Started Postinstall script")
-		return instance.execScript(instance.preInstall)
+	if _, err := os.Stat(instance.postInstall); err == nil {
+		log.Println("-------------Execute post install script-------------")
+		return instance.execScript(instance.postInstall)
 	}
 	return nil
 }
 
+// run custom installer
 func (instance CustomExec) RunCustomInstaller(srcFile string) error {
-	cinstaller := getLocation() + "/" + customInstallerName
+	cinstaller := global.GetCustomInstallerTempPath()
 	log.Println("Start running custom installer ", cinstaller)
 	cmd := exec.Command(cinstaller, srcFile)
-	output, err := cmd.CombinedOutput()
-	log.Println(string(output))
-	if err != nil {
+	cmd.Stdout = instance
+	cmd.Stderr = instance
+	if err := cmd.Run(); err != nil {
 		return err
 	}
 	return nil
+}
+
+// called when custom installer has write log
+func (instance CustomExec) Write(bytes []byte) (int, error) {
+	print(string(bytes))
+	return len(bytes), nil
 }
 
 func (instance CustomExec) Clean() error {
-	loc := getLocation()
+	loc := global.GetTempPath()
 	// delete files
 	if _, err := os.Stat(loc); err == nil {
 		if err := os.RemoveAll(loc); err != nil {

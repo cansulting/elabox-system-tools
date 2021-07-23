@@ -8,6 +8,7 @@ import (
 	"ela/foundation/errors"
 	"ela/foundation/path"
 	"ela/foundation/perm"
+	"ela/internal/cwd/global"
 	"ela/internal/cwd/packageinstaller/utils"
 	"ela/registry/app"
 	"io"
@@ -63,7 +64,7 @@ func (instance *installer) decompressFromReader(files []*zip.File) error {
 	} else {
 		instance.customInstaller = extension
 		// custom installer available ?
-		if extension != nil && instance.RunCustomInstaller && extension.IsCustomInstallerAvail {
+		if extension != nil && instance.RunCustomInstaller && instance.hasCustomInstallerInZip(files) {
 			if err := extension.RunCustomInstaller(instance.srcFile); err != nil {
 				extension.Clean()
 				return errors.SystemNew("Error running custom installer", err)
@@ -173,7 +174,7 @@ func (instance *installer) decompressFromReader(files []*zip.File) error {
 func (t *installer) initializeAppDirs() {
 	dataDir := path.GetExternalAppData(t.PackageInfo.PackageId)
 	if t.PackageInfo.IsSystemPackage() || !path.HasExternal() {
-		dataDir = path.GetSystemAppData(t.PackageInfo.PackageId)
+		dataDir = path.GetSystemAppDirData(t.PackageInfo.PackageId)
 		t.PackageInfo.ChangeToSystemLocation()
 	}
 	if err := os.MkdirAll(dataDir, perm.PUBLIC_WRITE); err != nil {
@@ -183,11 +184,11 @@ func (t *installer) initializeAppDirs() {
 
 // return app and www install path base on the package
 func _getInstallLocation(packageInfo *data.PackageConfig) (string, string) {
-	appInstallPath := path.GetExternalApp()
+	appInstallPath := path.GetExternalAppDir()
 	wwwInstallPath := path.GetExternalWWW()
 	if packageInfo.IsSystemPackage() ||
 		!path.HasExternal() {
-		appInstallPath = path.GetSystemApp()
+		appInstallPath = path.GetSystemAppDir()
 		wwwInstallPath = path.GetSystemWWW()
 	}
 	return appInstallPath, wwwInstallPath
@@ -233,15 +234,16 @@ func (t *installer) preinstall() error {
 	return nil
 }
 
-func (t *installer) Postinstall() error {
+// several steps before installation finalizes
+func (t *installer) Finalize() error {
 	if t.customInstallerUsed {
 		return nil
 	}
+	log.Println("Finalizing installer")
 	if err := t.registerPackage(); err != nil {
 		return errors.SystemNew("Unable to register package "+t.backup.PackageId, err)
 	}
 	if t.customInstaller != nil {
-		defer t.customInstaller.Clean()
 		if err := t.customInstaller.StartPostInstall(); err != nil {
 			return err
 		}
@@ -275,6 +277,16 @@ func (t *installer) registerPackage() error {
 		}
 	}
 	return nil
+}
+
+// use to check if theres a custom installer inside zip
+func (instance *installer) hasCustomInstallerInZip(files []*zip.File) bool {
+	for _, file := range files {
+		if file.Name == global.PACKAGEKEY_CUSTOM_INSTALLER {
+			return true
+		}
+	}
+	return false
 }
 
 // use to close the backup

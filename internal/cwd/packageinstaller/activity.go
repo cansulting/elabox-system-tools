@@ -39,7 +39,7 @@ func (a *activity) OnStart(action data.Action) error {
 		return nil
 	}
 	// step: register package
-	if err := install.Postinstall(); err != nil {
+	if err := install.Finalize(); err != nil {
 		a.finish("Unable to register package " + err.Error())
 		return nil
 	}

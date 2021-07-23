@@ -24,26 +24,32 @@ func startCommandline() {
 		println("command <path to package> -r(to restart the system)")
 		return
 	}
-
-	// step: terminate the system first
-	if err := utils.TerminateSystem(); err != nil {
-		log.Println("Terminate system error", err)
-	}
+	// true if restarts system
+	restartSystem := IsArgExist("-r")
 	// step: check if this is parent or not base on lock file
 	isParentInstaller := true
-	lockFile := path.GetCacheDir() + "/installer.lock"
-	if _, err := os.Stat(lockFile); err == nil {
-		isParentInstaller = false
-	} else {
-		file, err := os.OpenFile(lockFile, os.O_CREATE|os.O_RDWR, perm.PUBLIC)
-		if err != nil {
-			log.Println("Coulndt create @"+lockFile, err)
-			return
+	// if restartSystem is true, automatically run as parent
+	if !restartSystem {
+		lockFile := getLockFile()
+		if _, err := os.Stat(lockFile); err == nil {
+			log.Println("Lock file exist, this is child installer.")
+			isParentInstaller = false
+		} else {
+			file, err := os.OpenFile(lockFile, os.O_CREATE|os.O_RDWR, perm.PUBLIC)
+			if err != nil {
+				log.Println("Coulndt create @"+lockFile, err)
+				return
+			}
+			file.Close()
+			defer removeLockFile()
 		}
-		defer os.Remove(lockFile)
-		defer file.Close()
 	}
-
+	// step: terminate the system first
+	if isParentInstaller {
+		if err := utils.TerminateSystem(); err != nil {
+			log.Println("Terminate system error", err)
+		}
+	}
 	args := os.Args
 	// step: check if valid path
 	targetPk := args[1]
@@ -68,11 +74,13 @@ func startCommandline() {
 		if err := newInstall.RevertChanges(); err != nil {
 			log.Println("Failed reverting installer.", err.Error())
 		}
+		removeLockFile()
 		log.Fatal(err.Error())
 		return
 	}
+	removeLockFile()
 	// step: post install
-	if err := newInstall.Postinstall(); err != nil {
+	if err := newInstall.Finalize(); err != nil {
 		// failed? revert changes
 		if err := newInstall.RevertChanges(); err != nil {
 			log.Println("Failed reverting installer.", err.Error())
@@ -82,7 +90,7 @@ func startCommandline() {
 	}
 	log.Println("Installed success.")
 	// step: restart system
-	if IsArgExist("-r") {
+	if restartSystem {
 		if err := utils.RestartSystem(); err != nil {
 			log.Fatal(err.Error())
 			return
@@ -98,4 +106,14 @@ func IsArgExist(arg string) bool {
 		}
 	}
 	return false
+}
+
+func getLockFile() string {
+	return path.GetCacheDir() + "/installer.lock"
+}
+
+func removeLockFile() {
+	if _, err := os.Stat(getLockFile()); err == nil {
+		os.Remove(getLockFile())
+	}
 }

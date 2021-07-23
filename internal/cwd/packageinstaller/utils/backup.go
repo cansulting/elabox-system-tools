@@ -61,10 +61,10 @@ func (instance *Backup) LoadAndApply(src string) error {
 	// iterate through compressed files
 	for _, file := range zipFile.File {
 		zipFile, err := file.Open()
-		defer zipFile.Close()
 		if err != nil {
 			return err
 		}
+		defer zipFile.Close()
 		// step: if file is config then convert and initialize instance
 		if file.Name == CONFIG_FILENAME {
 			configBytes, _readErr := io.ReadAll(zipFile)

@@ -19,7 +19,7 @@ func initialize() error {
 	if Db != nil {
 		return nil
 	}
-	srcDir := path.GetSystemAppData(constants.SYSTEM_SERVICE_ID)
+	srcDir := path.GetSystemAppDirData(constants.SYSTEM_SERVICE_ID)
 	src := srcDir + "/" + global.DB_NAME
 	log.Println("Registry:", "DB Initialize @", src)
 	if _, err := os.Stat(srcDir); err != nil {
