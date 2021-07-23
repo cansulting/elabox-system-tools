@@ -113,15 +113,15 @@ func (c *PackageConfig) LoadFromZipFiles(files []*zip.File) error {
 // return where this package should be installed
 func (c *PackageConfig) GetInstallDir() string {
 	if c.InstallLocation == SYSTEM || !path.HasExternal() {
-		return path.GetSystemApp() + "/" + c.PackageId
+		return path.GetSystemAppDir() + "/" + c.PackageId
 	} else {
-		return path.GetExternalApp() + "/" + c.PackageId
+		return path.GetExternalAppDir() + "/" + c.PackageId
 	}
 }
 
 func (c *PackageConfig) GetDataDir() string {
 	if c.InstallLocation == SYSTEM || !path.HasExternal() {
-		return path.GetSystemAppData(c.PackageId)
+		return path.GetSystemAppDirData(c.PackageId)
 	} else {
 		return path.GetExternalAppData(c.PackageId)
 	}

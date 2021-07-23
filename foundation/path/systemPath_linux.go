@@ -18,12 +18,13 @@ const PATH_EXTERNAL_WWW = PATH_HOME + "/www"
 const MAIN_EXEC_NAME = "main"
 const PATH_LIB = "/usr/local/lib/ela"
 
-func GetSystemApp() string {
+func GetSystemAppDir() string {
 	return PATH_SYSTEM
 }
 
-func GetExternalApp() string {
-	return PATH_HOME
+// external app dir
+func GetExternalAppDir() string {
+	return PATH_HOME + "/apps"
 }
 
 func GetSystemWWW() string {
@@ -39,7 +40,7 @@ func GetDefaultBackupPath() string {
 	return PATH_CACHES + "/backup"
 }
 
-func GetSystemAppData(packageId string) string {
+func GetSystemAppDirData(packageId string) string {
 	return PATH_SYSTEM_DATA + "/" + packageId
 }
 
@@ -50,9 +51,9 @@ func GetExternalAppData(packageId string) string {
 // get the app main executable
 func GetAppMain(packageId string, external bool) string {
 	if external {
-		return GetExternalApp() + "/" + packageId + "/main"
+		return GetExternalAppDir() + "/" + packageId + "/main"
 	} else {
-		return GetSystemApp() + "/" + packageId + "/main"
+		return GetSystemAppDir() + "/" + packageId + "/main"
 	}
 }
 

@@ -2,13 +2,13 @@ package path
 
 const MAIN_EXEC_NAME = "main.exe"
 
-func GetSystemApp() string {
+func GetSystemAppDir() string {
 	path := "C:"
 	path += "\\ela\\system\\apps"
 	return path
 }
 
-func GetExternalApp() string {
+func GetExternalAppDir() string {
 	path := "c:"
 	path += "\\ela\\external\\apps"
 	return path
@@ -33,7 +33,7 @@ func GetDefaultBackupPath() string {
 	return path
 }
 
-func GetSystemAppData(packageId string) string {
+func GetSystemAppDirData(packageId string) string {
 	path := "c:"
 	path += "\\ela\\system\\data\\" + packageId
 	return path
@@ -48,9 +48,9 @@ func GetExternalAppData(packageId string) string {
 // get the app main executable
 func GetAppMain(packageId string, external bool) string {
 	if external {
-		return GetExternalApp() + "\\" + packageId + "\\" + MAIN_EXEC_NAME
+		return GetExternalAppDir() + "\\" + packageId + "\\" + MAIN_EXEC_NAME
 	} else {
-		return GetSystemApp() + "\\" + packageId + "\\" + MAIN_EXEC_NAME
+		return GetSystemAppDir() + "\\" + packageId + "\\" + MAIN_EXEC_NAME
 	}
 }
 
