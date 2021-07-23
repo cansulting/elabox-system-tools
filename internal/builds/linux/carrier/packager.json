@@ -1,0 +1,9 @@
+{
+    "cwd": "",
+    "config": "info.json",
+    "binDir": "",
+    "bin": "",
+    "packages": [],
+    "customInstaller": "",
+    "lib": "./lib"
+}

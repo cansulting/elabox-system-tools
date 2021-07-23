@@ -1,0 +1,8 @@
+{
+    "name": "Carrier",
+    "description": "Carrier Node",
+    "packageId": "ela.carrier",
+    "version": "0.3.0",
+    "build": 1,
+    "location": "system"
+}

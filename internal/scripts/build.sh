@@ -33,7 +33,6 @@ fi
 echo ""
 
 # where binaries will be saved
-output=$PWD/../builds/$target/bins
 go env -w CGO_ENABLED=1
 echo "cgo enabled"
 
@@ -43,7 +42,7 @@ echo "cgo enabled"
 go env -u GOOS
 go env -u GOARCH
 echo "Building " $packager
-eval "$gobuild" -o $output ../cwd/$packager
+eval "$gobuild" -o ../builds/$target/packager ../cwd/$packager
 
 #####################
 # build binaries
@@ -67,9 +66,10 @@ fi
 go env -w GOOS=$target 
 go env -w GOARCH=$arch
 echo "Building " $pkg_name
-eval "$gobuild" -o $output ../cwd/$pkg_name
+eval "$gobuild" -o ../builds/$target/$pkg_name/bin ../cwd/$pkg_name
 echo "Building " $system_name
-eval "$gobuild" -o $output ../cwd/$system_name
+eval "$gobuild" -o ../builds/$target/$system_name/bin ../cwd/$system_name
+mv ../builds/$target/$system_name/bin/$system_name ../builds/$target/$system_name/bin/main 
 # unset env variables
 go env -u CC
 go env -u CXX
@@ -88,9 +88,9 @@ if [[ "$answer" == "1" || "$answer" == "2" ]]; then
     sudo npm install
     sudo npm run build
     cd $initDir
-    rm -r ../builds/$target/www/companion
-    mkdir -p ../builds/$target/www/companion
-    cp -r $ELA_COMPANION/src_client/build/* ../builds/$target/www/companion
+    rm -r ../builds/$target/companion/www
+    mkdir -p ../builds/$target/companion/www
+    cp -r $ELA_COMPANION/src_client/build/* ../builds/$target/companion/www
     built=1
 fi
 # server building
@@ -101,51 +101,50 @@ if [[ "$answer" == "1" || "$answer" == "3" ]]; then
     sudo npm install
     sudo npm run build
     cd $initDir
-    mkdir -p ../builds/$target/nodejs/companion
-    cp -r $ELA_COMPANION/src_server/* ../builds/$target/nodejs/companion
+    mkdir -p ../builds/$target/companion/nodejs
+    cp -r $ELA_COMPANION/src_server/* ../builds/$target/companion/nodejs
     built=1
 fi
 if [ "$built" == "1" ]; then 
     echo "Build success!"
     echo "Packaging..."
-    pkgerPath=../builds/$cos/bins/$packager
-    $pkgerPath ../builds/$target/packager/companion.json
+    pkgerPath=../builds/$cos/$packager/$packager
+    $pkgerPath ../builds/$target/companion/packager.json
 fi
 
 ##################################
 # elastos mainchain, did, cli
 ##################################
-targetdir=../builds/$target/libs
+targetdir=../builds/$target
 echo "Copying mainchain, did and cli @$ELA_NODES"
-mkdir -p $targetdir/mainchain
-mkdir -p $targetdir/did
-mkdir -p $targetdir/carrier
 # mainchain
-cp ${ELA_NODES}/ela $targetdir/mainchain
-cp ${ELA_NODES}/ela-cli $targetdir/mainchain
-chmod +x $targetdir/mainchain/ela $targetdir/mainchain/ela-cli
-cp ${ELA_NODES}/ela_config.json $targetdir/mainchain
-mv $targetdir/mainchain/ela_config.json $targetdir/mainchain/config.json
+mainchainlib=../builds/$target/mainchain/lib
+cp ${ELA_NODES}/ela $mainchainlib
+cp ${ELA_NODES}/ela-cli $mainchainlib
+chmod +x $mainchainlib/ela $mainchainlib/ela-cli
+cp ${ELA_NODES}/ela_config.json $mainchainlib
+mv $mainchainlib/ela_config.json $mainchainlib/config.json
 # did
-cp ${ELA_NODES}/did $targetdir/did
-chmod +x $targetdir/did/did
-cp ${ELA_NODES}/did_config.json $targetdir/did
-mv $targetdir/did/did_config.json $targetdir/did/config.json
+didlib=../builds/$target/did/lib
+cp ${ELA_NODES}/did $didlib
+chmod +x $didlib/did
+cp ${ELA_NODES}/did_config.json $didlib
+mv $didlib/did_config.json $didlib/config.json
 # carrier
-cp ${ELA_NODES}/ela-bootstrapd $targetdir/carrier
-cp ${ELA_NODES}/bootstrapd.conf $targetdir/carrier
-chmod +x $targetdir/carrier/ela-bootstrapd
-chmod 777 $targetdir/carrier/bootstrapd.conf
+carrierlib=../builds/$target/carrier/lib
+cp ${ELA_NODES}/ela-bootstrapd $carrierlib
+cp ${ELA_NODES}/bootstrapd.conf $carrierlib
+chmod +x $carrierlib/ela-bootstrapd
 
 #########################
 # Packaging
 #########################
 echo "Start packaging..."
-pkgerPath=../builds/$cos/bins/$packager
-$pkgerPath ../builds/$target/packager/did.json
-$pkgerPath ../builds/$target/packager/carrier.json
-$pkgerPath ../builds/$target/packager/mainchain.json
-$pkgerPath ../builds/$target/packager/$pkg_name.json
-$pkgerPath ../builds/$target/packager/$system_name.json
+pkgerPath=../builds/$cos/$packager/$packager
+$pkgerPath ../builds/$target/did/packager.json
+$pkgerPath ../builds/$target/carrier/packager.json
+$pkgerPath ../builds/$target/mainchain/packager.json
+$pkgerPath ../builds/$target/$pkg_name/packager.json
+$pkgerPath ../builds/$target/$system_name/packager.json
 
 go env -u CGO_ENABLED

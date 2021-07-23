@@ -1,8 +1,0 @@
-{
-    "cwd": "",
-    "config": "../packageConfig/packageinstaller.json",
-    "binDir": "",
-    "bin": "../bins/packageinstaller",
-    "packages": [],
-    "customInstaller": ""
-}
