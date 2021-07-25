@@ -118,20 +118,20 @@ fi
 targetdir=../builds/$target
 echo "Copying mainchain, did and cli @$ELA_NODES"
 # mainchain
-mainchainlib=../builds/$target/mainchain/lib
+mainchainlib=../builds/$target/mainchain/bin
 cp ${ELA_NODES}/ela $mainchainlib
 cp ${ELA_NODES}/ela-cli $mainchainlib
 chmod +x $mainchainlib/ela $mainchainlib/ela-cli
 cp ${ELA_NODES}/ela_config.json $mainchainlib
 mv $mainchainlib/ela_config.json $mainchainlib/config.json
 # did
-didlib=../builds/$target/did/lib
+didlib=../builds/$target/did/bin
 cp ${ELA_NODES}/did $didlib
 chmod +x $didlib/did
 cp ${ELA_NODES}/did_config.json $didlib
 mv $didlib/did_config.json $didlib/config.json
 # carrier
-carrierlib=../builds/$target/carrier/lib
+carrierlib=../builds/$target/carrier/bin
 cp ${ELA_NODES}/ela-bootstrapd $carrierlib
 cp ${ELA_NODES}/bootstrapd.conf $carrierlib
 chmod +x $carrierlib/ela-bootstrapd
