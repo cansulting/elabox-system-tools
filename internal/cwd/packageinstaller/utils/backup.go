@@ -23,8 +23,14 @@ type Backup struct {
 }
 
 type BackupFile struct {
-	Id  string `json:"id"`
-	Src string `json:"src"`
+	Id   string      `json:"id"`
+	Src  string      `json:"src"`
+	Perm os.FileMode `json:"perm"`
+}
+
+func (bkfile BackupFile) open() *os.File {
+	file, _ := os.OpenFile(bkfile.Src, os.O_CREATE|os.O_WRONLY, bkfile.Perm)
+	return file
 }
 
 func (instance *Backup) GetSource() string {
@@ -58,14 +64,14 @@ func (instance *Backup) LoadAndApply(src string) error {
 		return err
 	}
 	defer zipFile.Close()
-	// iterate through compressed files
+	// iterate through compressed files and find the config file
 	for _, file := range zipFile.File {
 		zipFile, err := file.Open()
 		if err != nil {
 			return err
 		}
 		defer zipFile.Close()
-		// step: if file is config then convert and initialize instance
+		// step: if file is config then load and initialize instance
 		if file.Name == CONFIG_FILENAME {
 			configBytes, _readErr := io.ReadAll(zipFile)
 			if _readErr != nil {
@@ -79,10 +85,10 @@ func (instance *Backup) LoadAndApply(src string) error {
 		}
 		// save file to tempDir
 		newFile, err := os.Create(tempDir + "/" + file.Name)
-		defer newFile.Close()
 		if err != nil {
 			return err
 		}
+		defer newFile.Close()
 		_, errWrite := io.Copy(newFile, zipFile)
 		if errWrite != nil {
 			return err
@@ -95,9 +101,17 @@ func (instance *Backup) LoadAndApply(src string) error {
 		if _, err := os.Stat(file.Src); err == nil {
 			os.Remove(file.Src)
 		}
-		err := os.Rename(tempDir+"/"+file.Id, file.Src)
+		// copy from temp to target
+		fromName := tempDir + "/" + file.Id
+		from, err := os.Open(fromName)
+		_, err2 := io.Copy(file.open(), from)
+		if err2 != nil {
+			log.Println("Backup:LoadAndApply skippable ", err2.Error())
+		}
+		// remove temp
+		err3 := os.Remove(fromName)
 		if err != nil {
-			log.Println("Backup:LoadAndApply skippable ", err.Error())
+			log.Println("Backup:LoadAndApply skippable ", err3.Error())
 		}
 	}
 	return nil
@@ -106,26 +120,29 @@ func (instance *Backup) LoadAndApply(src string) error {
 func (instance *Backup) AddFile(src string) error {
 	// add file to list
 	id := strconv.Itoa(int(instance.FileCount))
-	instance.Files = append(instance.Files, BackupFile{
-		Id:  id,
-		Src: src,
-	})
-	instance.FileCount++
 	// add file to archive
 	compressedFile, err := instance.archive.Create(id)
 	if err != nil {
 		return err
 	}
 	// read bytes from file and save to archive
-	uncompressedFile, err := os.OpenFile(src, os.O_RDONLY, 0764)
+	uncompressedFile, err := os.Open(src)
 	if err != nil {
 		return err
 	}
+	defer uncompressedFile.Close()
 	_, errCopy := io.Copy(compressedFile, uncompressedFile)
 	if errCopy != nil {
 		return errCopy
 	}
-	uncompressedFile.Close()
+	info, _ := uncompressedFile.Stat()
+	// update backup info
+	instance.Files = append(instance.Files, BackupFile{
+		Id:   id,
+		Src:  src,
+		Perm: info.Mode(),
+	})
+	instance.FileCount++
 	return nil
 }
 

@@ -73,21 +73,21 @@ if [ ! -d "/var/cache/swap" ]; then
     # hostnamectl to check
     /etc/init.d/avahi-daemon restart
     systemctl restart systemd-logind.service
-fi
-
-############################
-## Setup elabox directory from USB
-############################
-if [ ! -d "$homedir" ]; then
-    echo "Please insert USB before continuing! Press enter when ready..."
-    read answer
-    echo 'y' |  mkfs.ext4 /dev/sda
-    sudo mount /dev/sda $homedir
-    # check the unique identifier of /dev/sda
-    USD_UUID=$(sudo blkid | grep /dev/sda | cut -d '"' -f 2)
-    # update the /etc/fstab file to auto-mount the disk on startup
-    echo "UUID=${USD_UUID} $homedir ext4 defaults 0 0" | tee -a /etc/fstab > /dev/null
-    chown -R elabox:elabox $homedir
-    /etc/init.d/avahi-daemon restart
+    
+    ############################
+    ## Setup elabox directory from USB
+    ############################
+    if [ ! -d "$homedir" ]; then
+        echo "Please insert USB before continuing! Press enter when ready..."
+        read answer
+        echo 'y' |  mkfs.ext4 /dev/sda
+        sudo mount /dev/sda $homedir
+        # check the unique identifier of /dev/sda
+        USD_UUID=$(sudo blkid | grep /dev/sda | cut -d '"' -f 2)
+        # update the /etc/fstab file to auto-mount the disk on startup
+        echo "UUID=${USD_UUID} $homedir ext4 defaults 0 0" | tee -a /etc/fstab > /dev/null
+        chown -R elabox:elabox $homedir
+        /etc/init.d/avahi-daemon restart
+    fi
 fi
 

@@ -17,7 +17,7 @@ import (
 	this struct handles execution of scripts/sh and custom installer attach to it
 */
 
-const sh = "/bin/sh"
+const sh = "/bin/bash"
 
 type CustomExec struct {
 	config      *data.PackageConfig
