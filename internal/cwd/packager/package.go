@@ -29,7 +29,7 @@ type Package struct {
 	Www             string   `json:"www"`      // www front end to be included in source
 	Nodejs          string   `json:"nodejs"`   // add node js directory if the package contain node js app
 	Finalize        string   `json:"postinstall"`
-	PreInstall      string   `json:"preinstaller"`
+	PreInstall      string   `json:"preinstall"`
 	CustomInstaller string   `json:"customInstaller"` // custom installer
 }
 

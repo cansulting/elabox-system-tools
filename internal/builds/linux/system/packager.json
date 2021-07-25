@@ -11,5 +11,6 @@
         "../mainchain/ela.mainchain.box"],
     "customInstaller": "../packageinstaller/bin/packageinstaller",
     "lib": "",
-    "postinstall":"./scripts/postinstall.sh"
+    "postinstall":"./scripts/postinstall.sh",
+    "preinstall":"./scripts/preinstall.sh"
 }
