@@ -12,3 +12,4 @@ internal/builds/linux/libs/mainchain/ela
 internal/builds/linux/libs/mainchain/ela-cli
 internal/builds/linux/companion/nodejs/
 internal/builds/linux/companion/www/
+*.box
