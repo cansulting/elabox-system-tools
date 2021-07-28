@@ -5,7 +5,8 @@ cos=$(go env GOOS)                  # current os.
 carc=$(go env GOARCH)               # current archi
 pkg_name=packageinstaller           # package installer project name
 system_name=system                  # system project name
-packager=packager                   
+packager=packager
+webserver=webserver                   
 target=$cos
 arch=$carc
 gobuild='go build'                  # build command
@@ -69,6 +70,8 @@ go env -w GOARCH=$arch
 echo "Building " $pkg_name
 mkdir -p ../builds/$target/$pkg_name/bin
 eval "$gobuild" -o ../builds/$target/$pkg_name/bin ../cwd/$pkg_name
+echo "Building " $webserver
+eval "$gobuild" -o ../builds/$target/$webserver/bin ../cwd/$webserver
 echo "Building " $system_name
 eval "$gobuild" -o ../builds/$target/$system_name/bin ../cwd/$system_name
 mv ../builds/$target/$system_name/bin/$system_name ../builds/$target/$system_name/bin/main 
@@ -150,6 +153,7 @@ $pkgerPath ../builds/$target/did/packager.json
 $pkgerPath ../builds/$target/carrier/packager.json
 $pkgerPath ../builds/$target/mainchain/packager.json
 $pkgerPath ../builds/$target/$pkg_name/packager.json
+$pkgerPath ../builds/$target/$webserver/packager.json
 $pkgerPath ../builds/$target/$system_name/packager.json
 
 go env -u CGO_ENABLED

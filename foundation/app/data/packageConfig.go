@@ -101,6 +101,7 @@ func (c *PackageConfig) LoadFromZipFiles(files []*zip.File) error {
 		if err != nil {
 			return err
 		}
+		defer reader.Close()
 		err = c.LoadFromReader(reader)
 		if err != nil {
 			return err

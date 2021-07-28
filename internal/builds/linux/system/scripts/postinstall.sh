@@ -28,3 +28,5 @@ systemctl start $fname
 #journalctl -f -u $fname
 echo "Check system log @" $log
 
+# create symlink elasystem
+ln -sf $srcbin /bin/elasystem

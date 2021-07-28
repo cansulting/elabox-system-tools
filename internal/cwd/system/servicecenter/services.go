@@ -80,7 +80,7 @@ func startActivity(action data.Action, client protocol.ClientInterface) string {
 	}
 	packageId := action.PackageId
 	// step: look up for package id
-	if packageId != "" {
+	if packageId == "" {
 		pks, err := app.RetrievePackagesWithActivity(action.Id)
 		if err != nil {
 			return errors.SystemNew("appman.StartActivity failed to start "+packageId, err).Error()
@@ -94,6 +94,7 @@ func startActivity(action data.Action, client protocol.ClientInterface) string {
 	if err := appman.LaunchAppActivity(packageId, client, action); err != nil {
 		return `{"code":401, "message":` + err.Error() + ` }`
 	}
+	log.Println("Start activity", action.Id, packageId, action.DataToString())
 	return `{"code":200, "message":"Launched"}`
 }
 
@@ -117,6 +118,7 @@ func onReturnActivityResult(action data.Action) string {
 	return originApp.RPC.CallAct(action)
 }
 
+// use to broadcast to action
 func processBroadcastAction(action data.Action) string {
 	/*
 		pks, err = RetrievePackagesWithBroadcast(action.Id)
@@ -141,8 +143,17 @@ func activateUpdateMode(client protocol.ClientInterface, action data.Action) str
 	return "success"
 }
 
-func terminate() string {
-	appman.TerminateAllApp()
-	global.Running = false
+func terminate(seconds uint) string {
+	go func() {
+		log.Println("System will terminate after", seconds, "seconds")
+		if seconds > 0 {
+			time.Sleep(time.Second * time.Duration(seconds))
+		}
+		appman.TerminateAllApp()
+		global.Connector.SetStatus(system.STOPPED, nil)
+		global.Running = false
+		time.Sleep(time.Millisecond * 100)
+		os.Exit(0)
+	}()
 	return "success"
 }

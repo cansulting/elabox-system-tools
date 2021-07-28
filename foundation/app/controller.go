@@ -25,13 +25,13 @@ func RunApp(app *Controller) error {
 	if err := app.onStart(); err != nil {
 		return err
 	}
-	log.Println("App is now running")
+	log.Println("App", app.Config.PackageId, "is now running")
 
 	for app.IsRunning() {
 		time.Sleep(time.Second * 1)
 	}
 
-	defer log.Println("App exit")
+	defer log.Println("App exit " + app.Config.PackageId)
 	return app.onEnd()
 }
 
@@ -96,7 +96,7 @@ func (m *Controller) onStart() error {
 	if err != nil {
 		return err
 	}
-	log.Println("controller.OnStart() pendingActions =", res)
+	log.Println(m.Config.PackageId, "OnStart() pendingActions =", res)
 	pendingActions := res.ToActionGroup()
 	// step: initialize service
 	if m.AppService != nil {
@@ -144,6 +144,7 @@ func (m *Controller) onEnd() error {
 
 // this will end the app
 func (c *Controller) End() {
+	log.Println("App", c.Config.PackageId, "is now ending")
 	c.forceEnd = true
 }
 

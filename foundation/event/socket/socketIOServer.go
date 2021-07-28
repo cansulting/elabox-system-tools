@@ -4,6 +4,7 @@ import (
 	"ela/foundation/constants"
 	"ela/foundation/event/data"
 	"ela/foundation/event/protocol"
+	"ela/foundation/system"
 	"log"
 	"net/http"
 	"strconv"
@@ -28,7 +29,6 @@ func (s *SocketIOServer) GetState() data.ConnectionType {
 func (s *SocketIOServer) Open() error {
 	log.Println("Socket IO Server started")
 	server := socketio.NewServer(transport.GetDefaultWebsocketTransport())
-
 	server.On(socketio.OnConnection, onClientConnected)
 	server.On(socketio.OnDisconnection, onClientDisconnected)
 	/*
@@ -41,12 +41,21 @@ func (s *SocketIOServer) Open() error {
 	serveMux := http.NewServeMux()
 	serveMux.Handle("/socket.io/", server)
 	s.state = data.Connected
-	log.Println("Starting server...")
+	log.Println("Starting server @PORT ", constants.PORT)
 	go http.ListenAndServe(":"+strconv.Itoa(constants.PORT), serveMux)
 	time.Sleep(time.Millisecond * 500)
 	//log.Panic()
 
+	// for status handling
+	server.On("elastatus", func(socket *socketio.Channel) string {
+		return s.GetStatus()
+	})
+
 	return nil
+}
+
+func (s *SocketIOServer) GetStatus() string {
+	return system.GetStatus()
 }
 
 func onClientConnected(socket *socketio.Channel) {
@@ -62,7 +71,7 @@ func onClientDisconnected(socket *socketio.Channel) {
 
 // implementation for connector broadcast
 func (s *SocketIOServer) Broadcast(room string, event string, dataTransfer interface{}) error {
-	log.Println("SocketIOServer", "Broadcast", "room="+room, dataTransfer)
+	println("SocketIOServer", "Broadcast", "room="+room, dataTransfer)
 	s.socket.BroadcastTo(room, event, dataTransfer)
 	return nil
 }
@@ -86,6 +95,14 @@ func (s *SocketIOServer) SubscribeClient(socket protocol.ClientInterface, room s
 func (s *SocketIOServer) BroadcastTo(client protocol.ClientInterface, method string, data interface{}) (string, error) {
 	clientCast := client.(*gosocketio.Channel)
 	return clientCast.Ack(method, data, time.Second*constants.TIMEOUT)
+}
+
+func (s *SocketIOServer) SetStatus(status system.Status, data interface{}) error {
+	system.SetStatus(string(status))
+	return s.Broadcast(
+		constants.SYSTEM_SERVICE_ID,
+		constants.BCAST_SYSTEM_STATUS_CHANGED,
+		statusData{status: string(status), data: data})
 }
 
 /// this closes the server

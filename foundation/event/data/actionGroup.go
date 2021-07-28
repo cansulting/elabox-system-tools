@@ -6,7 +6,7 @@ import (
 )
 
 type ActionGroup struct {
-	Activity Action `json:"activity"`
+	Activity *Action `json:"activity"`
 	//Broadcasts []Action
 }
 
@@ -17,7 +17,7 @@ func NewActionGroup() *ActionGroup {
 	return group
 }
 
-func (app *ActionGroup) AddPendingActivity(action Action) {
+func (app *ActionGroup) AddPendingActivity(action *Action) {
 	app.Activity = action
 	//app.Activities = append(app.Activities, action)
 }

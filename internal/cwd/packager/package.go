@@ -20,16 +20,16 @@ import (
 	Config file needs to be loaded first before it can be used.
 */
 type Package struct {
-	Cwd             string   `json:"cwd"`      // current working directory
-	PackageConfig   string   `json:"config"`   // the package config file
-	BinDir          string   `json:"binDir"`   // bin directory. if bin file property was provided this will be skip
-	Bin             string   `json:"bin"`      // bin file
-	Lib             string   `json:"lib"`      // shared library for this package.
-	Packages        []string `json:"packages"` // list of packages to be included
-	Www             string   `json:"www"`      // www front end to be included in source
-	Nodejs          string   `json:"nodejs"`   // add node js directory if the package contain node js app
-	Finalize        string   `json:"postinstall"`
-	PreInstall      string   `json:"preinstall"`
+	Cwd             string   `json:"cwd"`             // current working directory
+	PackageConfig   string   `json:"config"`          // the package config file
+	BinDir          string   `json:"binDir"`          // bin directory. if bin file property was provided this will be skip
+	Bin             string   `json:"bin"`             // bin file
+	Lib             string   `json:"lib"`             // shared library for this package.
+	Packages        []string `json:"packages"`        // list of packages to be included
+	Www             string   `json:"www"`             // www front end to be included in source
+	Nodejs          string   `json:"nodejs"`          // add node js directory if the package contain node js app
+	PostInstall     string   `json:"postinstall"`     //
+	PreInstall      string   `json:"preinstall"`      //
 	CustomInstaller string   `json:"customInstaller"` // custom installer
 }
 
@@ -150,8 +150,8 @@ func (c *Package) Compile(destdir string) error {
 			return errors.SystemNew("Package.Compile() failed adding script "+c.PreInstall, err)
 		}
 	}
-	if c.Finalize != "" {
-		if err := addFile("scripts/"+cwdg.POSTINSTALL_SH, c.Finalize, zipwriter); err != nil {
+	if c.PostInstall != "" {
+		if err := addFile("scripts/"+cwdg.POSTINSTALL_SH, c.PostInstall, zipwriter); err != nil {
 			return errors.SystemNew("Package.Compile() failed adding script "+c.PreInstall, err)
 		}
 	}

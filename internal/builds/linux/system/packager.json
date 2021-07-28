@@ -8,7 +8,9 @@
         "../companion/ela.companion.box",
         "../did/ela.did.box", 
         "../carrier/ela.carrier.box", 
-        "../mainchain/ela.mainchain.box"],
+        "../mainchain/ela.mainchain.box",
+        "../webserver/ela.webserver.box"
+    ],
     "customInstaller": "../packageinstaller/bin/packageinstaller",
     "lib": "",
     "postinstall":"./scripts/postinstall.sh",

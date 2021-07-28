@@ -1,11 +1,16 @@
 package protocol
 
-import "ela/foundation/event/data"
+import (
+	"ela/foundation/event/data"
+	"ela/foundation/system"
+)
 
 // interface for service communication to clients
 type ConnectorServer interface {
 	GetState() data.ConnectionType
 	Open() error
+	SetStatus(status system.Status, data interface{}) error
+	GetStatus() string
 	/// send data to all room
 	Broadcast(room string, event string, data interface{}) error
 	/// send service response to client

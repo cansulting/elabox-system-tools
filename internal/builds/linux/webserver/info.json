@@ -1,0 +1,9 @@
+{
+    "name": "Ela Webserver",
+    "description": "Ela Webserver",
+    "packageId": "ela.webserver",
+    "version": "0.3.0",
+    "build": 1,
+    "exportService": true,
+    "location": "system"
+}
