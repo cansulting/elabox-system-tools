@@ -13,3 +13,11 @@ internal/builds/linux/libs/mainchain/ela-cli
 internal/builds/linux/companion/nodejs/
 internal/builds/linux/companion/www/
 *.box
+internal/builds/linux/system/bin
+internal/builds/linux/webserver/bin
+internal/builds/linux/packager/packager
+internal/builds/linux/packageinstaller/bin
+internal/builds/linux/webserver/bin
+internal/builds/linux/did/bin
+internal/builds/linux/carrier/bin
+
