@@ -28,8 +28,8 @@ func main() {
 	}
 
 	//global.Initialize()
-	global.Connector.SetStatus(system.BOOTING, nil)
 	servicecenter.Initialize(commandline)
+	global.Connector.SetStatus(system.BOOTING, nil)
 	defer servicecenter.Close()
 	if err := appman.Initialize(commandline); err != nil {
 		log.Panicln("installer failed to initialize " + err.Error())

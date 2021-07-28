@@ -132,7 +132,7 @@ func processBroadcastAction(action data.Action) string {
 		for _, pk := range pks {
 			launchPackage(action, pk)
 		}*/
-	global.Connector.Broadcast(action.Id, action.Id, action)
+	global.Connector.Broadcast(constants.SYSTEM_SERVICE_ID, action.Id, action)
 	return ""
 }
 
