@@ -12,7 +12,7 @@ func InitializePath() {
 		log.Fatalln("Unable to create directories", err)
 	}
 	os.MkdirAll(path.GetSystemWWW(), perm.PRIVATE)
-	os.MkdirAll(path.GetDefaultBackupPath(), perm.PUBLIC_VIEW)
+	os.MkdirAll(path.GetDefaultBackupPath(), perm.PUBLIC)
 	os.MkdirAll(path.GetSystemAppDirData(""), perm.PUBLIC_WRITE)
 	os.MkdirAll(path.GetCacheDir(), perm.PUBLIC)
 	os.MkdirAll(path.GetLibPath(), perm.PUBLIC_VIEW)

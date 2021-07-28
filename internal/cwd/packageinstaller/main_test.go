@@ -8,8 +8,8 @@ import (
 	"ela/foundation/event/data"
 	"ela/foundation/path"
 	testapp "ela/foundation/testing/app"
-	"ela/internal/cwd/packageinstaller/global"
-	reg "ela/registry/app"
+	pkc "ela/internal/cwd/packageinstaller/constants"
+	"ela/internal/cwd/packageinstaller/pkg"
 	"io/ioutil"
 	"log"
 	"os"
@@ -19,11 +19,11 @@ import (
 )
 
 const pkid = "ela.installer"
+const outputPath = "../../builds/linux/packageinstaller/bin/packageinstaller"
 
 // use to build installer. and put it to installation path
 func TestBuildInstaller(test *testing.T) {
 	log.Println("Building installer")
-	outputPath := "../../builds/linux/bins/packageinstaller"
 	cmd := exec.Command("go", "build", "-o", outputPath)
 	bytes, err := cmd.CombinedOutput()
 	log.Println(string(bytes))
@@ -51,21 +51,22 @@ func copyInstallerBinary(pkconfig *appd.PackageConfig) (string, error) {
 // test install a package and register it
 func TestSystemUpdateCommandline(test *testing.T) {
 	wd, _ := os.Getwd()
-	pkpath := wd + "/../../builds/linux/packager/ela.system.box"
-	pki, err := reg.RetrievePackage(pkid)
+	pkpath := wd + "/../../builds/linux/system/ela.system.box"
+	/*pki, err := reg.RetrievePackage(pkid)
 	if err != nil {
 		log.Println(err)
 		test.Error(err)
 		return
 	}
-	dest, err := copyInstallerBinary(pki)
-	if err != nil {
-		log.Println(err.Error())
-		test.Error(err)
-		return
-	}
-	cmd := exec.Command("sudo "+dest, pkpath)
-	cmd.Dir = filepath.Dir(dest)
+		dest, err := copyInstallerBinary(pki)
+		if err != nil {
+			log.Println(err.Error())
+			test.Error(err)
+			return
+		}*/
+
+	cmd := exec.Command("sudo $PWD/"+outputPath, pkpath)
+	//cmd.Dir = filepath.Dir(outputPath)
 	bytes, err := cmd.CombinedOutput()
 	if err != nil {
 		test.Error(err)
@@ -78,10 +79,15 @@ func TestSystemUpdateCommandline(test *testing.T) {
 func TestSystemUpdateCommandline2(test *testing.T) {
 	wd, _ := os.Getwd()
 	pkpath := wd + "/../../builds/linux/packager/ela.system.box"
-	newInstall := installer{BackupEnabled: true, RunCustomInstaller: true}
+	pkg, err := pkg.LoadFromSource(pkpath)
+	if err != nil {
+		test.Error(err)
+		return
+	}
+	newInstall := NewInstaller(pkg, true)
 	// step: start install
-	if err := newInstall.Decompress(pkpath); err != nil {
-		log.Fatal(err.Error())
+	if err := newInstall.Start(); err != nil {
+		test.Error(err)
 		return
 	}
 }
@@ -89,15 +95,17 @@ func TestSystemUpdateCommandline2(test *testing.T) {
 // test installer via activity
 func TestRunActivityManually(t *testing.T) {
 	InitializePath()
-	pkgPath := "../../builds/windows/packager/ela.system.ela"
+	pkgPath := "../../builds/linux/system/ela.system.box"
 	//pkgPath := `C:\Users\Jhoemar\Documents\Projects\Elabox\system-tools\internal\builds\packages`
 	controller, err := app.NewController(&activity{}, nil)
 	if err != nil {
 		t.Error(err)
 	}
-	global.AppController = controller
+	pkc.AppController = controller
+	action := data.NewAction(constants.ACTION_APP_SYSTEM_INSTALL, "", pkgPath)
 	testapp.RunTestApp(
 		controller,
 		data.ActionGroup{
-			Activity: data.NewAction(constants.ACTION_APP_INSTALLER, "", pkgPath)})
+			Activity: &action,
+		})
 }

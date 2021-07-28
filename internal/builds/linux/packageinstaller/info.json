@@ -8,7 +8,7 @@
     "permissions": [
 
     ],
-    "activities": ["ela.action.INSTALLER"],
+    "activities": ["ela.action.INSTALL", "ela.action.SYSTEM_INSTALL"],
     "services:": {
     },
     "actionListener": [],

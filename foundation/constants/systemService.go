@@ -29,6 +29,7 @@ const SYSTEM_ACTIVITY_RESULT = "ela.system.ACTIVITY_RESULT"
 
 // system will terminate
 const SYSTEM_TERMINATE = "ela.system.TERMINATE"
+const SYSTEM_TERMINATE_NOW = "ela.system.TERMINATE_NOW"
 
 /*
 service state was changed. usually contains the state integer value.

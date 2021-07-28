@@ -9,6 +9,7 @@ import (
 	"ela/foundation/path"
 	"ela/foundation/perm"
 	"ela/internal/cwd/global"
+	"ela/internal/cwd/packageinstaller/pkg"
 	"ela/internal/cwd/packageinstaller/utils"
 	"ela/registry/app"
 	"io"
@@ -21,63 +22,30 @@ import (
 	structure for installing packages to ela system
 */
 type installer struct {
-	backup              *utils.Backup       // backup instance
-	BackupEnabled       bool                // true if instance will create a backup for replaced files
-	PackageInfo         *data.PackageConfig // package info for installer
-	subinstaller        []*installer        // list of subpackages/subinstaller
-	customInstaller     *utils.CustomExec   // custom installer instance
-	srcFile             string              //
-	RunCustomInstaller  bool                // true if will run custom installer if available, false by default
-	customInstallerUsed bool                // true if used custom installer
+	backup         *utils.Backup       // backup instance
+	BackupEnabled  bool                // true if instance will create a backup for replaced files
+	packageInfo    *data.PackageConfig // package info for installer
+	packageContent *pkg.Data
+	subinstaller   []*installer // list of subpackages/subinstaller
+	onProgress     func(uint16)
+	progress       uint16
 }
 
-// use to uncompress the file to target
-func (instance *installer) Decompress(sourceFile string) error {
-	instance.srcFile = sourceFile
-	// step: read package
-	z, err := zip.OpenReader(sourceFile)
-	if err != nil {
-		return errors.SystemNew("installer.Decompress() failed to locate "+sourceFile, err)
+func NewInstaller(content *pkg.Data, backup bool) *installer {
+	return &installer{
+		BackupEnabled:  backup,
+		packageInfo:    content.Config,
+		packageContent: content,
 	}
-	defer z.Close()
-	return instance.decompressFromReader(z.File)
 }
 
 // decompress package based from reader
-func (instance *installer) decompressFromReader(files []*zip.File) error {
-	// step: load package
-	packageInfo := instance.PackageInfo
-	if packageInfo == nil {
-		packageInfo = data.DefaultPackage()
-		if err := packageInfo.LoadFromZipFiles(files); err != nil {
-			return errors.SystemNew("installer.decompressFromReader unable to load package info", err)
-		}
-		instance.PackageInfo = packageInfo
-	}
-	if !instance.PackageInfo.IsValid() {
-		return errors.SystemNew("installer.decompressFromReader invalid package info", nil)
-	}
-	// step: initialize installer extension
-	extension, err := utils.GetSHConfig(packageInfo, files)
-	if err != nil {
-		log.Println("Error in initializing installer extensions. continue...", err)
-	} else {
-		instance.customInstaller = extension
-		// custom installer available ?
-		if extension != nil && instance.RunCustomInstaller && instance.hasCustomInstallerInZip(files) {
-			if err := extension.RunCustomInstaller(instance.srcFile); err != nil {
-				extension.Clean()
-				return errors.SystemNew("Error running custom installer", err)
-			}
-			log.Println("Custom installer run success.")
-			instance.customInstallerUsed = true
-			return nil
-		}
-	}
+func (instance *installer) Start() error {
+	packageInfo := instance.packageInfo
 	// initialize backup
 	if instance.BackupEnabled && instance.backup == nil {
 		instance.backup = &utils.Backup{
-			PackageId: instance.PackageInfo.PackageId,
+			PackageId: packageInfo.PackageId,
 		}
 		backupPath := path.GetDefaultBackupPath() + "/system.backup"
 		err := instance.backup.Create(backupPath)
@@ -91,6 +59,7 @@ func (instance *installer) decompressFromReader(files []*zip.File) error {
 			log.Println("installer failed to backup app dir "+packageInfo.GetInstallDir(), err.Error(), "continue...")
 		}
 	}
+	// preinstall
 	if err := instance.preinstall(); err != nil {
 		return err
 	}
@@ -115,7 +84,7 @@ func (instance *installer) decompressFromReader(files []*zip.File) error {
 		{Keyword: "nodejs", InstallTo: packageInfo.GetInstallDir(), Perm: perm.PRIVATE},
 	}
 	// step: iterate each file and save it
-	for _, file := range files {
+	for _, file := range instance.packageContent.Files {
 		// step: open source file
 		log.Println("installer:decompress() extracting", file.Name)
 		reader, err := file.Open()
@@ -172,10 +141,10 @@ func (instance *installer) decompressFromReader(files []*zip.File) error {
 
 // initialize directories
 func (t *installer) initializeAppDirs() {
-	dataDir := path.GetExternalAppData(t.PackageInfo.PackageId)
-	if t.PackageInfo.IsSystemPackage() || !path.HasExternal() {
-		dataDir = path.GetSystemAppDirData(t.PackageInfo.PackageId)
-		t.PackageInfo.ChangeToSystemLocation()
+	dataDir := path.GetExternalAppData(t.packageInfo.PackageId)
+	if t.packageInfo.IsSystemPackage() || !path.HasExternal() {
+		dataDir = path.GetSystemAppDirData(t.packageInfo.PackageId)
+		t.packageInfo.ChangeToSystemLocation()
 	}
 	if err := os.MkdirAll(dataDir, perm.PUBLIC_WRITE); err != nil {
 		log.Println("installer.initializeAppDirs failed", err)
@@ -196,7 +165,6 @@ func _getInstallLocation(packageInfo *data.PackageConfig) (string, string) {
 
 // callback when theres a subpackage
 func (t *installer) _onSubPackage(path string, reader io.ReadCloser, size uint64) error {
-	subPackage := installer{}
 	// step: convert buffer to zip reader
 	newBuffer := bytes.NewBuffer([]byte{})
 	written, err := io.Copy(newBuffer, reader)
@@ -207,15 +175,21 @@ func (t *installer) _onSubPackage(path string, reader io.ReadCloser, size uint64
 	if err != nil {
 		return errors.SystemNew("installer: subpackage "+path+"...", err)
 	}
+	// initialize package
+	pkg, err := pkg.LoadFromZipFiles(newReader.File)
+	if err != nil {
+		return errors.SystemNew("Failed loading subpackage ", err)
+	}
+	subPackage := NewInstaller(pkg, false)
 	// step: decompress subpackage file
-	if err := subPackage.decompressFromReader(newReader.File); err != nil {
+	if err := subPackage.Start(); err != nil {
 		return errors.SystemNew("installer: subpackage "+path+"...", err)
 	}
 	if t.subinstaller == nil {
 		t.subinstaller = make([]*installer, 0, 4)
 	}
 	// step: add to list
-	t.subinstaller = append(t.subinstaller, &subPackage)
+	t.subinstaller = append(t.subinstaller, subPackage)
 	return nil
 }
 
@@ -226,8 +200,11 @@ func (instance *installer) createBackupFor(src string) error {
 }
 
 func (t *installer) preinstall() error {
-	if t.customInstaller != nil {
-		if err := t.customInstaller.StartPreInstall(); err != nil {
+	if err := t.packageContent.ExtractScripts(); err != nil {
+		return errors.SystemNew("Failed to extract scripts", err)
+	}
+	if t.packageContent.HasPreInstallScript() {
+		if err := t.packageContent.StartPreInstall(); err != nil {
 			return err
 		}
 	}
@@ -236,18 +213,16 @@ func (t *installer) preinstall() error {
 
 // several steps before installation finalizes
 func (t *installer) Finalize() error {
-	if t.customInstallerUsed {
-		return nil
-	}
 	log.Println("Finalizing installer")
 	if err := t.registerPackage(); err != nil {
 		return errors.SystemNew("Unable to register package "+t.backup.PackageId, err)
 	}
-	if t.customInstaller != nil {
-		if err := t.customInstaller.StartPostInstall(); err != nil {
+	if t.packageContent.HasPostInstallScript() {
+		if err := t.packageContent.StartPostInstall(); err != nil {
 			return err
 		}
 	}
+	t.packageContent.Clean()
 	return nil
 }
 
@@ -267,7 +242,7 @@ func (t *installer) RevertChanges() error {
 
 // start registering the package and sub packages
 func (t *installer) registerPackage() error {
-	if err := app.RegisterPackage(t.PackageInfo); err != nil {
+	if err := app.RegisterPackage(t.packageInfo); err != nil {
 		return err
 	}
 	// register subpackages
@@ -297,4 +272,19 @@ func (instance *installer) _closeBackup() {
 			log.Println(err.Error())
 		}
 	}
+}
+
+func (instance *installer) SetProgressListener(listener func(uint16)) {
+	instance.onProgress = listener
+}
+
+func (instance *installer) setProgress(progress uint16, log string) {
+	instance.progress = progress
+	if instance.onProgress != nil {
+		instance.onProgress(progress)
+	}
+}
+
+func (instance *installer) GetProgress() uint16 {
+	return instance.progress
 }

@@ -3,7 +3,7 @@ package main
 import (
 	"C"
 	"ela/foundation/app"
-	"ela/internal/cwd/packageinstaller/global"
+	"ela/internal/cwd/packageinstaller/constants"
 	"ela/internal/cwd/packageinstaller/logging"
 	"log"
 	"os"
@@ -20,12 +20,12 @@ func main() {
 	}
 	// install via installer service
 	var err error
-	global.AppController, err = app.NewController(&activity{}, nil)
+	constants.AppController, err = app.NewController(&activity{}, nil)
 	if err != nil {
 		log.Fatal(err.Error())
 		return
 	}
-	if err := app.RunApp(global.AppController); err != nil {
+	if err := app.RunApp(constants.AppController); err != nil {
 		log.Fatal(err)
 	}
 }
