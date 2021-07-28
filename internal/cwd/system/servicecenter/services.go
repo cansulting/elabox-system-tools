@@ -5,9 +5,11 @@ import (
 	"ela/foundation/errors"
 	"ela/foundation/event/data"
 	"ela/foundation/event/protocol"
+	"ela/foundation/system"
 	"ela/internal/cwd/system/appman"
 	"ela/internal/cwd/system/global"
-	"ela/internal/cwd/system/system_update"
+	"os"
+	"time"
 
 	"ela/registry/app"
 	"log"
@@ -37,7 +39,9 @@ func OnRecievedRequest(
 	case constants.SYSTEM_UPDATE_MODE:
 		return activateUpdateMode(client, action)
 	case constants.SYSTEM_TERMINATE:
-		return terminate()
+		return terminate(5)
+	case constants.SYSTEM_TERMINATE_NOW:
+		return terminate(0)
 	}
 	return ""
 }
@@ -128,18 +132,15 @@ func processBroadcastAction(action data.Action) string {
 		for _, pk := range pks {
 			launchPackage(action, pk)
 		}*/
+	global.Connector.Broadcast(action.Id, action.Id, action)
 	return ""
 }
 
 // client requested to activate update mode
 func activateUpdateMode(client protocol.ClientInterface, action data.Action) string {
-	pkconfig, err := app.RetrievePackage(global.INSTALLER_PKG_ID)
-	if err != nil {
-		log.Println("Package retrieve error", err.Error())
-		return err.Error()
-	}
-	system_update.Start(action.DataToString(), pkconfig)
-	global.Running = false
+	pk := action.DataToString()
+	processBroadcastAction(data.NewActionById(constants.BCAST_TERMINATE_N_UPDATE))
+	startActivity(data.NewAction(constants.ACTION_APP_SYSTEM_INSTALL, "", pk), nil)
 	return "success"
 }
 
