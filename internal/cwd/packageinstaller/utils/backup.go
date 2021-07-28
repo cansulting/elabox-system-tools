@@ -3,6 +3,7 @@ package utils
 import (
 	"archive/zip"
 	"ela/foundation/errors"
+	"ela/foundation/perm"
 	"encoding/json"
 	"io"
 	"io/ioutil"
@@ -42,7 +43,7 @@ func (instance *Backup) Create(target string) error {
 	log.Println("Creating backup @ "+target, "packageId", instance.PackageId)
 	instance.sourceFile = target
 	// step: create zip file
-	backupFile, err := os.Create(target)
+	backupFile, err := os.OpenFile(target, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, perm.PUBLIC)
 	if err != nil {
 		return err
 	}
@@ -152,9 +153,13 @@ func (instance *Backup) AddFiles(srcDir string) error {
 		return err
 	}
 	for _, file := range files {
-		if err := instance.AddFile(srcDir + "/" + file.Name()); err != nil {
-			return err
+		if !file.IsDir() {
+			if err := instance.AddFile(srcDir + "/" + file.Name()); err != nil {
+				return err
+			}
+			continue
 		}
+		instance.AddFiles(srcDir + "/" + file.Name())
 	}
 	return nil
 }
@@ -163,7 +168,9 @@ func (instance *Backup) AddFiles(srcDir string) error {
 func (instance *Backup) Close() error {
 	// ste: files is empty dont create backup
 	if instance.FileCount == 0 {
-		instance.archive.Close()
+		if instance.archive != nil {
+			instance.archive.Close()
+		}
 		os.Remove(instance.sourceFile)
 		return nil
 	}

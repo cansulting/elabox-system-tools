@@ -3,7 +3,6 @@ package utils
 import (
 	"io"
 	"io/fs"
-	"os"
 	"strings"
 )
 
@@ -22,15 +21,7 @@ type Filter struct {
 
 // save the reader to specified path
 func (instance *Filter) Save(path string, reader io.ReadCloser) error {
-	// step: create dest file
-	newFile, err := os.OpenFile(path, os.O_CREATE|os.O_TRUNC|os.O_RDWR, instance.Perm)
-	if err != nil {
-		return err
-	}
-	// step: write to file
-	io.Copy(newFile, reader)
-	newFile.Close()
-	return nil
+	return CopyToTarget(path, reader, instance.Perm)
 }
 
 // use to apply Filter to path.

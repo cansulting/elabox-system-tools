@@ -26,11 +26,14 @@ type AppConnect struct {
 	PackageId      string                   // package id of this app
 	Config         *data.PackageConfig      // current package info
 	process        *os.Process
-	launched       bool       // true if this app was launched
-	RPC            *RPCBridge // not null if this is service provider
+	launched       bool // true if this app was launched
+	RPC            *RPCBridge
 	nodejs         *nodejs.Nodejs
 }
 
+// create new app connect
+// @pk the package config.
+// @client connection from package
 func newAppConnect(
 	pk *data.PackageConfig,
 	client protocol.ClientInterface) *AppConnect {
@@ -91,6 +94,7 @@ func (app *AppConnect) IsClientConnected() bool {
 }
 
 func (app *AppConnect) ForceTerminate() error {
+	log.Println("Force Terminating", app.Config.PackageId)
 	app.launched = false
 	if app.process != nil {
 		if err := app.process.Kill(); err != nil {
@@ -102,6 +106,7 @@ func (app *AppConnect) ForceTerminate() error {
 
 // this terminate the app naturally
 func (app *AppConnect) Terminate() error {
+	log.Println("Terminating", app.Config.PackageId)
 	if app.nodejs != nil {
 		if err := app.nodejs.Stop(); err != nil {
 			log.Println("AppConnect nodejs "+app.PackageId, "failed to terminate.", err.Error())

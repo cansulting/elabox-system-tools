@@ -4,18 +4,17 @@ import (
 	"ela/foundation/constants"
 	"ela/foundation/errors"
 	"ela/foundation/path"
-	"ela/internal/cwd/packageinstaller/global"
+	pkc "ela/internal/cwd/packageinstaller/constants"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"time"
 )
 
 // check if system is currently running
 func isSystemRunning() bool {
 	// step: connect to system
-	if global.AppController == nil || global.AppController.RPC == nil {
+	if pkc.AppController == nil || pkc.AppController.RPC == nil {
 		return false
 	}
 	return true
@@ -31,9 +30,7 @@ func RestartSystem() error {
 	if err := cmd.Start(); err != nil {
 		return errors.SystemNew("Restart system failed", err)
 	}
-	time.Sleep(time.Second * 3)
-	os.Exit(1)
-	return nil
+	return cmd.Process.Release()
 }
 
 func TerminateSystem() error {

@@ -7,7 +7,7 @@ import (
 )
 
 /*
-	This struct connects the bridge between the service client and consumer
+   This struct connects the bridge between the service client and consumer
 */
 type RPCBridge struct {
 	PackageId string                   // the target package
@@ -34,7 +34,7 @@ func (c *RPCBridge) onBridge(consumer protocol.ClientInterface, data data.Action
 	return c.CallAct(data)
 }
 
-// to call the owning package
+// communicate to current package
 func (c *RPCBridge) CallAct(data data.Action) string {
 	if c.Client == nil {
 		return "Ignored no client connected."

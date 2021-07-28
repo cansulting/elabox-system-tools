@@ -5,6 +5,7 @@ import (
 	"ela/foundation/event"
 	"ela/foundation/event/data"
 	"ela/foundation/event/protocol"
+	"ela/foundation/system"
 	"log"
 	"os"
 )
@@ -56,8 +57,5 @@ func connectToSystem() protocol.ConnectorClient {
 }
 
 func getStatus() string {
-	if connectToSystem() == nil {
-		return "system was stopped"
-	}
-	return "system is running"
+	return system.GetStatus()
 }

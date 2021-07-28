@@ -1,6 +1,7 @@
 package main
 
 import (
+	"ela/foundation/system"
 	"ela/internal/cwd/system/appman"
 	"ela/internal/cwd/system/global"
 	"ela/internal/cwd/system/servicecenter"
@@ -27,13 +28,14 @@ func main() {
 	}
 
 	//global.Initialize()
+	global.Connector.SetStatus(system.BOOTING, nil)
 	servicecenter.Initialize(commandline)
 	defer servicecenter.Close()
 	if err := appman.Initialize(commandline); err != nil {
 		log.Panicln("installer failed to initialize " + err.Error())
 		return
 	}
-
+	global.Connector.SetStatus(system.RUNNING, nil)
 	// this runs the server
 	for global.Running {
 		time.Sleep(time.Second * 1)

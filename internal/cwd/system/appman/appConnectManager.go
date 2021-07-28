@@ -93,7 +93,7 @@ func LaunchAppActivity(
 	pendingActivity data.Action) error {
 	// start launching the activity
 	app := GetAppConnect(packageId, nil)
-	app.PendingActions.AddPendingActivity(pendingActivity)
+	app.PendingActions.AddPendingActivity(&pendingActivity)
 	err := app.Launch()
 	if err != nil {
 		return err
