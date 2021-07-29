@@ -31,25 +31,38 @@ func (s *SocketIOServer) Open() error {
 	server := socketio.NewServer(transport.GetDefaultWebsocketTransport())
 	server.On(socketio.OnConnection, onClientConnected)
 	server.On(socketio.OnDisconnection, onClientDisconnected)
-	/*
-		server.On("/join", func(c *socketio.Channel, channel Channel) string {
-			time.Sleep(2 * time.Second)
-			log.Println("Client joined to ", channel.Channel)
-			return "joined to " + channel.Channel
-		})*/
+	// for status handling
+	server.On("elastatus", func(socket *socketio.Channel) string {
+		return s.GetStatus()
+	})
+
 	s.socket = server
 	serveMux := http.NewServeMux()
 	serveMux.Handle("/socket.io/", server)
 	s.state = data.Connected
 	log.Println("Starting server @PORT ", constants.PORT)
-	go http.ListenAndServe(":"+strconv.Itoa(constants.PORT), serveMux)
-	time.Sleep(time.Millisecond * 500)
-	//log.Panic()
+	var TIMEOUT int64 = 10
+	// step: try connecting
+	go func() {
+		elapsed := time.Now().Unix()
+		for {
+			err := http.ListenAndServe(":"+strconv.Itoa(constants.PORT), serveMux)
+			if err == nil {
+				break
+			}
+			// step: waiting for too long?
+			diff := time.Now().Unix() - elapsed
+			if diff > TIMEOUT {
+				log.Fatal("Server error", err.Error())
+				break
+			}
+			log.Println("Issue found, retrying...", err.Error())
+			// sleep for a while
+			time.Sleep(time.Millisecond * 500)
+		}
+	}()
 
-	// for status handling
-	server.On("elastatus", func(socket *socketio.Channel) string {
-		return s.GetStatus()
-	})
+	time.Sleep(time.Millisecond * 500)
 
 	return nil
 }

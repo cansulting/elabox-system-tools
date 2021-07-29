@@ -5,8 +5,8 @@ import (
 	"ela/foundation/path"
 	"ela/foundation/perm"
 	"ela/foundation/system"
+	"ela/internal/cwd/packageinstaller/landing"
 	"ela/internal/cwd/packageinstaller/pkg"
-	"ela/internal/cwd/packageinstaller/server"
 	"ela/internal/cwd/packageinstaller/utils"
 	"ela/internal/cwd/system/global"
 	"log"
@@ -138,7 +138,7 @@ func startServer(content *pkg.Data) {
 	// retrieve landing page first
 	landingDir, err := content.ExtractLandingPage()
 	if err == nil {
-		if err := server.Initialize(landingDir); err != nil {
+		if err := landing.Initialize(landingDir); err != nil {
 			log.Fatal("Unable to initialize server.", err)
 			return
 		}
@@ -153,6 +153,10 @@ func startServer(content *pkg.Data) {
 	}
 	conn.SetStatus(system.UPDATING, nil)
 	global.Connector = conn
+	// step: if theres a landing page. wait for user to connect to landing page before continuing
+	if landingDir != "" {
+		landing.WaitForConnection()
+	}
 }
 
 func IsArgExist(arg string) bool {

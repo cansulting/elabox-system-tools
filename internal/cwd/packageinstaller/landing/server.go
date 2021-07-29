@@ -1,4 +1,4 @@
-package server
+package landing
 
 import (
 	"context"
@@ -12,10 +12,11 @@ const PORT = "80"
 var server *http.Server
 
 const TIMEOUT = 10 // timeout for server initialization
+var connected = 0
 
 func Initialize(landingPagePath string) error {
 	log.Println("Listening and serve @port", PORT, "www dir =", landingPagePath)
-	connected := 0
+
 	server = &http.Server{Addr: ":" + PORT}
 	// step: handle request
 	http.HandleFunc("/", func(rw http.ResponseWriter, r *http.Request) {
@@ -42,12 +43,16 @@ func Initialize(landingPagePath string) error {
 			time.Sleep(time.Millisecond * 500)
 		}
 	}()
+	return nil
+}
+
+// wait for any users to connect to landing page
+func WaitForConnection() {
 	for connected == 0 {
 		log.Println("Waiting @ port", PORT)
 		time.Sleep(time.Second)
 	}
 	log.Println("Resuming...")
-	return nil
 }
 
 func Shutdown() error {
