@@ -1,6 +1,7 @@
 package main
 
 import (
+	"ela/foundation/constants"
 	"ela/foundation/event"
 	"ela/foundation/path"
 	"ela/foundation/perm"
@@ -41,7 +42,7 @@ func (i loghandler) close() {
 func (i loghandler) Write(data []byte) (int, error) {
 	print(string(data))
 	if global.Connector != nil {
-		global.Connector.Broadcast("ela.installer", "log", string(data))
+		global.Connector.Broadcast(constants.SYSTEM_SERVICE_ID, "log", string(data))
 	}
 	if i.logfile != nil {
 		i.logfile.Write(data)
@@ -137,6 +138,7 @@ func normalInstall(content *pkg.Data) {
 func startServer(content *pkg.Data) {
 	// retrieve landing page first
 	landingDir, err := content.ExtractLandingPage()
+	// is there a landing page?
 	if err == nil {
 		if err := landing.Initialize(landingDir); err != nil {
 			log.Fatal("Unable to initialize server.", err)
