@@ -136,7 +136,16 @@ func normalInstall(content *pkg.Data) {
 	}
 }
 
+// start installer server
 func startServer(content *pkg.Data) {
+	// serve socket io
+	conn := event.CreateServerConnector()
+	if err := conn.Open(); err != nil {
+		log.Fatal("Failed to initialize intaller server.", err.Error())
+		return
+	}
+	global.Connector = conn
+	server.InitSystemService(conn, nil)
 	// retrieve landing page first
 	landingDir, err := content.ExtractLandingPage()
 	// is there a landing page?
@@ -148,15 +157,7 @@ func startServer(content *pkg.Data) {
 	} else {
 		log.Println("Failed extracting landing page", err, ". Skipping www listener")
 	}
-	// listen to port
-	conn := event.CreateServerConnector()
-	if err := conn.Open(); err != nil {
-		log.Fatal("Failed to initialize intaller server.", err.Error())
-		return
-	}
-	server.InitSystemService(conn, nil)
 	conn.SetStatus(system.UPDATING, nil)
-	global.Connector = conn
 	// step: if theres a landing page. wait for user to connect to landing page before continuing
 	if landingDir != "" {
 		landing.WaitForConnection()
