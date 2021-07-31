@@ -5,7 +5,7 @@ Enable WSL for windows
 NOTE: run under wsl environment
 
 setup.sh 
-- use to install necessary files to build
+- use to setup development files
 
 build.sh 
 - generate package and binaries
@@ -13,6 +13,9 @@ build.sh
     cd <scripts directory>
     export ELA_COMPANION=<path to your ela companion parent directory>
     ./windows.sh -o <can linux/windows/macos> -a <can be amd64/arm64/386>
+
+install.sh
+- install the system based from package
 
 uninstall.sh
 - use to uninstall the system

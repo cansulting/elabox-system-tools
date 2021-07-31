@@ -40,6 +40,8 @@ if [ ! -d "/var/cache/swap" ]; then
     sudo ufw allow 80
     # elabox back-end port
     sudo ufw allow 3001
+    # elabox IPC via socket io
+    sudo ufw allow 9000
     # ELA DPoS port
     sudo ufw allow 20339
     # ELA port for SPV peers
@@ -88,6 +90,9 @@ if [ ! -d "/var/cache/swap" ]; then
         echo "UUID=${USD_UUID} $homedir ext4 defaults 0 0" | tee -a /etc/fstab > /dev/null
         chown -R elabox:elabox $homedir
         /etc/init.d/avahi-daemon restart
+
+        # carrier directory requirement. delete this later
+        mkdir -p /home/elabox/supernode/carrier/
     fi
 fi
 

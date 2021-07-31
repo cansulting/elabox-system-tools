@@ -6,6 +6,7 @@ import (
 	"ela/foundation/event/data"
 	"ela/foundation/event/protocol"
 	"ela/foundation/system"
+	"ela/internal/cwd/global/server"
 	"ela/internal/cwd/system/appman"
 	"ela/internal/cwd/system/global"
 	"os"
@@ -26,12 +27,6 @@ func OnRecievedRequest(
 		res := startActivity(action.DataToActionData(), client)
 		log.Println(res)
 		return res
-	// client wants to broadcast an action
-	case constants.SYSTEM_BROADCAST:
-		return processBroadcastAction(action.DataToActionData())
-	// client wants to subscribe to specific action
-	case constants.ACTION_SUBSCRIBE:
-		return onClientSubscribeAction(client, action.DataToString())
 	case constants.APP_CHANGE_STATE:
 		return onAppChangeState(client, action)
 	case constants.SYSTEM_ACTIVITY_RESULT:
@@ -65,14 +60,6 @@ func onAppChangeState(
 	} else if state == constants.APP_SLEEP {
 		// if sleep then wait to terminate the app
 		appman.RemoveAppConnect(action.PackageId, false)
-	}
-	return ""
-}
-
-// callback when a client want to subscribe to specific action
-func onClientSubscribeAction(client protocol.ClientInterface, action string) string {
-	if err := global.Connector.SubscribeClient(client, action); err != nil {
-		return err.Error()
 	}
 	return ""
 }
@@ -122,24 +109,10 @@ func onReturnActivityResult(action data.Action) string {
 	return originApp.RPC.CallAct(action)
 }
 
-// use to broadcast to action
-func processBroadcastAction(action data.Action) string {
-	/*
-		pks, err = RetrievePackagesWithBroadcast(action.Id)
-		if err != nil {
-			return err.Error()
-		}
-		for _, pk := range pks {
-			launchPackage(action, pk)
-		}*/
-	global.Connector.Broadcast(constants.SYSTEM_SERVICE_ID, action.Id, action)
-	return ""
-}
-
 // client requested to activate update mode
 func activateUpdateMode(client protocol.ClientInterface, action data.Action) string {
 	pk := action.DataToString()
-	processBroadcastAction(data.NewActionById(constants.BCAST_TERMINATE_N_UPDATE))
+	server.Broadcast(global.Connector, data.NewActionById(constants.BCAST_TERMINATE_N_UPDATE))
 	startActivity(data.NewAction(constants.ACTION_APP_SYSTEM_INSTALL, "", pk), nil)
 	return "success"
 }

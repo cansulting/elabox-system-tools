@@ -9,6 +9,7 @@ They should subscribe to specific action via service center.
 Check Service Center for references.
 */
 const ACTION_SUBSCRIBE = "ela.system.SUBSCRIBE"
+const ACTION_SYSTEM_STATUS = "ela.system.STATUS"
 
 /*
 app/service/action will broadcast an action to all listening app via service center.

@@ -1,8 +1,8 @@
 package servicecenter
 
 import (
-	"ela/foundation/constants"
 	"ela/foundation/event"
+	"ela/internal/cwd/global/server"
 	"ela/internal/cwd/system/global"
 )
 
@@ -20,7 +20,7 @@ func Initialize(commandline bool) {
 	}
 	global.Connector = event.CreateServerConnector()
 	global.Connector.Open()
-	global.Connector.Subscribe(constants.SYSTEM_SERVICE_ID, OnRecievedRequest)
+	server.InitSystemService(global.Connector, OnRecievedRequest)
 	// start running all services
 }
 

@@ -6,6 +6,7 @@ import (
 	"ela/foundation/path"
 	"ela/foundation/perm"
 	"ela/foundation/system"
+	"ela/internal/cwd/global/server"
 	"ela/internal/cwd/packageinstaller/landing"
 	"ela/internal/cwd/packageinstaller/pkg"
 	"ela/internal/cwd/packageinstaller/utils"
@@ -153,6 +154,7 @@ func startServer(content *pkg.Data) {
 		log.Fatal("Failed to initialize intaller server.", err.Error())
 		return
 	}
+	server.InitSystemService(conn, nil)
 	conn.SetStatus(system.UPDATING, nil)
 	global.Connector = conn
 	// step: if theres a landing page. wait for user to connect to landing page before continuing
