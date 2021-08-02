@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"log"
 	"reflect"
+
+	"github.com/mitchellh/mapstructure"
 )
 
 type Action struct {
@@ -40,10 +42,18 @@ func (a *Action) DataToActionData() (Action, error) {
 	if a.Value == nil {
 		return action, nil
 	}
-	strObj := a.DataToString()
-	if err := json.Unmarshal([]byte(strObj), &action); err != nil {
-		return action, errors.SystemNew("Action.valueToActionData failed to convert to Action", err)
+	switch a.Value.(type) {
+	case string:
+		strObj := a.DataToString()
+		if err := json.Unmarshal([]byte(strObj), &action); err != nil {
+			return action, errors.SystemNew("Action.valueToActionData failed to convert to Action", err)
+		}
+		break
+	case map[string]interface{}:
+		mapstructure.Decode(a.Value, &action)
+		break
 	}
+
 	//a.valueAction = &action
 	return action, nil
 }
