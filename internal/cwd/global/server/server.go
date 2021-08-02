@@ -29,10 +29,13 @@ func InitSystemService(server protocol.ConnectorServer, handler func(protocol.Cl
 
 // callback when a client want to subscribe to specific action
 func Subscribe(server protocol.ConnectorServer, client protocol.ClientInterface, action string) string {
+	if action == "" {
+		action = constants.SYSTEM_SERVICE_ID
+	}
 	if err := server.SubscribeClient(client, action); err != nil {
 		return err.Error()
 	}
-	return ""
+	return "subscribed to " + action
 }
 
 // use to broadcast to action
@@ -45,6 +48,10 @@ func Broadcast(server protocol.ConnectorServer, action data.Action) string {
 		for _, pk := range pks {
 			launchPackage(action, pk)
 		}*/
-	server.Broadcast(constants.SYSTEM_SERVICE_ID, action.Id, action)
-	return ""
+	err := server.Broadcast(constants.SYSTEM_SERVICE_ID, action.Id, action)
+	if err != nil {
+		return err.Error()
+	} else {
+		return "success"
+	}
 }
