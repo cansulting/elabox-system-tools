@@ -1,6 +1,7 @@
 package data
 
 import (
+	"ela/foundation/errors"
 	"encoding/json"
 	"log"
 	"reflect"
@@ -31,20 +32,20 @@ func NewActionById(id string) Action {
 }
 
 // convert Data to Action
-func (a *Action) DataToActionData() Action {
+func (a *Action) DataToActionData() (Action, error) {
 	//if a.valueAction != nil {
 	//	return *a.valueAction
 	//}
 	action := Action{}
 	if a.Value == nil {
-		return action
+		return action, nil
 	}
 	strObj := a.DataToString()
 	if err := json.Unmarshal([]byte(strObj), &action); err != nil {
-		log.Panicln("Action.valueToActionData failed to convert to Action", err)
+		return action, errors.SystemNew("Action.valueToActionData failed to convert to Action", err)
 	}
 	//a.valueAction = &action
-	return action
+	return action, nil
 }
 
 // convert Action.Value to int

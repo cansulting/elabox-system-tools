@@ -14,7 +14,11 @@ func InitSystemService(server protocol.ConnectorServer, handler func(protocol.Cl
 		switch action.Id {
 		// client wants to broadcast an action
 		case constants.SYSTEM_BROADCAST:
-			return Broadcast(server, action.DataToActionData())
+			dataAc, err := action.DataToActionData()
+			if err != nil {
+				return err.Error()
+			}
+			return Broadcast(server, dataAc)
 		// client wants to subscribe to specific action
 		case constants.ACTION_SUBSCRIBE:
 			return Subscribe(server, client, action.DataToString())

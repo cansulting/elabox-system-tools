@@ -24,7 +24,11 @@ func OnRecievedRequest(
 	log.Println("app.onRecievedRequest action=", action.Id)
 	switch action.Id {
 	case constants.ACTION_START_ACTIVITY:
-		res := startActivity(action.DataToActionData(), client)
+		activityAc, err := action.DataToActionData()
+		if err != nil {
+			return err.Error()
+		}
+		res := startActivity(activityAc, client)
 		log.Println(res)
 		return res
 	case constants.APP_CHANGE_STATE:
