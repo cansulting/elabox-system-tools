@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 )
 
 const PORT = "80"
@@ -23,25 +24,43 @@ func (s *MyService) OnStart() error {
 	s.running = true
 	s.server = &http.Server{Addr: ":" + PORT}
 	wwwPath := path.GetSystemWWW()
-	s.fileServer = http.FileServer(http.Dir(wwwPath))
-	landingPageIndex := wwwPath + "/" + PAGE_LANDING + "/index.html"
+	s.fileServer = s.getFileserver(PAGE_LANDING)
+	lastPkg := PAGE_LANDING
 
 	// handle any requests
 	http.HandleFunc("/", func(rw http.ResponseWriter, r *http.Request) {
 		url := r.URL.Path
+		pkg := PAGE_LANDING
+		// retrieve the package based from url
+		if url != "/" {
+			splits := strings.Split(url, "/")
+			pkg = splits[1]
+		}
+		if pkg != lastPkg {
+			log.Println("Package", pkg, "selected")
+			lastPkg = pkg
+			s.fileServer = s.getFileserver(pkg)
+		}
+
 		// does the file exist? then serve the file
 		if _, err := os.Stat(wwwPath + url); err == nil {
 			s.fileServer.ServeHTTP(rw, r)
 		} else { // hence use the index file
-			http.ServeFile(rw, r, landingPageIndex)
+			http.ServeFile(rw, r, wwwPath+"/"+lastPkg)
 		}
 	})
 	go func() {
+		log.Println("Start listening to " + PORT)
 		if err := s.server.ListenAndServe(); err != nil {
-			log.Fatal("Server error", err.Error())
+			log.Println("Server error", err.Error())
+			panic(err)
 		}
 	}()
 	return nil
+}
+
+func (s *MyService) getFileserver(packageId string) http.Handler {
+	return http.FileServer(http.Dir(path.GetSystemWWW() + packageId))
 }
 
 func (s *MyService) OnEnd() error {
