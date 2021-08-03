@@ -163,7 +163,7 @@ func (instance *Data) ExtractScripts() error {
 	return nil
 }
 
-// use to extract files
+// use to extract files to target path
 func (instance *Data) ExtractFiles(keyword string, targetPath string, limit uint) (uint, error) {
 	var found uint = 0
 	for _, file := range instance.Files {
@@ -175,7 +175,6 @@ func (instance *Data) ExtractFiles(keyword string, targetPath string, limit uint
 			}
 			defer reader.Close()
 			fname := targetPath + "/" + file.Name
-			log.Println("ExtractFiles", targetPath)
 			if err := utils.CopyToTarget(fname, reader, perm.PUBLIC); err != nil {
 				return 0, err
 			}
@@ -242,14 +241,14 @@ func (instance *Data) Clean() error {
 // use to extract landing page
 // returns path to the landing page dir hence return error if there are issues
 func (instance *Data) ExtractLandingPage() (string, error) {
-	targetp := constants.GetTempPath() + "/" + global.PKEY_LANDING_PAGE
+	targetp := constants.GetTempPath() + "/" + global.PKEY_WWW
 	log.Println("Extracting landing @", targetp)
-	found, err := instance.ExtractFiles(global.PKEY_LANDING_PAGE, constants.GetTempPath(), 1000)
+	found, err := instance.ExtractFiles(global.PKEY_WWW, constants.GetTempPath(), 1000)
 	if err != nil {
 		return "", errors.SystemNew("Failed extracting landing page.", err)
 	}
 	if found <= 0 {
-		return "", errors.SystemNew("Nothing was found on package with keyword "+global.PKEY_LANDING_PAGE, nil)
+		return "", errors.SystemNew("Nothing was found on package with keyword "+global.PKEY_WWW, nil)
 	}
 	return targetp, nil
 }

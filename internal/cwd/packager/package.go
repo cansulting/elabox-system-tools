@@ -6,6 +6,7 @@ import (
 	"ela/foundation/constants"
 	"ela/foundation/errors"
 	"ela/foundation/path"
+	"ela/internal/cwd/global"
 	cwdg "ela/internal/cwd/global"
 	"encoding/json"
 	"io/fs"
@@ -116,7 +117,7 @@ func (c *Package) Compile(destdir string) error {
 			if err := pkconfig.LoadFromZipPackage(p); err != nil {
 				return errors.SystemNew("Package.Compile() failed loading package "+p, err)
 			}
-			if err := addFile("packages/"+pkconfig.PackageId, p, zipwriter); err != nil {
+			if err := addFile("packages/"+pkconfig.PackageId + "." + global.PACKAGE_EXT, p, zipwriter); err != nil {
 				return errors.SystemNew("Package.Compile() failed adding package "+p, err)
 			}
 		}
@@ -124,7 +125,7 @@ func (c *Package) Compile(destdir string) error {
 	// add www app
 	if c.Www != "" {
 		log.Println("Compile() adding wwww")
-		if err := addDir("www", c.Www, zipwriter); err != nil {
+		if err := addDir(global.PKEY_WWW, c.Www, zipwriter); err != nil {
 			return errors.SystemNew("Package.Compile() failed adding node js direcory @ "+c.Www, err)
 		}
 	}

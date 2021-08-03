@@ -69,14 +69,14 @@ func (instance *installer) Start() error {
 	}
 	log.Println("installer:start installing ", packageInfo.PackageId)
 	// step: init install location and filters
-	appInstallPath /*wwwInstallPath*/, _ := _getInstallLocation(packageInfo)
+	appInstallPath, wwwInstallPath := _getInstallLocation(packageInfo)
 	filters := []utils.Filter{
 		// bin
 		{Keyword: "bin", Rename: packageInfo.PackageId, InstallTo: appInstallPath, Perm: perm.PRIVATE},
 		// library
 		{Keyword: "lib", Rename: packageInfo.PackageId, InstallTo: path.GetLibPath(), Perm: perm.PUBLIC_VIEW},
 		// www
-		{Keyword: "www" /*Rename: packageInfo.PackageId,*/, InstallTo: path.GetSystemWWW() + "/../" /*wwwInstallPath*/, Perm: perm.PUBLIC_VIEW},
+		{Keyword: global.PKEY_WWW, Rename: packageInfo.PackageId, InstallTo: wwwInstallPath, Perm: perm.PUBLIC_VIEW},
 		{Keyword: constants.APP_CONFIG_NAME, InstallTo: appInstallPath + "/" + packageInfo.PackageId, Perm: perm.PUBLIC_VIEW},
 		// subpackages
 		{Keyword: "packages/", CustomProcess: instance._onSubPackage, Perm: perm.PUBLIC},

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"ela/foundation/constants"
 	"ela/foundation/path"
 	"log"
 	"net/http"
@@ -9,6 +10,8 @@ import (
 )
 
 const PORT = "80"
+const PAGE_LANDING = constants.SYSTEM_SERVICE_ID
+const PAGE_COMPANIONAPP = "ela.companion"
 
 type MyService struct {
 	server     *http.Server
@@ -21,7 +24,8 @@ func (s *MyService) OnStart() error {
 	s.server = &http.Server{Addr: ":" + PORT}
 	wwwPath := path.GetSystemWWW()
 	s.fileServer = http.FileServer(http.Dir(wwwPath))
-	indexFile := wwwPath + "/index.html"
+	landingPageIndex := wwwPath + "/" + PAGE_LANDING + "/index.html"
+
 	// handle any requests
 	http.HandleFunc("/", func(rw http.ResponseWriter, r *http.Request) {
 		url := r.URL.Path
@@ -29,7 +33,7 @@ func (s *MyService) OnStart() error {
 		if _, err := os.Stat(wwwPath + url); err == nil {
 			s.fileServer.ServeHTTP(rw, r)
 		} else { // hence use the index file
-			http.ServeFile(rw, r, indexFile)
+			http.ServeFile(rw, r, landingPageIndex)
 		}
 	})
 	go func() {

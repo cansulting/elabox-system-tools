@@ -84,7 +84,7 @@ func onClientDisconnected(socket *socketio.Channel) {
 
 // implementation for connector broadcast
 func (s *SocketIOServer) Broadcast(room string, event string, dataTransfer interface{}) error {
-	println("SocketIOServer", "Broadcast", "room="+room, dataTransfer)
+	//println("SocketIOServer", "Broadcast", "room="+room, dataTransfer)
 	s.socket.BroadcastTo(room, event, dataTransfer)
 	return nil
 }
