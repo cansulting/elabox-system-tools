@@ -125,17 +125,21 @@ func (app *AppConnect) Terminate() error {
 func asyncRun(app *AppConnect, cmd *exec.Cmd) {
 	defer delete(running, app.PackageId)
 	//var buffer bytes.Buffer
-	//cmd.Stdout = &buffer
-	//cmd.Stderr = &buffer
-	output, err := cmd.CombinedOutput()
-	log.Println(app.PackageId, "...", string(output))
+	cmd.Stdout = app
+	cmd.Stderr = app
+	err := cmd.Start()
 	if err != nil {
 		log.Println("ERROR launching "+app.PackageId, err)
 		return
-	} /*
-		app.process = cmd.Process
-		if err := cmd.Wait(); err != nil {
-			defer log.Println("ERROR launching "+app.PackageId, err)
-		}
-		println(app.PackageId, "\n", buffer.String())*/
+	}
+	app.process = cmd.Process
+	if err := cmd.Wait(); err != nil {
+		defer log.Println("ERROR launching "+app.PackageId, err)
+	}
+}
+
+// callback when system has log
+func (n *AppConnect) Write(data []byte) (int, error) {
+	print(string(data))
+	return len(data), nil
 }
