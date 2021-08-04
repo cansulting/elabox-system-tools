@@ -67,9 +67,11 @@ if [ "$exists" == 0 ]; then
     ############################
     ## Setup elabox directory from USB
     ############################
-    if [ ! -d "$homedir" ]; then
-        echo "Please insert USB before continuing! Press enter when ready..."
-        read answer
+    echo "Do you want to setup USB storage as home? (y/n)"
+    read answer
+    if [ "$answer" == "y" ]; then
+        echo "Please insert USB storage before continuing! Press enter when ready..."
+        read input
         echo 'y' |  mkfs.ext4 /dev/sda
         sudo mount /dev/sda $homedir
         # check the unique identifier of /dev/sda

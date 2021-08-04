@@ -2,6 +2,7 @@
 os=linux
 arch=arm64
 build=1
+. ~/.bashrc
 gspk=gs://elabox/packages/$build.box
 gspki=gs://elabox/packages/$build.json
 gsinstaller=gs://elabox/installer/$os/$arch/packageinstaller

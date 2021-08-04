@@ -103,6 +103,7 @@ func (instance *Data) RunCustomInstaller(srcPkg string, wait bool, args ...strin
 	//cmd.Dir = filepath.Dir(installerPath)
 	cmd.Stdout = instance
 	cmd.Stderr = instance
+	cmd.Stdin = os.Stdin
 	if wait {
 		if err := cmd.Run(); err != nil {
 			return err
@@ -201,6 +202,7 @@ func (instance *Data) execScript(script string) error {
 	}
 	cmd.Stdout = instance
 	cmd.Stderr = instance
+	cmd.Stdin = os.Stdin
 	if err := cmd.Run(); err != nil {
 		return err
 	}
