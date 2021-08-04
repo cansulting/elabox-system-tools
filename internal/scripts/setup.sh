@@ -14,13 +14,16 @@ do
         a) carc=${OPTARG};;
     esac
 done
-# download go lang
-wget https://golang.org/dl/go1.16.6.$cos-$carc.tar.gz
-rm -rf /usr/local/go && tar -C /usr/local -xzf go1.16.6.$cos-$carc.tar.gz
-rm go1.16.6.$cos-$carc.tar.gz
 
-export PATH=$PATH:/usr/local/go/bin
-echo ""export PATH=$PATH:/usr/local/go/bin"" >> ~/.bash_profile
+# download go lang
+if [ ! -d "/usr/local/go" ]; then 
+    wget https://golang.org/dl/go1.16.6.$cos-$carc.tar.gz
+    rm -rf /usr/local/go && tar -C /usr/local -xzf go1.16.6.$cos-$carc.tar.gz
+    rm go1.16.6.$cos-$carc.tar.gz
+
+    export PATH=$PATH:/usr/local/go/bin
+    echo ""export PATH=$PATH:/usr/local/go/bin"" >> ~/.bash_profile
+fi
 
 # install gcc pipelines
 sudo apt install gcc-aarch64-linux-gnu
@@ -37,10 +40,10 @@ if [[ "$answer" == "y" ]]; then
     cd ~
     echo "Setting up GCP storage for packages"
     curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-350.0.0-linux-arm.tar.gz
-    tar xfz google-cloud-sdk-350.0.0-linux-arm.tar.gz
+    sudo tar xfz google-cloud-sdk-350.0.0-linux-arm.tar.gz
     ./google-cloud-sdk/install.sh
     ./google-cloud-sdk/bin/gcloud init
-    rm google-cloud-sdk-350.0.0-linux-arm.tar.gz
+    sudo rm google-cloud-sdk-350.0.0-linux-arm.tar.gz
     . ~/.bashrc
     cd $cw
 fi
