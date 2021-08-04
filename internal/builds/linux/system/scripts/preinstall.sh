@@ -16,19 +16,7 @@ if [ "$exists" == 0 ]; then
     echo '$user' | curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
     echo 'Y' | sudo apt update && sudo apt install fail2ban avahi-daemon nodejs tor zip
     echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
-fi
-############################
-## Setup setup memory paging and Firewall
-############################
-if [ ! -d "/var/cache/swap" ]; then 
-    echo "Setting up cache swap files..."
-    sudo mkdir -v /var/cache/swap
-    cd /var/cache/swap
-    sudo dd if=/dev/zero of=swapfile bs=1K count=4M
-    sudo chmod 600 swapfile
-    sudo mkswap swapfile
-    sudo swapon swapfile
-    top -bn1 | grep -i swap
+
     #firewall
     echo "Setting up firewall..."
     # open the different ports with ufw
@@ -94,5 +82,18 @@ if [ ! -d "/var/cache/swap" ]; then
         # carrier directory requirement. delete this later
         mkdir -p /home/elabox/supernode/carrier/
     fi
+fi
+############################
+## Setup setup memory paging and Firewall
+############################
+if [ ! -d "/var/cache/swap" ]; then 
+    echo "Setting up cache swap files..."
+    sudo mkdir -v /var/cache/swap
+    cd /var/cache/swap
+    sudo dd if=/dev/zero of=swapfile bs=1K count=4M
+    sudo chmod 600 swapfile
+    sudo mkswap swapfile
+    sudo swapon swapfile
+    top -bn1 | grep -i swap
 fi
 
