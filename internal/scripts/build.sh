@@ -1,6 +1,8 @@
 #!/bin/bash
-ELA_NODES=../../../elabox-binaries/binaries
-ELA_COMPANION=../../../elabox-companion
+PROJ_HOME=~
+ELA_NODES=$PROJ_HOME/elabox-binaries/binaries
+ELA_COMPANION=$PROJ_HOME/elabox-companion
+ELA_LANDING=$PROJ_HOME/landing-page
 cos=$(go env GOOS)                  # current os. 
 carc=$(go env GOARCH)               # current archi
 pkg_name=packageinstaller           # package installer project name
@@ -42,9 +44,10 @@ echo "cgo enabled"
 #####################
 go env -u GOOS
 go env -u GOARCH
+buildpath=../builds/$target
 echo "Building " $packager
-mkdir -p ../builds/$target/packager
-eval "$gobuild" -o ../builds/$target/packager/$packager ../cwd/$packager
+mkdir -p $buildpath/packager
+eval "$gobuild" -o $buildpath/packager/$packager ../cwd/$packager
 
 #####################
 # build binaries
@@ -68,13 +71,13 @@ fi
 go env -w GOOS=$target 
 go env -w GOARCH=$arch
 echo "Building " $pkg_name
-mkdir -p ../builds/$target/$pkg_name/bin
-eval "$gobuild" -o ../builds/$target/$pkg_name/bin ../cwd/$pkg_name
+mkdir -p $buildpath/$pkg_name/bin
+eval "$gobuild" -o $buildpath/$pkg_name/bin ../cwd/$pkg_name
 echo "Building " $webserver
-eval "$gobuild" -o ../builds/$target/$webserver/bin ../cwd/$webserver
+eval "$gobuild" -o $buildpath/$webserver/bin ../cwd/$webserver
 echo "Building " $system_name
-eval "$gobuild" -o ../builds/$target/$system_name/bin ../cwd/$system_name
-mv ../builds/$target/$system_name/bin/$system_name ../builds/$target/$system_name/bin/main 
+eval "$gobuild" -o $buildpath/$system_name/bin ../cwd/$system_name
+mv $buildpath/$system_name/bin/$system_name $buildpath/$system_name/bin/main 
 # unset env variables
 go env -u CC
 go env -u CXX
@@ -93,9 +96,9 @@ if [[ "$answer" == "1" || "$answer" == "2" ]]; then
     sudo npm install
     sudo npm run build
     cd $initDir
-    rm -r ../builds/$target/companion/www
-    mkdir -p ../builds/$target/companion/www
-    cp -r $ELA_COMPANION/src_client/build/* ../builds/$target/companion/www
+    rm -r $buildpath/companion/www
+    mkdir -p $buildpath/companion/www
+    cp -r $ELA_COMPANION/src_client/build/* $buildpath/companion/www
     built=1
 fi
 # server building
@@ -106,24 +109,38 @@ if [[ "$answer" == "1" || "$answer" == "3" ]]; then
     sudo npm install
     sudo npm run build
     cd $initDir
-    mkdir -p ../builds/$target/companion/nodejs
-    cp -r $ELA_COMPANION/src_server/* ../builds/$target/companion/nodejs
+    mkdir -p $buildpath/companion/nodejs
+    cp -r $ELA_COMPANION/src_server/* $buildpath/companion/nodejs
     built=1
 fi
 if [ "$built" == "1" ]; then 
     echo "Build success!"
     echo "Packaging..."
     pkgerPath=../builds/$cos/$packager/$packager
-    $pkgerPath ../builds/$target/companion/packager.json
+    $pkgerPath $buildpath/companion/packager.json
+fi
+
+##################################
+# build landing page
+##################################
+echo "Rebuild elabox landing page? (y/n)"
+read answer
+if [ "$answer" == "y" ]; then
+    wd=$PWD
+    cd $ELA_LANDING
+    sudo npm install
+    sudo npm run build
+    cd $wd
+    cp -r $ELA_LANDING/build/* $buildpath/system/www
 fi
 
 ##################################
 # elastos mainchain, did, cli
 ##################################
-targetdir=../builds/$target
+targetdir=$buildpath
 echo "Copying mainchain, did and cli @$ELA_NODES"
 # mainchain
-mainchainlib=../builds/$target/mainchain/bin
+mainchainlib=$buildpath/mainchain/bin
 mkdir -p $mainchainlib
 cp ${ELA_NODES}/ela $mainchainlib
 cp ${ELA_NODES}/ela-cli $mainchainlib
@@ -131,14 +148,14 @@ chmod +x $mainchainlib/ela $mainchainlib/ela-cli
 cp ${ELA_NODES}/ela_config.json $mainchainlib
 mv $mainchainlib/ela_config.json $mainchainlib/config.json
 # did
-didlib=../builds/$target/did/bin
+didlib=$buildpath/did/bin
 mkdir -p $didlib
 cp ${ELA_NODES}/did $didlib
 chmod +x $didlib/did
 cp ${ELA_NODES}/did_config.json $didlib
 mv $didlib/did_config.json $didlib/config.json
 # carrier
-carrierlib=../builds/$target/carrier/bin
+carrierlib=$buildpath/carrier/bin
 mkdir -p $carrierlib
 cp ${ELA_NODES}/ela-bootstrapd $carrierlib
 cp ${ELA_NODES}/bootstrapd.conf $carrierlib
@@ -149,11 +166,11 @@ chmod +x $carrierlib/ela-bootstrapd
 #########################
 echo "Start packaging..."
 pkgerPath=../builds/$cos/$packager/$packager
-$pkgerPath ../builds/$target/did/packager.json
-$pkgerPath ../builds/$target/carrier/packager.json
-$pkgerPath ../builds/$target/mainchain/packager.json
-$pkgerPath ../builds/$target/$pkg_name/packager.json
-$pkgerPath ../builds/$target/$webserver/packager.json
-$pkgerPath ../builds/$target/$system_name/packager.json
+$pkgerPath $buildpath/did/packager.json
+$pkgerPath $buildpath/carrier/packager.json
+$pkgerPath $buildpath/mainchain/packager.json
+$pkgerPath $buildpath/$pkg_name/packager.json
+$pkgerPath $buildpath/$webserver/packager.json
+$pkgerPath $buildpath/$system_name/packager.json
 
 go env -u CGO_ENABLED

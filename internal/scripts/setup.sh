@@ -23,13 +23,15 @@ if [ ! -d "/usr/local/go" ]; then
 
     export PATH=$PATH:/usr/local/go/bin
     echo ""export PATH=$PATH:/usr/local/go/bin"" >> ~/.bash_profile
-fi
 
-# install gcc pipelines
-sudo apt install gcc-aarch64-linux-gnu
-sudo apt install gcc-multilib -y
-sudo apt install x86_64-linux-gnu-gcc
-sudo apt-get install gcc-mingw-w64
+    # install gcc pipelines
+    sudo apt install gcc-aarch64-linux-gnu
+    sudo apt install gcc-multilib -y
+    sudo apt install x86_64-linux-gnu-gcc
+    sudo apt-get install gcc-mingw-w64
+else
+    echo "Golang, GCC libraries installed. skipping..."
+fi
 
 # install gcp tools
 echo "Do you want to setup environment for package uploading? (y/n)"
@@ -46,10 +48,38 @@ if [[ "$answer" == "y" ]]; then
     sudo rm google-cloud-sdk-350.0.0-linux-arm.tar.gz
     . ~/.bashrc
     cd $cw
+
+    # for json bash parsing
+    sudo apt install jq
+
+    # CHMOD
+    sudo chmod +x ./upload.sh
 fi
 
-# for json bash parsing
-sudp apt install jq
-
-# CHMOD
-sudo chmod +x ./upload.sh
+######################################
+## SETUP GIT PROJECTS
+######################################
+wd=~
+echo "Do you want to setup git projects? (y/n)"
+read answer
+if [ "$answer" == "y" ]; then
+    echo "Set working directory" $(echo $wd) ".(Leave empty if use default.)"
+    read answer
+    if [ "$answer" != "" ]; then 
+        wd=$answer
+    fi
+    echo "Your git username? "
+    read uname
+    if [ ! -d "./elabox-companion" ]; then
+        cd $wd
+        git clone https://github.com/cansulting/elabox-companion.git
+        cd "./elabox-companion"
+        git switch Development
+    fi 
+    if [ ! -d "./landing-page" ]; then
+        cd $wd
+        git clone https://$uname@github.com/bonhokage06/landing-page.git
+        cd "./landing-page"
+        git switch main
+    fi
+fi
