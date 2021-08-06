@@ -114,7 +114,7 @@ func startCommandline() {
 		}
 		time.Sleep(time.Millisecond * 200)
 		//time.Sleep(time.Hour * 1)
-		//os.Exit(0)
+		os.Exit(0)
 	}
 }
 
@@ -156,9 +156,9 @@ func startListening(content *pkg.Data) {
 		log.Println("Failed extracting landing page", err, ". Skipping www listener")
 	}
 	// step: if theres a landing page. wait for user to connect to landing page before continuing
-	if landingDir != "" {
-		landing.WaitForConnection()
-	}
+	//if landingDir != "" {
+	//	landing.WaitForConnection()
+	//}
 }
 
 func IsArgExist(arg string) bool {

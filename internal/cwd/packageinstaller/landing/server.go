@@ -46,7 +46,7 @@ func Initialize(landingPagePath string) error {
 			// step: check if this is waiting for too long
 			diff := time.Now().Unix() - elapsed
 			if diff > TIMEOUT {
-				log.Println("Server error.", err.Error())
+				log.Println("Webserver ", err.Error())
 				break
 			} else {
 				log.Println("Issue found, retrying...", err.Error())

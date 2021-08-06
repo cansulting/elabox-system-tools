@@ -26,6 +26,8 @@ func RestartSystem() error {
 	// step: execute system binary
 	systemPath := path.GetAppMain(constants.SYSTEM_SERVICE_ID, false)
 	cmd := exec.Command(systemPath)
+	//cmd.Stderr = os.Stderr
+	//cmd.Stdout = os.Stdout
 	cmd.Dir = filepath.Dir(systemPath)
 	if err := cmd.Start(); err != nil {
 		return errors.SystemNew("Restart system failed", err)

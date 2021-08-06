@@ -1,15 +1,6 @@
 *__debug_bin
 internal/builds/windows/nodejs/
 internal/builds/windows/www/
-internal/builds/linux/www/
-internal/builds/linux/nodejs/
-internal/builds/linux/libs/carrier/bootstrapd.conf
-internal/builds/linux/libs/carrier/ela-bootstrapd
-internal/builds/linux/libs/did/config.json
-internal/builds/linux/libs/did/did
-internal/builds/linux/libs/mainchain/config.json
-internal/builds/linux/libs/mainchain/ela
-internal/builds/linux/libs/mainchain/ela-cli
 internal/builds/linux/companion/nodejs/
 internal/builds/linux/companion/www/
 *.box
@@ -20,5 +11,6 @@ internal/builds/linux/packageinstaller/bin
 internal/builds/linux/webserver/bin
 internal/builds/linux/did/bin
 internal/builds/linux/carrier/bin
+internal/builds/linux/mainchain/bin
+internal/builds/linux/system/www
 
-internal/builds/linux/system/www/*
