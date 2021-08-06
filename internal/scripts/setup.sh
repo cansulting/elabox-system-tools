@@ -24,9 +24,10 @@ done
 
 # download go lang
 if [ ! -d "/usr/local/go" ]; then 
-    wget https://golang.org/dl/go1.16.6.$cos-$carc.tar.gz
-    rm -rf /usr/local/go && tar -C /usr/local -xzf go1.16.6.$cos-$carc.tar.gz
-    rm go1.16.6.$cos-$carc.tar.gz
+    pkg=go1.16.7.$cos-$carc.tar.gz
+    wget https://golang.org/dl/$pkg
+    sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf $pkg
+    sudo rm $pkg
 
     export PATH=$PATH:/usr/local/go/bin
     echo ""export PATH=$PATH:/usr/local/go/bin"" >> ~/.bash_profile
