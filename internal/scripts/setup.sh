@@ -3,6 +3,13 @@ echo "Setting development pipeline for goolang"
 echo "Optional commandline params -o(target) -a(arch))"
 cos=linux                 
 carc=arm64
+
+# CHMOD
+sudo chmod +x ./upload.sh
+sudo chmod +x ./syncproj.sh
+sudo chmod +x ./build.sh
+sudo chmod +x ./install.sh
+
 #sudo add-apt-repository ppa:longsleep/golang-backports
 #sudo apt update
 #sudo apt install golang-go
@@ -51,9 +58,6 @@ if [[ "$answer" == "y" ]]; then
 
     # for json bash parsing
     sudo apt install jq
-
-    # CHMOD
-    sudo chmod +x ./upload.sh
 fi
 
 ######################################
@@ -72,7 +76,7 @@ if [ "$answer" == "y" ]; then
     read uname
     if [ ! -d "./elabox-companion" ]; then
         cd $wd
-        git clone https://github.com/cansulting/elabox-companion.git
+        git clone https://$uname@github.com/cansulting/elabox-companion.git
         cd "./elabox-companion"
         git switch Development
     fi 

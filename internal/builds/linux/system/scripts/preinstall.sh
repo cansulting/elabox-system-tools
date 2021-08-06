@@ -28,6 +28,8 @@ if [ "$exists" == 0 ]; then
     sudo ufw allow 80
     # elabox back-end port
     sudo ufw allow 3001
+    # elabox carrier
+    sudo ufw allow 33445
     # elabox IPC via socket io
     sudo ufw allow 9000
     # ELA DPoS port

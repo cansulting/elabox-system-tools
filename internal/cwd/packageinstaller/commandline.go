@@ -2,11 +2,8 @@ package main
 
 import (
 	"ela/foundation/constants"
-	"ela/foundation/event"
 	"ela/foundation/path"
 	"ela/foundation/perm"
-	"ela/foundation/system"
-	"ela/internal/cwd/global/server"
 	"ela/internal/cwd/packageinstaller/landing"
 	"ela/internal/cwd/packageinstaller/pkg"
 	"ela/internal/cwd/packageinstaller/utils"
@@ -65,9 +62,9 @@ func startCommandline() {
 		println("-i - ignore custom installer")
 		return
 	}
-
+	systemUpdate := IsArgExist("-s")
 	// true if restarts system
-	restartSystem := IsArgExist("-r") || IsArgExist("-s")
+	restartSystem := IsArgExist("-r") || systemUpdate
 	// step: terminate the system first
 	/*
 		if restartSystem {
@@ -84,14 +81,14 @@ func startCommandline() {
 		return
 	}
 	// create logger?
-	if IsArgExist("-l") || IsArgExist("-s") {
+	if IsArgExist("-l") || systemUpdate {
 		logger := loghandler{}
 		logger.init()
 		defer logger.close()
 	}
-	// step: will initialize server?
-	if IsArgExist("-s") {
-		startServer(content)
+	// step: we need clients to system update via ports
+	if systemUpdate {
+		startListening(content)
 	}
 	// use custom installer or not?
 	if IsArgExist("-i") || !content.HasCustomInstaller() {
@@ -103,12 +100,21 @@ func startCommandline() {
 		}
 	}
 	log.Println("Installed success.")
+	// step: stop listeners
+	if systemUpdate {
+		if err := landing.Shutdown(); err != nil {
+			log.Println("Error shutting down.", err.Error())
+		}
+	}
 	// step: restart system
 	if restartSystem {
 		if err := utils.RestartSystem(); err != nil {
 			log.Fatal(err.Error())
 			return
 		}
+		time.Sleep(time.Millisecond * 200)
+		//time.Sleep(time.Hour * 1)
+		//os.Exit(0)
 	}
 }
 
@@ -137,15 +143,7 @@ func normalInstall(content *pkg.Data) {
 }
 
 // start installer server
-func startServer(content *pkg.Data) {
-	// serve socket io
-	conn := event.CreateServerConnector()
-	if err := conn.Open(); err != nil {
-		log.Fatal("Failed to initialize intaller server.", err.Error())
-		return
-	}
-	global.Connector = conn
-	server.InitSystemService(conn, nil)
+func startListening(content *pkg.Data) {
 	// retrieve landing page first
 	landingDir, err := content.ExtractLandingPage()
 	// is there a landing page?
@@ -157,7 +155,6 @@ func startServer(content *pkg.Data) {
 	} else {
 		log.Println("Failed extracting landing page", err, ". Skipping www listener")
 	}
-	conn.SetStatus(system.UPDATING, nil)
 	// step: if theres a landing page. wait for user to connect to landing page before continuing
 	if landingDir != "" {
 		landing.WaitForConnection()

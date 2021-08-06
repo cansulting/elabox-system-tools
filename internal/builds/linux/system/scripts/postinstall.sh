@@ -22,7 +22,8 @@ chmod -x $target
 rm $src
 
 systemctl enable $fnamex
-systemctl start $fname
+# commented. theres an issue when starting system from installer.duplication. only start when reboot
+#systemctl start $fname
 
 # create logs at
 #journalctl -f -u $fname

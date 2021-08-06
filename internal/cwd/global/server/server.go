@@ -6,8 +6,8 @@ import (
 	"ela/foundation/event/protocol"
 )
 
-// use to handle system services
-// @next: will be called for system service handling
+// use to handle system services such as subscription and broadvcasting
+// @handler: will be called for further system service handling
 func InitSystemService(server protocol.ConnectorServer, handler func(protocol.ClientInterface, data.Action) interface{}) {
 	// handle client subscription
 	server.Subscribe(constants.SYSTEM_SERVICE_ID, func(client protocol.ClientInterface, action data.Action) interface{} {

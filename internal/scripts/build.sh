@@ -137,29 +137,33 @@ fi
 ##################################
 # elastos mainchain, did, cli
 ##################################
-targetdir=$buildpath
-echo "Copying mainchain, did and cli @$ELA_NODES"
-# mainchain
-mainchainlib=$buildpath/mainchain/bin
-mkdir -p $mainchainlib
-cp ${ELA_NODES}/ela $mainchainlib
-cp ${ELA_NODES}/ela-cli $mainchainlib
-chmod +x $mainchainlib/ela $mainchainlib/ela-cli
-cp ${ELA_NODES}/ela_config.json $mainchainlib
-mv $mainchainlib/ela_config.json $mainchainlib/config.json
-# did
-didlib=$buildpath/did/bin
-mkdir -p $didlib
-cp ${ELA_NODES}/did $didlib
-chmod +x $didlib/did
-cp ${ELA_NODES}/did_config.json $didlib
-mv $didlib/did_config.json $didlib/config.json
-# carrier
-carrierlib=$buildpath/carrier/bin
-mkdir -p $carrierlib
-cp ${ELA_NODES}/ela-bootstrapd $carrierlib
-cp ${ELA_NODES}/bootstrapd.conf $carrierlib
-chmod +x $carrierlib/ela-bootstrapd
+echo "Do you want to recopy elastos binaries? (y/n)"
+read answer
+if [ "$answer" == "y" ]; then
+    targetdir=$buildpath
+    echo "Copying mainchain, did and cli @$ELA_NODES"
+    # mainchain
+    mainchainlib=$buildpath/mainchain/bin
+    mkdir -p $mainchainlib
+    cp ${ELA_NODES}/ela $mainchainlib
+    cp ${ELA_NODES}/ela-cli $mainchainlib
+    chmod +x $mainchainlib/ela $mainchainlib/ela-cli
+    cp ${ELA_NODES}/ela_config.json $mainchainlib
+    mv $mainchainlib/ela_config.json $mainchainlib/config.json
+    # did
+    didlib=$buildpath/did/bin
+    mkdir -p $didlib
+    cp ${ELA_NODES}/did $didlib
+    chmod +x $didlib/did
+    cp ${ELA_NODES}/did_config.json $didlib
+    mv $didlib/did_config.json $didlib/config.json
+    # carrier
+    carrierlib=$buildpath/carrier/bin
+    mkdir -p $carrierlib
+    cp ${ELA_NODES}/ela-bootstrapd $carrierlib
+    cp ${ELA_NODES}/bootstrapd.conf $carrierlib
+    chmod +x $carrierlib/ela-bootstrapd
+fi
 
 #########################
 # Packaging

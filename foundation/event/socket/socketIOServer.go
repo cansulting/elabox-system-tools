@@ -17,8 +17,9 @@ import (
 
 ////////////////////////CLASS DEFINITION///////////////
 type SocketIOServer struct {
-	socket *socketio.Server
-	state  data.ConnectionType
+	socket     *socketio.Server
+	state      data.ConnectionType
+	httpServer *http.Server
 }
 
 func (s *SocketIOServer) GetState() data.ConnectionType {
@@ -38,6 +39,7 @@ func (s *SocketIOServer) Open() error {
 
 	s.socket = server
 	serveMux := http.NewServeMux()
+	s.httpServer = &http.Server{Addr: ":" + strconv.Itoa(constants.PORT), Handler: serveMux}
 	serveMux.Handle("/socket.io/", server)
 	s.state = data.Connected
 	log.Println("Starting server @PORT ", constants.PORT)
@@ -46,14 +48,14 @@ func (s *SocketIOServer) Open() error {
 	go func() {
 		elapsed := time.Now().Unix()
 		for {
-			err := http.ListenAndServe(":"+strconv.Itoa(constants.PORT), serveMux)
+			err := s.httpServer.ListenAndServe()
 			if err == nil {
 				break
 			}
 			// step: waiting for too long?
 			diff := time.Now().Unix() - elapsed
 			if diff > TIMEOUT {
-				log.Fatal("Server error", err.Error())
+				log.Println("Server error", err.Error())
 				break
 			}
 			log.Println("Issue found, retrying...", err.Error())
@@ -119,7 +121,8 @@ func (s *SocketIOServer) SetStatus(status system.Status, data interface{}) error
 }
 
 /// this closes the server
-func (s *SocketIOServer) Close() {
+func (s *SocketIOServer) Close() error {
 	//go s.socket.()
 	s.state = data.Disconnected
+	return s.httpServer.Close()
 }

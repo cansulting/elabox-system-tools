@@ -19,5 +19,5 @@ type ConnectorServer interface {
 	Subscribe(room string, callback interface{}) error
 	/// make the client listen to room
 	SubscribeClient(socketClient ClientInterface, room string) error
-	Close()
+	Close() error
 }
