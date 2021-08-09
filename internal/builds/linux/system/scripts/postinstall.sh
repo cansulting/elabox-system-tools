@@ -1,5 +1,5 @@
 echo "setting up ela system as service"
-fname=elasystem
+fname=ebox
 fnamex=$fname.service
 src=$PWD/$fnamex
 srcbin=$PWD/main
@@ -29,5 +29,5 @@ systemctl enable $fnamex
 #journalctl -f -u $fname
 echo "Check system log @" $log
 
-# create symlink elasystem
-ln -sf $srcbin /bin/elasystem
+# create symlink ebox
+ln -sf $srcbin /bin/ebox

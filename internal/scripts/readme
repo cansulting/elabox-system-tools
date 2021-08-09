@@ -5,7 +5,7 @@ Enable WSL for windows
 NOTE: run under wsl environment
 
 setup.sh 
-- use to setup development files
+- use to setup development environment. download golang, toolchains, dependeng projects etc...
 
 build.sh 
 - generate package and binaries

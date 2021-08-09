@@ -101,3 +101,14 @@ if [ ! -d "/var/cache/swap" ]; then
     top -bn1 | grep -i swap
 fi
 
+# terminate running process
+echo "Killing running nodes..."
+if [ "$(pgrep ela)" != "" ]; then
+    sudo kill $(pgrep ela)
+fi
+if [ "$(pgrep did)" != "" ]; then
+    sudo kill $(pgrep did)
+fi
+if [ "$(pgrep ela-bootstrapd)" != "" ]; then
+    sudo kill $(pgrep ela-bootstrapd)
+fi
