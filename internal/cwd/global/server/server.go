@@ -53,7 +53,7 @@ func Broadcast(server protocol.ConnectorServer, action data.Action) string {
 			launchPackage(action, pk)
 		}*/
 	broadcaster := constants.SYSTEM_SERVICE_ID
-	if action.PackageId == "" {
+	if action.PackageId != "" {
 		broadcaster = action.PackageId
 	}
 	err := server.Broadcast(broadcaster, action.Id, action)
