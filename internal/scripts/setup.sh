@@ -87,4 +87,11 @@ if [ "$answer" == "y" ]; then
         cd "./landing-page"
         git switch main
     fi
+    if [ ! -d "./Elastos.ELA" ]; then 
+        cd $wd
+        git clone https://github.com/elastos/Elastos.ELA.git
+        cd "./Elastos.ELA"
+        git switch master
+        go mod tidy
+    fi
 fi

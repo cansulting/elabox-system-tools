@@ -1,6 +1,7 @@
 #!/bin/bash
 PROJ_HOME=~
 ELA_NODES=$PROJ_HOME/elabox-binaries/binaries
+ELA_SRC=$PROJ_HOME/Elastos.ELA
 ELA_COMPANION=$PROJ_HOME/elabox-companion
 ELA_LANDING=$PROJ_HOME/landing-page
 cos=$(go env GOOS)                  # current os. 
@@ -12,6 +13,7 @@ webserver=webserver
 target=$cos
 arch=$carc
 gobuild='go build'                  # build command
+DEBUG=1
 
 # FLAGS
 while getopts o:a:d flag
@@ -30,6 +32,7 @@ echo "Arch="$arch
 echo "Release mode (y/n)?"
 read mode
 if [ "$mode" == "y" ]; then
+    DEBUG=0
     echo "Release=Enabled"
     gobuild='go build -ldflags "-w -s" -tags RELEASE'
 fi
@@ -137,19 +140,27 @@ fi
 ##################################
 # elastos mainchain, did, cli
 ##################################
-echo "Do you want to recopy elastos binaries? (y/n)"
+echo "Do you want to rebuild elastos binaries? (y/n)"
 read answer
 if [ "$answer" == "y" ]; then
+    echo "Building ELASTOS from source..."
+    wd=$PWD
+    cd $ELA_SRC 
+    #if [ "$DEBUG" == "1" ]; then
+    #    make dev
+    #else
+        make all
+    #fi
+    cd $wd
+
     targetdir=$buildpath
     echo "Copying mainchain, did and cli @$ELA_NODES"
     # mainchain
     mainchainlib=$buildpath/mainchain/bin
     mkdir -p $mainchainlib
-    cp ${ELA_NODES}/ela $mainchainlib
-    cp ${ELA_NODES}/ela-cli $mainchainlib
+    cp $ELA_SRC/ela-cli $mainchainlib
+    cp $ELA_SRC/ela $mainchainlib
     chmod +x $mainchainlib/ela $mainchainlib/ela-cli
-    cp ${ELA_NODES}/ela_config.json $mainchainlib
-    mv $mainchainlib/ela_config.json $mainchainlib/config.json
     # did
     didlib=$buildpath/did/bin
     mkdir -p $didlib

@@ -4,7 +4,6 @@ internal/builds/windows/www/
 internal/builds/linux/companion/nodejs/
 internal/builds/linux/companion/www/
 *.box
-internal/builds/linux/system/bin
 internal/builds/linux/webserver/bin
 internal/builds/linux/packager/packager
 internal/builds/linux/packageinstaller/bin

@@ -1,7 +1,7 @@
 echo "Start uninstalling the system"
 # data
 sudo rm -r /var/ela
-sudo rm -r ~/data
+#sudo rm -r ~/data
 # apps
 sudo rm -r /usr/ela
 sudo rm -r ~/apps
