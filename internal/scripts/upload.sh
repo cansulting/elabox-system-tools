@@ -17,6 +17,8 @@ gsutil rm $gsinstaller
 gsutil cp $installer $gsinstaller
 gsutil cp $pkg $gspk
 gsutil cp $pki $gspki
+gsutil cp $pkg gs://elabox/packages/2.box # remove this later. this is for testing OTA update
+gsutil acl ch -u AllUsers:R gs://elabox/packages/2.box # remove this later
 gsutil cp $shi $gsh
 gsutil acl ch -u AllUsers:R $gspk
 gsutil acl ch -u AllUsers:R $gspki
