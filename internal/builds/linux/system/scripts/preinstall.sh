@@ -7,6 +7,9 @@ passwd=elabox
 ############################
 exists=$(grep -c "^$user:" /etc/passwd)
 if [ "$exists" == 0 ]; then
+    echo "Set USB as home? If 'y' please insert USB to RPI. (y/n)"
+    read answer
+
     echo "Setting up user..."
     sudo useradd -p $(openssl passwd -1 $passwd) -m $user
     sudo usermod -aG sudo $user
@@ -14,7 +17,8 @@ if [ "$exists" == 0 ]; then
     # download files
     echo "Downloading files"
     echo '$user' | curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
-    echo 'Y' | sudo apt update && sudo apt install fail2ban avahi-daemon nodejs tor zip
+    echo 'Y' | sudo apt update 
+    echo 'Y' | sudo apt install fail2ban avahi-daemon nodejs tor zip
     echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
 
     #firewall
@@ -69,11 +73,7 @@ if [ "$exists" == 0 ]; then
     ############################
     ## Setup elabox directory from USB
     ############################
-    echo "Do you want to setup USB storage as home? (y/n)"
-    read answer
     if [ "$answer" == "y" ]; then
-        echo "Please insert USB storage before continuing! Press enter when ready..."
-        read input
         echo 'y' |  mkfs.ext4 /dev/sda
         sudo mount /dev/sda $homedir
         # check the unique identifier of /dev/sda

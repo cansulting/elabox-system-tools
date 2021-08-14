@@ -7,22 +7,16 @@ pkg=https://storage.googleapis.com/elabox/packages/$build.box
 echo "Start downloading package"
 sudo wget "$pkg"
 
-echo "Start downloading installer"
+echo "Start downloading installer..."
 sudo wget "$installer" 
 sudo chmod +x ./packageinstaller
 
-echo "Installing"
-sudo ./packageinstaller $build.box -r
+echo "Installing..."
+sudo ./packageinstaller $build.box
 
-echo "Delete downloaded (y/n)?"
-read delete
-if [[ "$delete" == "y" ]]; then
-    sudo rm ./packageinstaller
-    sudo rm ./$build.box
-fi
+echo "Cleaning up..."
+sudo rm ./packageinstaller
+sudo rm ./$build.box
 
-echo "Reboot? (y/n)"
-read rb
-if [[ "$rb" == "y" ]]; then 
-    sudo reboot
-fi
+echo "Rebooting..."
+sudo reboot
