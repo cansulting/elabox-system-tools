@@ -7,7 +7,6 @@ import (
 	"ela/internal/cwd/packageinstaller/landing"
 	"ela/internal/cwd/packageinstaller/pkg"
 	"ela/internal/cwd/packageinstaller/utils"
-	"ela/internal/cwd/system/global"
 	"log"
 	"os"
 	"time"
@@ -39,8 +38,9 @@ func (i loghandler) close() {
 }
 func (i loghandler) Write(data []byte) (int, error) {
 	print(string(data))
-	if global.Connector != nil {
-		global.Connector.Broadcast(constants.SYSTEM_SERVICE_ID, "log", string(data))
+	s := landing.GetServer()
+	if s != nil && s.IsRunning() {
+		s.EventServer.Broadcast(constants.SYSTEM_SERVICE_ID, "log", string(data))
 	}
 	if i.logfile != nil {
 		i.logfile.Write(data)

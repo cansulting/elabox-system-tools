@@ -29,13 +29,13 @@ func main() {
 
 	//global.Initialize()
 	servicecenter.Initialize(commandline)
-	global.Connector.SetStatus(system.BOOTING, nil)
+	global.Server.EventServer.SetStatus(system.BOOTING, nil)
 	defer servicecenter.Close()
 	if err := appman.Initialize(commandline); err != nil {
 		log.Panicln("installer failed to initialize " + err.Error())
 		return
 	}
-	global.Connector.SetStatus(system.RUNNING, nil)
+	global.Server.EventServer.SetStatus(system.RUNNING, nil)
 	// this runs the server
 	for global.Running {
 		time.Sleep(time.Second * 1)

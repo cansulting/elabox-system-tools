@@ -1,12 +1,9 @@
 package landing
 
 import (
-	"context"
 	"ela/foundation/errors"
-	"ela/foundation/event"
 	"ela/foundation/system"
-	"ela/internal/cwd/global/server"
-	"ela/internal/cwd/system/global"
+	"ela/server"
 	"log"
 	"net/http"
 	"time"
@@ -14,49 +11,29 @@ import (
 
 const PORT = "80"
 
-var webserver *http.Server
+var serverhandler *server.Manager
 
 const TIMEOUT = 10 // timeout for server initialization
 var connected = 0
 
 func Initialize(landingPagePath string) error {
 	// step: serve event server
-	conn := event.CreateServerConnector()
-	if err := conn.Open(); err != nil {
-		return errors.SystemNew("Failed to initialize intaller server.", err)
-	}
-	global.Connector = conn
-	server.InitSystemService(conn, nil)
+	serverhandler = &server.Manager{}
+	serverhandler.Setup()
 
 	// step: init web server
-	log.Println("Listening and serve @port", PORT, "www dir =", landingPagePath)
-	webserver = &http.Server{Addr: ":" + PORT}
+	log.Println("Landing page path =", landingPagePath)
 	http.HandleFunc("/", func(rw http.ResponseWriter, r *http.Request) {
 		connected++
 		http.FileServer(http.Dir(landingPagePath)).ServeHTTP(rw, r)
 	})
-	// step: listen and serve to target port
-	go func() {
-		elapsed := time.Now().Unix()
-		for {
-			err := webserver.ListenAndServe()
-			if err == nil {
-				break
-			}
-			// step: check if this is waiting for too long
-			diff := time.Now().Unix() - elapsed
-			if diff > TIMEOUT {
-				log.Println("Webserver ", err.Error())
-				break
-			} else {
-				log.Println("Issue found, retrying...", err.Error())
-			}
-			// sleep for a while
-			time.Sleep(time.Millisecond * 500)
-		}
-	}()
-	conn.SetStatus(system.UPDATING, nil)
+	serverhandler.ListenAndServe()
+	serverhandler.EventServer.SetStatus(system.UPDATING, nil)
 	return nil
+}
+
+func GetServer() *server.Manager {
+	return serverhandler
 }
 
 // wait for any users to connect to landing page
@@ -68,13 +45,14 @@ func WaitForConnection() {
 	log.Println("Resuming...")
 }
 
+// use to shutdown the server
 func Shutdown() error {
 	log.Println("Shutting down event and server...")
 	// close event server
-	if global.Connector != nil {
-		if err := global.Connector.Close(); err != nil {
-			log.Println("Error closing connector.", err.Error())
+	if serverhandler != nil {
+		if err := serverhandler.Stop(); err != nil {
+			return errors.SystemNew("Error closing connector.", err)
 		}
 	}
-	return webserver.Shutdown(context.TODO())
+	return nil
 }

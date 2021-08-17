@@ -1,5 +1,5 @@
 #!/bin/bash
-PROJ_HOME=~
+PROJ_HOME=../../..
 ELA_NODES=$PROJ_HOME/elabox-binaries/binaries
 ELA_SRC=$PROJ_HOME/Elastos.ELA
 ELA_COMPANION=$PROJ_HOME/elabox-companion
@@ -8,8 +8,7 @@ cos=$(go env GOOS)                  # current os.
 carc=$(go env GOARCH)               # current archi
 pkg_name=packageinstaller           # package installer project name
 system_name=system                  # system project name
-packager=packager
-webserver=webserver                   
+packager=packager             
 target=$cos
 arch=$carc
 gobuild='go build'                  # build command
@@ -76,8 +75,6 @@ go env -w GOARCH=$arch
 echo "Building " $pkg_name
 mkdir -p $buildpath/$pkg_name/bin
 eval "$gobuild" -o $buildpath/$pkg_name/bin ../cwd/$pkg_name
-echo "Building " $webserver
-eval "$gobuild" -o $buildpath/$webserver/bin ../cwd/$webserver
 echo "Building " $system_name
 eval "$gobuild" -o $buildpath/$system_name/bin ../cwd/$system_name
 mv $buildpath/$system_name/bin/$system_name $buildpath/$system_name/bin/main 
@@ -185,7 +182,6 @@ $pkgerPath $buildpath/did/packager.json
 $pkgerPath $buildpath/carrier/packager.json
 $pkgerPath $buildpath/mainchain/packager.json
 $pkgerPath $buildpath/$pkg_name/packager.json
-$pkgerPath $buildpath/$webserver/packager.json
 $pkgerPath $buildpath/$system_name/packager.json
 
 go env -u CGO_ENABLED

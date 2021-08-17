@@ -6,7 +6,6 @@ import (
 	"ela/foundation/event/data"
 	"ela/foundation/event/protocol"
 	"ela/foundation/system"
-	"ela/internal/cwd/global/server"
 	"ela/internal/cwd/system/appman"
 	"ela/internal/cwd/system/global"
 	"os"
@@ -116,7 +115,7 @@ func onReturnActivityResult(action data.Action) string {
 // client requested to activate update mode
 func activateUpdateMode(client protocol.ClientInterface, action data.Action) string {
 	pk := action.DataToString()
-	server.Broadcast(global.Connector, data.NewActionById(constants.BCAST_TERMINATE_N_UPDATE))
+	global.Server.EventServer.BroadcastAction(data.NewActionById(constants.BCAST_TERMINATE_N_UPDATE))
 	startActivity(data.NewAction(constants.ACTION_APP_SYSTEM_INSTALL, "", pk), nil)
 	return "success"
 }
@@ -128,7 +127,7 @@ func terminate(seconds uint) string {
 			time.Sleep(time.Second * time.Duration(seconds))
 		}
 		appman.TerminateAllApp()
-		global.Connector.SetStatus(system.STOPPED, nil)
+		global.Server.EventServer.SetStatus(system.STOPPED, nil)
 		global.Running = false
 		time.Sleep(time.Millisecond * 100)
 		os.Exit(0)

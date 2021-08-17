@@ -1,8 +1,8 @@
 package global
 
-import "ela/foundation/event/protocol"
+import "ela/server"
 
-var Connector protocol.ConnectorServer
+var Server *server.Manager
 
 const DB_NAME = "system.dat"
 

@@ -14,8 +14,3 @@ import (
 func CreateClientConnector() protocol.ConnectorClient {
 	return &socket.SocketIOClient{}
 }
-
-// this creates a server connection
-func CreateServerConnector() protocol.ConnectorServer {
-	return &socket.SocketIOServer{}
-}

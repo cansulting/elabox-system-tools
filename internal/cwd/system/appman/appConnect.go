@@ -47,7 +47,7 @@ func newAppConnect(
 		PendingActions: eventd.NewActionGroup(),
 		PackageId:      pk.PackageId,
 		Location:       path.GetAppMain(pk.PackageId, !pk.IsSystemPackage()),
-		RPC:            NewRPCBridge(pk.PackageId, client, global.Connector),
+		RPC:            NewRPCBridge(pk.PackageId, client, global.Server.EventServer),
 		nodejs:         node,
 	}
 }
