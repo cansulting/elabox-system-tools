@@ -50,7 +50,7 @@ func terminate(timeout int16) {
 // connect to system. return connector if success
 func connectToSystem() protocol.ConnectorClient {
 	con := event.CreateClientConnector()
-	if err := con.Open(3); err != nil {
+	if err := con.Open(1); err != nil {
 		return nil
 	}
 	return con

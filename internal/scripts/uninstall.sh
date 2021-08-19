@@ -1,4 +1,10 @@
 echo "Start uninstalling the system"
+
+echo "Killing processes"
+ebox terminate
+sudo kill $(pgrep ela)
+sudo kill $(pgrep did)
+
 # data
 sudo rm -r /var/ela
 #sudo rm -r ~/data
@@ -11,8 +17,3 @@ sudo rm -r /tmp/ela
 sudo rm -r /var/www
 # shared librarues
 sudo rm -r /usr/local/lib/ela
-
-echo "Killing processes"
-ebox terminate
-sudo kill $(pgrep ela)
-sudo kill $(pgrep did)

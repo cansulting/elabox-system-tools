@@ -6,6 +6,7 @@ import (
 	"ela/server"
 	"log"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -22,10 +23,16 @@ func Initialize(landingPagePath string) error {
 	serverhandler.Setup()
 
 	// step: init web server
+	fileserver := http.FileServer(http.Dir(landingPagePath))
 	log.Println("Landing page path =", landingPagePath)
 	http.HandleFunc("/", func(rw http.ResponseWriter, r *http.Request) {
 		connected++
-		http.FileServer(http.Dir(landingPagePath)).ServeHTTP(rw, r)
+		url := r.URL.Path
+		if _, err := os.Stat(landingPagePath + url); err == nil {
+			fileserver.ServeHTTP(rw, r)
+		} else {
+			http.Redirect(rw, r, "/", http.StatusFound)
+		}
 	})
 	serverhandler.ListenAndServe()
 	serverhandler.EventServer.SetStatus(system.UPDATING, nil)

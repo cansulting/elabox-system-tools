@@ -88,7 +88,7 @@ func startCommandline() {
 	}
 	// step: we need clients to system update via ports
 	if systemUpdate {
-		startListening(content)
+		startServer(content)
 	}
 	// use custom installer or not?
 	if IsArgExist("-i") || !content.HasCustomInstaller() {
@@ -143,7 +143,7 @@ func normalInstall(content *pkg.Data) {
 }
 
 // start installer server
-func startListening(content *pkg.Data) {
+func startServer(content *pkg.Data) {
 	// retrieve landing page first
 	landingDir, err := content.ExtractLandingPage()
 	// is there a landing page?

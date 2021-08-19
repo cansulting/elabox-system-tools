@@ -4,7 +4,6 @@ import (
 	"ela/foundation/constants"
 	"ela/foundation/event/data"
 	"ela/foundation/event/protocol"
-	"ela/foundation/system"
 	"log"
 	"net/http"
 	"time"
@@ -27,23 +26,15 @@ func (s *SocketIOServer) GetState() data.ConnectionType {
 func (s *SocketIOServer) Open() error {
 	log.Println("Socket IO Server started")
 	server := socketio.NewServer(transport.GetDefaultWebsocketTransport())
+	s.socket = server
 	server.On(socketio.OnConnection, onClientConnected)
 	server.On(socketio.OnDisconnection, onClientDisconnected)
-	// for status handling
-	server.On("elastatus", func(socket *socketio.Channel) string {
-		return s.GetStatus()
-	})
+	s.initStatus()
 
-	s.socket = server
 	http.Handle("/socket.io/", server)
 	s.state = data.Connected
 	//log.Println("Starting server @PORT ", constants.PORT)
-
 	return nil
-}
-
-func (s *SocketIOServer) GetStatus() string {
-	return system.GetStatus()
 }
 
 func onClientConnected(socket *socketio.Channel) {
@@ -83,14 +74,6 @@ func (s *SocketIOServer) SubscribeClient(socket protocol.ClientInterface, room s
 func (s *SocketIOServer) BroadcastTo(client protocol.ClientInterface, method string, data interface{}) (string, error) {
 	clientCast := client.(*socketio.Channel)
 	return clientCast.Ack(method, data, time.Second*constants.TIMEOUT)
-}
-
-func (s *SocketIOServer) SetStatus(status system.Status, data interface{}) error {
-	system.SetStatus(string(status))
-	return s.Broadcast(
-		constants.SYSTEM_SERVICE_ID,
-		constants.BCAST_SYSTEM_STATUS_CHANGED,
-		statusData{status: string(status), data: data})
 }
 
 /// this closes the server
