@@ -2,6 +2,19 @@
 homedir=/home/elabox
 user=elabox
 passwd=elabox
+
+# terminate running process
+echo "Killing running nodes..."
+if [ "$(pgrep ela)" != "" ]; then
+    sudo kill $(pgrep ela)
+fi
+if [ "$(pgrep did)" != "" ]; then
+    sudo kill $(pgrep did)
+fi
+if [ "$(pgrep ela-bootstrapd)" != "" ]; then
+    sudo kill $(pgrep ela-bootstrapd)
+fi
+
 ############################
 ## Setup user, dependent files, caching
 ############################
@@ -18,10 +31,11 @@ if [ "$exists" == 0 ]; then
     echo "Downloading files"
     echo '$user' | curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
     echo 'Y' | sudo apt update 
-    echo 'Y' | sudo apt install fail2ban avahi-daemon nodejs tor zip
     echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
 
-    #firewall
+    ############################
+    ## Firewall
+    ############################
     echo "Setting up firewall..."
     # open the different ports with ufw
     sudo ufw default deny incoming
@@ -49,24 +63,7 @@ if [ "$exists" == 0 ]; then
     # DID node port
     sudo ufw allow 20608
     echo 'y' | sudo ufw enable
-
-    # add the webserver and SSH to tor
-    echo ""  | sudo tee -a /etc/tor/torrc
-    echo "HiddenServiceDir /var/lib/tor/elabox/"  | sudo tee -a /etc/tor/torrc
-    echo "HiddenServicePort 80 127.0.0.1:80" | sudo tee -a /etc/tor/torrc
-    echo "HiddenServicePort 22 127.0.0.1:22" | sudo tee -a /etc/tor/torrc
-    echo "HiddenServicePort 3001 127.0.0.1:3001" | sudo tee -a /etc/tor/torrc
-    echo ""  | sudo tee -a /etc/tor/torrc
-    sudo systemctl restart tor@default
-
-    # Update hostname to elabox
-    echo "Updating hostname..."
-    echo "$user" | sudo tee /etc/hostname
-    echo "127.0.0.1 $user" | sudo tee /etc/hosts
-    sudo hostnamectl set-hostname elabox
-    # hostnamectl to check
-    /etc/init.d/avahi-daemon restart
-    systemctl restart systemd-logind.service
+    
     
     ############################
     ## Setup elabox directory from USB
@@ -85,8 +82,49 @@ if [ "$exists" == 0 ]; then
         mkdir -p /home/elabox/supernode/carrier/
     fi
 fi
+
 ############################
-## Setup setup memory paging and Firewall
+## Setup packages
+############################
+isinstalled() {
+    pk=$1
+    echo $(dpkg-query -W -f='${Status}' $pk 2>/dev/null | grep -c "ok installed")
+}
+# install function - this install a package if not yet installed
+install() {
+    if [ $(isinstalled $1) -eq 0 ]; then
+        echo 'Y' | sudo apt install $1
+    fi
+}
+install fail2ban
+install nodejs
+# install and setup tor
+if [ $(isinstalled tor) -eq 0 ]; then
+    echo 'Y' | sudo apt install tor
+    # add the webserver and SSH to tor
+    echo ""  | sudo tee -a /etc/tor/torrc
+    echo "HiddenServiceDir /var/lib/tor/elabox/"  | sudo tee -a /etc/tor/torrc
+    echo "HiddenServicePort 80 127.0.0.1:80" | sudo tee -a /etc/tor/torrc
+    echo "HiddenServicePort 22 127.0.0.1:22" | sudo tee -a /etc/tor/torrc
+    echo "HiddenServicePort 3001 127.0.0.1:3001" | sudo tee -a /etc/tor/torrc
+    echo ""  | sudo tee -a /etc/tor/torrc
+    sudo systemctl restart tor@default
+fi
+# install and setup avahi-daemon
+if [ $(isinstalled avahi-daemon) -eq 0 ]; then
+    echo 'Y' | sudo apt install avahi-daemon
+    # Update hostname to elabox
+    echo "Updating hostname..."
+    echo "$user" | sudo tee /etc/hostname
+    echo "127.0.0.1 $user" | sudo tee /etc/hosts
+    sudo hostnamectl set-hostname elabox
+    # hostnamectl to check
+    /etc/init.d/avahi-daemon restart
+    systemctl restart systemd-logind.service
+fi
+
+############################
+## Setup setup memory paging 
 ############################
 if [ ! -d "/var/cache/swap" ]; then 
     echo "Setting up cache swap files..."
@@ -97,16 +135,4 @@ if [ ! -d "/var/cache/swap" ]; then
     sudo mkswap swapfile
     sudo swapon swapfile
     top -bn1 | grep -i swap
-fi
-
-# terminate running process
-echo "Killing running nodes..."
-if [ "$(pgrep ela)" != "" ]; then
-    sudo kill $(pgrep ela)
-fi
-if [ "$(pgrep did)" != "" ]; then
-    sudo kill $(pgrep did)
-fi
-if [ "$(pgrep ela-bootstrapd)" != "" ]; then
-    sudo kill $(pgrep ela-bootstrapd)
 fi
