@@ -6,7 +6,6 @@ import (
 	eventd "ela/foundation/event/data"
 	"ela/foundation/event/protocol"
 	"ela/foundation/path"
-	"ela/internal/cwd/system/appman/nodejs"
 	"ela/internal/cwd/system/global"
 	"log"
 	"os"
@@ -28,7 +27,7 @@ type AppConnect struct {
 	process        *os.Process
 	launched       bool // true if this app was launched
 	RPC            *RPCBridge
-	nodejs         *nodejs.Nodejs
+	nodejs         *Nodejs
 }
 
 // create new app connect
@@ -38,9 +37,9 @@ func newAppConnect(
 	pk *data.PackageConfig,
 	client protocol.ClientInterface) *AppConnect {
 	// initialize node js
-	var node *nodejs.Nodejs
+	var node *Nodejs
 	if pk.Nodejs {
-		node = &nodejs.Nodejs{Config: pk}
+		node = &Nodejs{Config: pk}
 	}
 	return &AppConnect{
 		Config:         pk,

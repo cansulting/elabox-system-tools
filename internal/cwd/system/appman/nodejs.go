@@ -1,4 +1,4 @@
-package nodejs
+package appman
 
 import (
 	"ela/foundation/app/data"
@@ -6,6 +6,9 @@ import (
 	"os/exec"
 )
 
+/*
+	Structure that handles Nodejs runtime
+*/
 type Nodejs struct {
 	Config  *data.PackageConfig
 	cmd     *exec.Cmd

@@ -8,7 +8,7 @@ setup.sh
 - use to setup development environment. download golang, toolchains, dependeng projects etc...
 
 build.sh 
-- generate package and binaries
+- build, generate package and binaries of the whole project
 - to use:
     cd <scripts directory>
     export ELA_COMPANION=<path to your ela companion parent directory>
@@ -17,11 +17,14 @@ build.sh
 install.sh
 - install the system based from package
 
+run.sh
+- build install and run specific package
+
 uninstall.sh
 - use to uninstall the system
 
 dlinstall.sh
-- use to download from storage and install the system
+- use to download from storage server and install the system
 
 upload.sh
 - use to upload the package and installer to storage server
