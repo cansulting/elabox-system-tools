@@ -11,8 +11,8 @@ system_name=system                  # system project name
 packager=packager             
 target=$cos
 arch=$carc
-gobuild='go build'                  # build command
-DEBUG=1
+gobuild='go build -tags DEBUG'    # build command
+MODE=DEBUG
 
 # FLAGS
 while getopts o:a:d flag
@@ -28,13 +28,16 @@ echo "OS="$target
 echo "Arch="$arch
 
 # release mode?
-echo "Release mode (y/n)?"
+echo "Build Mode: 1 - RELEASE, 2 - STAGING, Default - DEBUG"
 read mode
-if [ "$mode" == "y" ]; then
-    DEBUG=0
-    echo "Release=Enabled"
+if [ "$mode" == "1" ]; then
+    MODE=RELEASE
     gobuild='go build -ldflags "-w -s" -tags RELEASE'
+elif [ "$mode" == "2" ]; then
+    MODE=STAGING
+    gobuild='go build -tags STAGING'
 fi
+echo "Mode=$MODE"
 echo ""
 
 # where binaries will be saved
@@ -143,7 +146,7 @@ if [ "$answer" == "y" ]; then
     echo "Building ELASTOS from source..."
     wd=$PWD
     cd $ELA_SRC 
-    #if [ "$DEBUG" == "1" ]; then
+    #if [ "$MODE" == "1" ]; then
     #    make dev
     #else
         make all

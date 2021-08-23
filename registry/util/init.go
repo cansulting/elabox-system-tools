@@ -6,7 +6,7 @@ import (
 	"ela/foundation/errors"
 	"ela/foundation/path"
 	"ela/foundation/perm"
-	"ela/internal/cwd/system/global"
+	"ela/registry/config"
 	"log"
 	"os"
 
@@ -20,7 +20,7 @@ func initialize() error {
 		return nil
 	}
 	srcDir := path.GetSystemAppDirData(constants.SYSTEM_SERVICE_ID)
-	src := srcDir + "/" + global.DB_NAME
+	src := srcDir + "/" + config.DB_NAME
 	log.Println("Registry:", "DB Initialize @", src)
 	if _, err := os.Stat(srcDir); err != nil {
 		if err := os.MkdirAll(srcDir, perm.PUBLIC_VIEW); err != nil {

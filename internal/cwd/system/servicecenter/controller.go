@@ -36,9 +36,3 @@ func Close() {
 		global.Server.Stop()
 	}
 }
-
-// use to register a service
-// @serviceId: the packageId or the service id
-func RegisterService(serviceId string, callback interface{}) {
-	global.Server.EventServer.Subscribe(serviceId, callback)
-}

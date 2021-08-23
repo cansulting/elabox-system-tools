@@ -2,8 +2,8 @@
 os=linux
 arch=arm64
 build=1
-installer=https://storage.googleapis.com/elabox/installer/$os/$arch/packageinstaller
-pkg=https://storage.googleapis.com/elabox/packages/$build.box
+installer=https://storage.googleapis.com/!bucket/installer/$os/$arch/packageinstaller
+pkg=https://storage.googleapis.com/!bucket/packages/$build.box
 echo "Start downloading package"
 sudo wget "$pkg"
 

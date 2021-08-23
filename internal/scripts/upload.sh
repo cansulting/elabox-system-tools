@@ -1,25 +1,39 @@
 #!/bin/bash
 os=linux
 arch=arm64
-build=1
+build=2
+bucket=elabox-debug
+echo "Upload for version 1 - Staging, 2 - Release, None = Debug"
+read answer
+if [ "$answer" == "2" ]; then
+    bucket=elabox
+elif [ "$answer" == "1" ]; then
+    bucket=elabox-staging
+fi
+elapath=gs://$bucket
+
 . ~/.bashrc
-gspk=gs://elabox/packages/$build.box
-gspki=gs://elabox/packages/$build.json
-gsinstaller=gs://elabox/installer/$os/$arch/packageinstaller
-gsh=gs://elabox/installer/$os/$arch/installer.sh
+gspk=$elapath/packages/$build.box
+gspki=$elapath/packages/$build.json
+gsinstaller=$elapath/installer/$os/$arch/packageinstaller
+gsh=$elapath/installer/$os/$arch/installer.sh
 
 installer=../builds/$os/packageinstaller/bin/packageinstaller
 pkg=../builds/$os/system/ela.system.box
 pki=../builds/$os/system/info.json
 shi=./dlinstall.sh
+shic=/tmp/ela/dlinstall.sh
+
+cp $shi $shic
+sed -i "s|\!bucket|$bucket|" $shic
 
 gsutil rm $gsinstaller
 gsutil cp $installer $gsinstaller
 gsutil cp $pkg $gspk
 gsutil cp $pki $gspki
-gsutil cp $pkg gs://elabox/packages/2.box # remove this later. this is for testing OTA update
-gsutil acl ch -u AllUsers:R gs://elabox/packages/2.box # remove this later
-gsutil cp $shi $gsh
+gsutil cp $pkg $elapath/packages/2.box # remove this later. this is for testing OTA update
+gsutil acl ch -u AllUsers:R $elapath/packages/2.box # remove this later
+gsutil cp $shic $gsh
 gsutil acl ch -u AllUsers:R $gspk
 gsutil acl ch -u AllUsers:R $gspki
 gsutil acl ch -u AllUsers:R $gsinstaller
