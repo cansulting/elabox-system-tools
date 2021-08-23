@@ -3,6 +3,7 @@ package main
 import (
 	"ela/foundation/system"
 	"ela/internal/cwd/system/appman"
+	"ela/internal/cwd/system/config"
 	"ela/internal/cwd/system/global"
 	"ela/internal/cwd/system/servicecenter"
 	"log"
@@ -11,7 +12,6 @@ import (
 )
 
 func main() {
-	println("For commands type help")
 	// commandline is true if this app will do nothing aside from
 	// commandline requests
 	commandline := false
@@ -20,6 +20,7 @@ func main() {
 		processCmdline()
 		return
 	}
+	println("For commands type help")
 
 	// step: skip if system already running
 	if connectToSystem() != nil {
@@ -28,6 +29,9 @@ func main() {
 	}
 
 	//global.Initialize()
+	if err := config.Init(); err != nil {
+		log.Panicln(err)
+	}
 	servicecenter.Initialize(commandline)
 	global.Server.EventServer.SetStatus(system.BOOTING, nil)
 	defer servicecenter.Close()

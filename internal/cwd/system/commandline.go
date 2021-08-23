@@ -6,6 +6,7 @@ import (
 	"ela/foundation/event/data"
 	"ela/foundation/event/protocol"
 	"ela/foundation/system"
+	"ela/internal/cwd/system/config"
 	"log"
 	"os"
 )
@@ -19,10 +20,13 @@ func processCmdline() {
 		terminate(0)
 	case "status":
 		println(getStatus())
+	case "env":
+		print(config.GetEnv(args[2]))
 	case "help":
 		println("Commands:")
 		println("terminate/t", "-", "Terminate the current running system and its all apps.")
 		println("status", "-", "Use to check the current status of system.")
+		println("env", "-", "Use to set or get environment variable")
 	}
 }
 
