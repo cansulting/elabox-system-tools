@@ -24,15 +24,15 @@ pki=../builds/$os/system/info.json
 shi=./dlinstall.sh
 shic=/tmp/ela/dlinstall.sh
 
-cp $shi $shic
+cp -R $shi $shic
 sed -i "s|\!bucket|$bucket|" $shic
 
 gsutil rm $gsinstaller
 gsutil cp $installer $gsinstaller
 gsutil cp $pkg $gspk
 gsutil cp $pki $gspki
-gsutil cp $pkg $elapath/packages/2.box # remove this later. this is for testing OTA update
-gsutil acl ch -u AllUsers:R $elapath/packages/2.box # remove this later
+gsutil cp $pkg $elapath/packages/3.box # remove this later. this is for testing OTA update
+gsutil acl ch -u AllUsers:R $elapath/packages/3.box # remove this later
 gsutil cp $shic $gsh
 gsutil acl ch -u AllUsers:R $gspk
 gsutil acl ch -u AllUsers:R $gspki
