@@ -104,4 +104,14 @@ if [ "$answer" == "y" ]; then
         cd "./Elastos.NET.Carrier.Bootstrap"
         git switch master
     fi
+    if [ ! -d "Elastos.ELA.SideChain.EID" ]; then
+        cd $wd
+        # added library
+        echo "Y" | sudo apt-get install libhidapi-dev
+        git clone https://github.com/elastos/Elastos.ELA.SideChain.EID.git
+        cd Elastos.ELA.SideChain.EID.git
+        git switch master
+        go mod init github.com/elastos/Elastos.ELA.SideChain.EID
+        go mod tidy
+    fi
 fi

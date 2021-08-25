@@ -1,8 +1,0 @@
-{
-    "name": "DID",
-    "description": "Did Node",
-    "packageId": "ela.did",
-    "version": "0.3.0",
-    "build": 1,
-    "location": "external"
-}

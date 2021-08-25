@@ -1,0 +1,8 @@
+{
+    "name": "EID",
+    "description": "EID Node",
+    "packageId": "ela.eid",
+    "version": "0.1.2",
+    "build": 1,
+    "location": "external"
+}

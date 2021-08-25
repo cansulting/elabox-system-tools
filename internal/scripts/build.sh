@@ -2,6 +2,7 @@
 PROJ_HOME=../../..
 ELA_NODES=$PROJ_HOME/elabox-binaries/binaries
 ELA_SRC=$PROJ_HOME/Elastos.ELA
+EID_SRC=$PROJ_HOME/Elastos.ELA.SideChain.EID
 ELA_COMPANION=$PROJ_HOME/elabox-companion
 ELA_LANDING=$PROJ_HOME/landing-page
 cos=$(go env GOOS)                  # current os. 
@@ -138,36 +139,34 @@ if [ "$answer" == "y" ]; then
 fi
 
 ##################################
-# elastos mainchain, did, cli
+# elastos mainchain, eid, cli
 ##################################
 echo "Do you want to rebuild elastos binaries? (y/n)"
 read answer
 if [ "$answer" == "y" ]; then
-    echo "Building ELASTOS from source..."
+    echo "Building ELA from source..."
     wd=$PWD
     cd $ELA_SRC 
-    #if [ "$MODE" == "1" ]; then
-    #    make dev
-    #else
-        make all
-    #fi
+    make all
+    echo "Building EID from source..."
+    cd $wd
+    cd $EID_SRC
+    make geth
     cd $wd
 
     targetdir=$buildpath
-    echo "Copying mainchain, did and cli @$ELA_NODES"
+    echo "Copying mainchain, eid and cli @$ELA_NODES"
     # mainchain
     mainchainlib=$buildpath/mainchain/bin
     mkdir -p $mainchainlib
     cp $ELA_SRC/ela-cli $mainchainlib
     cp $ELA_SRC/ela $mainchainlib
     chmod +x $mainchainlib/ela $mainchainlib/ela-cli
-    # did
-    didlib=$buildpath/did/bin
-    mkdir -p $didlib
-    cp ${ELA_NODES}/did $didlib
-    chmod +x $didlib/did
-    cp ${ELA_NODES}/did_config.json $didlib
-    mv $didlib/did_config.json $didlib/config.json
+    # eid
+    eidlib=$buildpath/eid/bin
+    mkdir -p $eidlib
+    cp ${EID_SRC}/geth $eidlib
+    chmod +x $eidlib/geth
     # carrier
     carrierlib=$buildpath/carrier/bin
     mkdir -p $carrierlib
@@ -181,7 +180,7 @@ fi
 #########################
 echo "Start packaging..."
 pkgerPath=../builds/$cos/$packager/$packager
-$pkgerPath $buildpath/did/packager.json
+$pkgerPath $buildpath/eid/packager.json
 $pkgerPath $buildpath/carrier/packager.json
 $pkgerPath $buildpath/mainchain/packager.json
 $pkgerPath $buildpath/$pkg_name/packager.json

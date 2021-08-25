@@ -7,7 +7,6 @@
     "packages": [
         "../packageinstaller/ela.installer.box", 
         "../companion/ela.companion.box",
-        "../did/ela.did.box", 
         "../carrier/ela.carrier.box", 
         "../mainchain/ela.mainchain.box"
     ],
