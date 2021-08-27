@@ -107,7 +107,7 @@ if [ "$answer" == "y" ]; then
     if [ ! -d "Elastos.ELA.SideChain.EID" ]; then
         cd $wd
         # added library
-        echo "Y" | sudo apt-get install libhidapi-dev
+        echo "Y" | sudo apt-get install autoconf libudev
         git clone https://github.com/elastos/Elastos.ELA.SideChain.EID.git
         cd Elastos.ELA.SideChain.EID.git
         git switch master

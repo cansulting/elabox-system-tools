@@ -1,6 +1,6 @@
 {
     "name": "Ela System",
-    "description": "Ela System",
+    "description": "Ela System. Several bug fixes and updates for EID.",
     "packageId": "ela.system",
     "version": "0.3.1",
     "build": 2,

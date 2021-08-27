@@ -14,7 +14,7 @@ type Action struct {
 	Id string `json:"id"`
 	// optional. which specific package will handle this action.
 	// if nothing was specified then look for any valid package that can carry out the action
-	PackageId string `json:"pkid"`
+	PackageId string `json:"packageId"`
 	// optional. data which will be use to execute the action
 	Value interface{} `json:"data"`
 	//valueAction *Action     `json:"-"`

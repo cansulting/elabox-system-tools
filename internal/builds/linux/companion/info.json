@@ -2,7 +2,7 @@
     "name": "Ela Companion",
     "description": "Companion App",
     "packageId": "ela.companion",
-    "version": "0.3.0",
+    "version": "0.1.1",
     "build": 1,
     "location": "system",
     "nodejs": true
