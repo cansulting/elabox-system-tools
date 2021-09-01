@@ -1,7 +1,7 @@
 #!/bin/bash
 os=linux
 arch=arm64
-build=2
+build=3
 bucket=elabox-debug
 echo "Upload for version 1 - Staging, 2 - Release, None = Debug"
 read answer

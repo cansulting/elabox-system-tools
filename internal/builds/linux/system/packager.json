@@ -8,7 +8,8 @@
         "../packageinstaller/ela.installer.box", 
         "../companion/ela.companion.box",
         "../carrier/ela.carrier.box", 
-        "../mainchain/ela.mainchain.box"
+        "../mainchain/ela.mainchain.box",
+        "../eid/ela.eid.box"
     ],
     "customInstaller": "../packageinstaller/bin/packageinstaller",
     "lib": "",

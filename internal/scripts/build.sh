@@ -163,10 +163,10 @@ if [ "$answer" == "y" ]; then
     cp $ELA_SRC/ela $mainchainlib
     chmod +x $mainchainlib/ela $mainchainlib/ela-cli
     # eid
-    eidlib=$buildpath/eid/bin
-    mkdir -p $eidlib
-    cp ${EID_SRC}/geth $eidlib
-    chmod +x $eidlib/geth
+    eidbin=$buildpath/eid/bin
+    mkdir -p $eidbin
+    cp ${EID_SRC}/build/bin/geth $eidbin
+    chmod +x $eidbin/geth
     # carrier
     carrierlib=$buildpath/carrier/bin
     mkdir -p $carrierlib
