@@ -8,12 +8,8 @@ echo "Killing running nodes..."
 if [ "$(pgrep ela)" != "" ]; then
     sudo kill $(pgrep ela)
 fi
-if [ "$(pgrep did)" != "" ]; then
-    sudo kill $(pgrep did)
-fi
-if [ "$(pgrep ela-bootstrapd)" != "" ]; then
-    sudo kill $(pgrep ela-bootstrapd)
-fi
+sudo pkill geth
+sudo pkill ela-bootstrapd
 
 ############################
 ## Setup user, dependent files, caching
@@ -124,7 +120,7 @@ if [ $(isinstalled avahi-daemon) -eq 0 ]; then
 fi
 
 ############################
-## Setup setup memory paging 
+## Setup memory paging 
 ############################
 if [ ! -d "/var/cache/swap" ]; then 
     echo "Setting up cache swap files..."
@@ -134,5 +130,9 @@ if [ ! -d "/var/cache/swap" ]; then
     sudo chmod 600 swapfile
     sudo mkswap swapfile
     sudo swapon swapfile
+    echo "/var/cache/swap/swapfile none swap sw 0 0" | sudo tee -a /etc/fstab
     top -bn1 | grep -i swap
+elif ! grep -q '/var/cache/swap/swapfile none swap sw 0 0' /etc/fstab ; then
+    # bug fix for build #2
+    echo "/var/cache/swap/swapfile none swap sw 0 0" | sudo tee -a /etc/fstab
 fi
