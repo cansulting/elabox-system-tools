@@ -133,6 +133,6 @@ if [ ! -d "/var/cache/swap" ]; then
     echo "/var/cache/swap/swapfile none swap sw 0 0" | sudo tee -a /etc/fstab
     top -bn1 | grep -i swap
 elif ! grep -q '/var/cache/swap/swapfile none swap sw 0 0' /etc/fstab ; then
-    # bug fix for build #2
+    # bug fix for build #2. swapfile was not registered to fstab
     echo "/var/cache/swap/swapfile none swap sw 0 0" | sudo tee -a /etc/fstab
 fi
