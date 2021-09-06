@@ -3,6 +3,7 @@ PROJ_HOME=../../..
 ELA_NODES=$PROJ_HOME/elabox-binaries/binaries
 ELA_SRC=$PROJ_HOME/Elastos.ELA
 EID_SRC=$PROJ_HOME/Elastos.ELA.SideChain.EID
+ESC_SRC=$PROJ_HOME/Elastos.ELA.SideChain.ESC
 ELA_COMPANION=$PROJ_HOME/elabox-companion
 ELA_LANDING=$PROJ_HOME/landing-page
 cos=$(go env GOOS)                  # current os. 
@@ -111,7 +112,6 @@ if [[ "$answer" == "1" || "$answer" == "3" ]]; then
     initDir=$PWD
     cd $ELA_COMPANION/src_server
     sudo npm install
-    sudo npm run build
     cd $initDir
     mkdir -p $buildpath/companion/nodejs
     cp -r $ELA_COMPANION/src_server/* $buildpath/companion/nodejs
@@ -153,6 +153,11 @@ if [ "$answer" == "y" ]; then
     cd $EID_SRC
     make geth
     cd $wd
+    echo "Building ESC from source..."
+    cd $wd
+    cd $ESC_SRC
+    make geth
+    cd $wd
 
     targetdir=$buildpath
     echo "Copying mainchain, eid and cli @$ELA_NODES"
@@ -167,6 +172,12 @@ if [ "$answer" == "y" ]; then
     mkdir -p $eidbin
     cp ${EID_SRC}/build/bin/geth $eidbin
     chmod +x $eidbin/geth
+    # esc
+    escbin=$buildpath/esc/bin
+    mkdir -p $escbin
+    cp ${ESC_SRC}/build/bin/geth $escbin
+    chmod +x $escbin/geth
+    mv $escbin/geth $escbin/esc
     # carrier
     carrierlib=$buildpath/carrier/bin
     mkdir -p $carrierlib
@@ -181,6 +192,7 @@ fi
 echo "Start packaging..."
 pkgerPath=../builds/$cos/$packager/$packager
 $pkgerPath $buildpath/eid/packager.json
+$pkgerPath $buildpath/esc/packager.json
 $pkgerPath $buildpath/carrier/packager.json
 $pkgerPath $buildpath/mainchain/packager.json
 $pkgerPath $buildpath/$pkg_name/packager.json

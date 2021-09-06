@@ -24,7 +24,7 @@ done
 
 # download go lang
 if [ ! -d "/usr/local/go" ]; then 
-    pkg=go1.16.7.$cos-$carc.tar.gz
+    pkg=go1.17.$cos-$carc.tar.gz
     wget https://golang.org/dl/$pkg
     sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf $pkg
     sudo rm $pkg
@@ -109,9 +109,23 @@ if [ "$answer" == "y" ]; then
         # added library
         echo "Y" | sudo apt-get install autoconf libudev
         git clone https://github.com/elastos/Elastos.ELA.SideChain.EID.git
-        cd Elastos.ELA.SideChain.EID.git
+        cd Elastos.ELA.SideChain.EID
         git switch master
         go mod init github.com/elastos/Elastos.ELA.SideChain.EID
         go mod tidy
+        # bug fix for outdated library version
+        go get -u -v github.com/syndtr/goleveldb@master
+    fi
+    if [ ! -d "Elastos.ELA.SideChain.ESC" ]; then
+        cd $wd
+        # added library
+        echo "Y" | sudo apt-get install autoconf libudev
+        git clone https://github.com/elastos/Elastos.ELA.SideChain.ESC.git
+        cd Elastos.ELA.SideChain.ESC
+        git switch master
+        go mod init github.com/elastos/Elastos.ELA.SideChain.ESC
+        go mod tidy
+        # bug fix for outdated library version
+        go get -u -v github.com/syndtr/goleveldb@master
     fi
 fi
