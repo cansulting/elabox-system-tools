@@ -1,8 +1,10 @@
 #!/bin/bash
-os=linux
-arch=arm64
+os=$(go env GOOS)   
+arch=$(go env GOARCH)
 build=3
 bucket=elabox-debug
+echo "OS="$os
+echo "Arch="$arch
 echo "Upload for version 1 - Staging, 2 - Release, None = Debug"
 read answer
 if [ "$answer" == "2" ]; then
