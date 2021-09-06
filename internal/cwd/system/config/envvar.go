@@ -10,6 +10,11 @@ import (
 	"os"
 )
 
+/*
+	Structure for handling system environment variables.
+	This structure includes serialization and deserialization.
+	TODO: optimize serialization. Currently this serializes everytime theres a changes with environment variable
+*/
 var singleton *Env
 
 const FILENAME = "env.json"

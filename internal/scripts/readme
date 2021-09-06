@@ -11,8 +11,7 @@ build.sh
 - build, generate package and binaries of the whole project
 - to use:
     cd <scripts directory>
-    export ELA_COMPANION=<path to your ela companion parent directory>
-    ./windows.sh -o <can linux/windows/macos> -a <can be amd64/arm64/386>
+    ./build.sh -o <can linux/windows/macos> -a <can be amd64/arm64/386>
 
 install.sh
 - install the system based from package

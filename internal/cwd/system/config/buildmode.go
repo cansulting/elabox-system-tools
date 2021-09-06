@@ -4,9 +4,7 @@ import (
 	"ela/foundation/errors"
 )
 
-var buildMode = ""
-
-const ELABUILD = "ELABUILD"
+const ELABUILD = "ELABUILD"					// environment variable for build mode
 
 // intialize system configuration
 func Init() error {

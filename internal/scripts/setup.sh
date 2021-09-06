@@ -108,24 +108,26 @@ if [ "$answer" == "y" ]; then
         cd $wd
         # added library
         echo "Y" | sudo apt-get install autoconf libudev
-        git clone https://github.com/elastos/Elastos.ELA.SideChain.EID.git
+        git clone https://github.com/jhoe123/Elastos.ELA.SideChain.EID.git
         cd Elastos.ELA.SideChain.EID
         git switch master
-        go mod init github.com/elastos/Elastos.ELA.SideChain.EID
+        go mod init github.com/jhoe123/Elastos.ELA.SideChain.EID
         go mod tidy
         # bug fix for outdated library version
         go get -u -v github.com/syndtr/goleveldb@master
+        rm -d -R vendor
     fi
     if [ ! -d "Elastos.ELA.SideChain.ESC" ]; then
         cd $wd
         # added library
         echo "Y" | sudo apt-get install autoconf libudev
-        git clone https://github.com/elastos/Elastos.ELA.SideChain.ESC.git
+        git clone https://github.com/jhoe123/Elastos.ELA.SideChain.ESC.git
         cd Elastos.ELA.SideChain.ESC
         git switch master
-        go mod init github.com/elastos/Elastos.ELA.SideChain.ESC
+        go mod init github.com/jhoe123/Elastos.ELA.SideChain.ESC
         go mod tidy
         # bug fix for outdated library version
         go get -u -v github.com/syndtr/goleveldb@master
+        rm -d -R vendor
     fi
 fi
