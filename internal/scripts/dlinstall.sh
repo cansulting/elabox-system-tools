@@ -1,6 +1,6 @@
 #!/bin/bash
 os=linux
-arch=arm64
+arch=!arch
 build=!build
 installer=https://storage.googleapis.com/!bucket/installer/$os/$arch/packageinstaller
 pkg=https://storage.googleapis.com/!bucket/packages/$build.box

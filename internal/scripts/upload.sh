@@ -29,6 +29,7 @@ shbk=/tmp/dlinstall.sh
 cp -R $shi $shbk
 sed -i "s|\!bucket|$bucket|" $shbk
 sed -i "s|\!build|$build|" $shbk
+sed -i "s|\!arch|$arch|" $shbk
 
 gsutil rm $gsinstaller
 gsutil cp $installer $gsinstaller
