@@ -16,11 +16,11 @@ sudo pkill ela-bootstrapd
 ############################
 exists=$(grep -c "^$user:" /etc/passwd)
 if [ "$exists" == 0 ]; then
-    echo "Set USB as home? If 'y' please insert USB to RPI. (y/n)"
+    echo "Set USB as home? If 'y' please insert USB to your elabox. (y/n)"
     read answer
 
     echo "Setting up user..."
-    sudo useradd -p $(openssl passwd -1 $passwd) -m $user
+    echo 'exit' | sudo useradd -p $(openssl passwd -1 $passwd) -m $user
     sudo usermod -aG sudo $user
     sudo -s -u $user
     # download files
