@@ -1,3 +1,15 @@
+// Copyright 2021 The Elabox Authors
+// This file is part of the elabox-system-tools library.
+
+// The elabox-system-tools library is under open source LGPL license.
+// If you simply compile or link an LGPL-licensed library with your own code,
+// you can release your application under any license you want, even a proprietary license.
+// But if you modify the library or copy parts of it into your code,
+// you’ll have to release your application under similar terms as the LGPL.
+// Please check license description @ https://www.gnu.org/licenses/lgpl-3.0.txt
+
+// This file handles functions and producedure related to Package configuration
+
 package data
 
 import (
@@ -11,45 +23,52 @@ import (
 	"os"
 )
 
-const SYSTEM = "system"
-const EXTERNAL = "external"
-const NODE_JS = "nodejs"
+const SYSTEM = "system"      // identifies the package is installed on system location
+const EXTERNAL = "external"  // identifies the package is installed on external location
+const NODE_JS_DIR = "nodejs" // sub directory of binary dir, this is where node js scripts reside
 
+// This structure represents package  json file along with the binary.
+// this contains information about the application behaviour, permission and services.
 type PackageConfig struct {
-	Name             string   `json:"name"`
-	Description      string   `json:"description"`
-	PackageId        string   `json:"packageId"`      // company.package
-	Build            int16    `json:"build"`          // major.minor.patch
-	Version          string   `json:"version"`        // current version
-	Permissions      []string `json:"permissions"`    // declared actions to be called inside the app
-	ExportServices   bool     `json:"exportService"`  // true if the package contains services
-	Activities       []string `json:"activities"`     // if app has activity. this contains definition of actions that will triggerr activity
-	BroacastListener []string `json:"actionListener"` // defined actions which action listener will listen to
-	InstallLocation  string   `json:"location"`       // which location the package will be installed
-	Source           string   `json:"-"`              // the source location
-	Nodejs           bool     `json:"nodejs"`         // true if this package includes node js
-	//Restart          bool     `json:"restart"`        // if true system restart upon installation
+	Name        string `json:"name"`        // package name
+	Description string `json:"description"` // description of package
+	PackageId   string `json:"packageId"`   // identifies the package/application. this should be unique. format = company.package
+	Build       int16  `json:"build"`       // this should be incremental starting from 1
+	Version     string `json:"version"`     // major.minor.patch
+	// request permission for specific action/feature
+	// if the specific action was called and was not defined. the process will be void
+	Permissions      []string `json:"permissions"`
+	ExportServices   bool     `json:"exportService"`   // true if the package contains services
+	Activities       []string `json:"activities"`      // if app has activity. this contains definition of actions that will triggerr activity
+	BroacastListener []string `json:"actionListener"`  // defined actions which action listener will listen to
+	InstallLocation  string   `json:"location"`        // which location the package will be installed
+	Source           string   `json:"-"`               // the source location
+	Nodejs           bool     `json:"nodejs"`          // true if this package includes node js
+	PackagerVersion  string   `json:"packagerVersion"` // version of packager of this package
 	//Services         map[string]string `json:"services"`       // if app has a service. this contains definition of commands available to service
 }
 
+// default values for package
 func DefaultPackage() *PackageConfig {
 	return &PackageConfig{InstallLocation: EXTERNAL /*, Restart: false*/}
 }
 
+// local package data given the source location
 func (c *PackageConfig) LoadFromSrc(src string) error {
 	bytes, err := os.ReadFile(src)
 	if err != nil {
-		return &PackageConfigError{propertyError: "Error loading package." + err.Error()}
+		return errors.SystemNew("Error loading package.", err)
 
 	}
 	c.Source = src
 	return c.LoadFromBytes(bytes)
 }
 
+// load package based from reader info
 func (c *PackageConfig) LoadFromReader(reader io.Reader) error {
 	bytes, err := ioutil.ReadAll(reader)
 	if err != nil {
-		return &PackageConfigError{propertyError: err.Error()}
+		return errors.SystemNew("Failed loading package from reader", err)
 	}
 	err = c.LoadFromBytes(bytes)
 	if err != nil {
@@ -58,6 +77,7 @@ func (c *PackageConfig) LoadFromReader(reader io.Reader) error {
 	return nil
 }
 
+// load package base from bytes
 func (c *PackageConfig) LoadFromBytes(bytes []byte) error {
 	return json.Unmarshal(bytes, &c)
 }
@@ -92,6 +112,7 @@ func (c *PackageConfig) LoadFromZipPackage(source string) error {
 	return c.LoadFromZipFiles(reader.File)
 }
 
+// lookup package from base from zip files
 func (c *PackageConfig) LoadFromZipFiles(files []*zip.File) error {
 	for _, file := range files {
 		if file.Name != constants.APP_CONFIG_NAME {
@@ -120,6 +141,7 @@ func (c *PackageConfig) GetInstallDir() string {
 	}
 }
 
+// get data directory of package
 func (c *PackageConfig) GetDataDir() string {
 	if c.InstallLocation == SYSTEM || !path.HasExternal() {
 		return path.GetSystemAppDirData(c.PackageId)
@@ -128,18 +150,22 @@ func (c *PackageConfig) GetDataDir() string {
 	}
 }
 
+// get package's node js dir
 func (c *PackageConfig) GetNodejsDir() string {
-	return c.GetInstallDir() + "/" + NODE_JS
+	return c.GetInstallDir() + "/" + NODE_JS_DIR
 }
 
+// get package's main binary
 func (c *PackageConfig) GetMainExec() string {
 	return path.GetAppMain(c.PackageId, c.InstallLocation == EXTERNAL)
 }
 
+// get package's library directory
 func (c *PackageConfig) GetLibraryDir() string {
 	return path.GetLibPath() + "/" + c.PackageId
 }
 
+// return true if has main binary
 func (c *PackageConfig) HasMainExec() bool {
 	if _, err := os.Stat(c.GetMainExec()); err == nil {
 		return true
@@ -147,7 +173,8 @@ func (c *PackageConfig) HasMainExec() bool {
 	return false
 }
 
-func (c *PackageConfig) ToString() string {
+// return json information
+func (c *PackageConfig) ToJson() string {
 	json, _ := json.Marshal(c)
 	return string(json)
 }

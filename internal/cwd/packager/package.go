@@ -6,14 +6,16 @@ import (
 	"ela/foundation/constants"
 	"ela/foundation/errors"
 	"ela/foundation/path"
+	"ela/foundation/perm"
 	"ela/internal/cwd/global"
-	cwdg "ela/internal/cwd/global"
 	"encoding/json"
 	"io/fs"
 	"log"
 	"os"
 	"path/filepath"
 )
+
+const VERSION = "0.1.0"
 
 /*
 	package.go
@@ -29,8 +31,8 @@ type Package struct {
 	Packages        []string `json:"packages"`        // list of packages to be included
 	Www             string   `json:"www"`             // www front end to be included in source
 	Nodejs          string   `json:"nodejs"`          // add node js directory if the package contain node js app
-	PostInstall     string   `json:"postinstall"`     //
-	PreInstall      string   `json:"preinstall"`      //
+	PostInstall     string   `json:"postinstall"`     // script that will be executed after everything is installed
+	PreInstall      string   `json:"preinstall"`      // script that will be executed upon initialization
 	CustomInstaller string   `json:"customInstaller"` // custom installer
 }
 
@@ -117,7 +119,7 @@ func (c *Package) Compile(destdir string) error {
 			if err := pkconfig.LoadFromZipPackage(p); err != nil {
 				return errors.SystemNew("Package.Compile() failed loading package "+p, err)
 			}
-			if err := addFile("packages/"+pkconfig.PackageId + "." + global.PACKAGE_EXT, p, zipwriter); err != nil {
+			if err := addFile("packages/"+pkconfig.PackageId+"."+global.PACKAGE_EXT, p, zipwriter); err != nil {
 				return errors.SystemNew("Package.Compile() failed adding package "+p, err)
 			}
 		}
@@ -140,25 +142,30 @@ func (c *Package) Compile(destdir string) error {
 	if c.CustomInstaller != "" {
 		log.Println("Compile() adding custom installer")
 		if err := addFile(
-			cwdg.PACKAGEKEY_CUSTOM_INSTALLER+filepath.Ext(c.CustomInstaller),
+			global.PACKAGEKEY_CUSTOM_INSTALLER+filepath.Ext(c.CustomInstaller),
 			c.CustomInstaller, zipwriter); err != nil {
 			return errors.SystemNew("Package.Compile() failed adding custom installer "+c.CustomInstaller, err)
 		}
 	}
 	// scripts
 	if c.PreInstall != "" {
-		if err := addFile("scripts/"+cwdg.PREINSTALL_SH, c.PreInstall, zipwriter); err != nil {
+		if err := addFile("scripts/"+global.PREINSTALL_SH, c.PreInstall, zipwriter); err != nil {
 			return errors.SystemNew("Package.Compile() failed adding script "+c.PreInstall, err)
 		}
 	}
 	if c.PostInstall != "" {
-		if err := addFile("scripts/"+cwdg.POSTINSTALL_SH, c.PostInstall, zipwriter); err != nil {
+		if err := addFile("scripts/"+global.POSTINSTALL_SH, c.PostInstall, zipwriter); err != nil {
 			return errors.SystemNew("Package.Compile() failed adding script "+c.PreInstall, err)
 		}
 	}
 	// close
 	if err := zipwriter.Close(); err != nil {
 		return errors.SystemNew("Package.Compile() close failed.", err)
+	}
+	// update package info version
+	pkconfig.PackagerVersion = VERSION
+	if err := os.WriteFile(pkconfig.Source, []byte(pkconfig.ToJson()), perm.PUBLIC); err != nil {
+		return errors.SystemNew("Updating package config "+pkconfig.Source+"Failed", err)
 	}
 	log.Println("Package success", pkconfig.PackageId)
 	return nil

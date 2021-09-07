@@ -33,7 +33,7 @@ func TestRetrieveAllPackages(test *testing.T) {
 		test.Error(err)
 	}
 	for _, pk := range pks {
-		log.Println(pk.ToString())
+		log.Println(pk.ToJson())
 	}
 
 }

@@ -25,6 +25,6 @@ func (t *DummyRPC) OnRecieved(event string, onServiceResponse service.ServiceDel
 
 }
 
-func (t *DummyRPC) Disconnect() error {
+func (t *DummyRPC) Close() error {
 	return nil
 }
