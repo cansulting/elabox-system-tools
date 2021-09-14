@@ -175,6 +175,6 @@ func (c *PackageConfig) HasMainExec() bool {
 
 // return json information
 func (c *PackageConfig) ToJson() string {
-	json, _ := json.Marshal(c)
+	json, _ := json.MarshalIndent(c, "", "\t")
 	return string(json)
 }

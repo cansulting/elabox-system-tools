@@ -72,10 +72,6 @@ if [ "$exists" == 0 ]; then
         # update the /etc/fstab file to auto-mount the disk on startup
         echo "UUID=${USD_UUID} $homedir ext4 defaults 0 0" | tee -a /etc/fstab > /dev/null
         chown -R elabox:elabox $homedir
-        /etc/init.d/avahi-daemon restart
-
-        # carrier directory requirement. delete this later
-        mkdir -p /home/elabox/supernode/carrier/
     fi
 fi
 
