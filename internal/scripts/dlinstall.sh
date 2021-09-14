@@ -19,8 +19,12 @@ do
         gen=1
         serial=$(cat /proc/cpuinfo | grep Serial | cut -d ' ' -f 2)
         hardware=$(cat /proc/cpuinfo | grep Hardware | cut -d ' ' -f 2-10)
-        model=$(cat /proc/cpuinfo | grep Model | cut -d ' ' -f 2-10)
-        response=$(curl --location --request POST "http://$rewhost/apiv1/rewards/reg-manual?secret=$secret&serial=$serial&hardware=$hardware&model=$model&gen=$gen")
+        model="$(cat /proc/cpuinfo | grep Model | cut -d ' ' -f 2-10)"
+        response=$(curl --location -G \
+            --data-urlencode "model=$model" \
+            "http://$rewhost/apiv1/rewards/reg-manual?secret=$secret&serial=$serial&hardware=$hardware&gen=$gen" \
+            --request POST
+        )
         resultCode=$(echo $response | jq '.code')
         if [ "$resultCode" == 200 ]; then
             echo "Registration success!"
