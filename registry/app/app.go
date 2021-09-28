@@ -66,7 +66,7 @@ func RegisterPackageSrc(srcDir string) (*data.PackageConfig, error) {
 }
 
 func RetrievePackage(id string) (*data.PackageConfig, error) {
-	pks, err := retrievePackagesRaw(id, []string{"id, source, name, location, nodejs"})
+	pks, err := retrievePackagesRaw(id, []string{"id", "source", "version", "name", "location", "nodejs"})
 	if err != nil {
 		return nil, errors.SystemNew("appman.RetrievePackage failed", err)
 	}

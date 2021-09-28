@@ -8,6 +8,7 @@ import (
 	"ela/server/event"
 	"log"
 	"net/http"
+	"runtime"
 	"time"
 )
 
@@ -25,6 +26,7 @@ func (m *Manager) IsRunning() bool {
 // setup the server
 func (m *Manager) Setup() error {
 	log.Println("Setting up web and event server...")
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	m.httpS = &http.Server{Addr: ":" + config.PORT}
 	// step: initialize event server
 	eventS := &event.SocketIOServer{}
