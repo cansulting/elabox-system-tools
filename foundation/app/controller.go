@@ -14,7 +14,7 @@ import (
 	event "ela/foundation/event"
 	"ela/foundation/event/data"
 	protocolE "ela/foundation/event/protocol"
-	"log"
+	"ela/foundation/logger"
 	"time"
 )
 
@@ -25,13 +25,13 @@ func RunApp(app *Controller) error {
 	if err := app.onStart(); err != nil {
 		return err
 	}
-	log.Println("App", app.Config.PackageId, "is now running")
+	logger.GetInstance().Info().Str("category", "appcontroller").Msg(app.Config.PackageId + "is now running")
 
 	for app.IsRunning() {
 		time.Sleep(time.Second * 1)
 	}
 
-	defer log.Println("App exit " + app.Config.PackageId)
+	defer logger.GetInstance().Info().Str("category", "appcontroller").Msg("App exit " + app.Config.PackageId)
 	return app.onEnd()
 }
 
@@ -43,6 +43,9 @@ func NewController(
 	config := appd.DefaultPackage()
 	if err := config.LoadFromSrc(constants.APP_CONFIG_NAME); err != nil {
 		return nil, err
+	}
+	if logger.GetInstance() == nil {
+		logger.Init(config.PackageId)
 	}
 	return &Controller{
 		AppService: service,
@@ -75,7 +78,7 @@ func (m *Controller) IsRunning() bool {
 
 // callback when this app was started
 func (m *Controller) onStart() error {
-	log.Println("app.Controller: Starting App", m.Config.PackageId)
+	logger.GetInstance().Info().Str("category", "appcontroller").Msg("Starting App" + m.Config.PackageId)
 	// step: init connector
 	connector := event.CreateClientConnector()
 	err := connector.Open(-1)
@@ -96,18 +99,18 @@ func (m *Controller) onStart() error {
 	if err != nil {
 		return err
 	}
-	log.Println(m.Config.PackageId, "OnStart() pendingActions =", res)
+	logger.GetInstance().Debug().Str("category", "appcontroller").Msg(m.Config.PackageId + "onstart pendingActions =" + res.ToString())
 	pendingActions := res.ToActionGroup()
 	// step: initialize service
 	if m.AppService != nil {
-		log.Println("app.Controller: OnStart", "Service")
+		logger.GetInstance().Debug().Str("category", "appcontroller").Msg("Service start")
 		if err := m.AppService.OnStart(); err != nil {
 			return errors.SystemNew("app.Controller couldnt start app service", err)
 		}
 	}
 	// step: initialize activity
 	if m.Activity != nil {
-		log.Println("app.Controller: OnStart", "Activity")
+		logger.GetInstance().Debug().Str("category", "appcontroller").Msg("Activity start")
 		if err := m.Activity.OnStart(pendingActions.Activity); err != nil {
 			return errors.SystemNew("app.Controller couldnt start app activity", err)
 		}
@@ -117,7 +120,7 @@ func (m *Controller) onStart() error {
 
 // callback when this app ended
 func (m *Controller) onEnd() error {
-	log.Println("Controller: OnEnd")
+	//log.Println("Controller: OnEnd")
 	if m.forceEnd {
 		// step: send stop state for application
 		_, err := m.RPC.CallSystem(
@@ -126,17 +129,17 @@ func (m *Controller) onEnd() error {
 				m.Config.PackageId,
 				constants.APP_SLEEP))
 		if err != nil {
-			log.Println("Controller.onEnd Change state failed.", err.Error())
+			logger.GetInstance().Error().Err(err).Caller().Str("category", "appcontroller").Msg("Controller.onEnd Change state failed.")
 		}
 	}
 	if m.Activity != nil && m.Activity.IsRunning() {
 		if err := m.Activity.OnEnd(); err != nil {
-			log.Println("Controller.Activity stop failed", err.Error())
+			logger.GetInstance().Error().Err(err).Caller().Str("category", "appcontroller").Msg("Activity stop failed")
 		}
 	}
 	if m.AppService != nil && m.AppService.IsRunning() {
 		if err := m.AppService.OnEnd(); err != nil {
-			log.Println("Controller.AppService stop failed", err.Error())
+			logger.GetInstance().Error().Err(err).Caller().Str("category", "appcontroller").Msg("AppService stop failed")
 		}
 	}
 	return nil
@@ -144,18 +147,18 @@ func (m *Controller) onEnd() error {
 
 // this will end the app
 func (c *Controller) End() {
-	log.Println("App", c.Config.PackageId, "is now ending")
+	logger.GetInstance().Debug().Str("category", "appcontroller").Msg(c.Config.PackageId + "is now ending")
 	c.forceEnd = true
 }
 
 // use to start an  from other applications
 func (m *Controller) StartActivity(action data.Action) error {
-	log.Println("Controller:StartActivity", action.Id)
+	logger.GetInstance().Debug().Str("category", "appcontroller").Msg("Trying to start activity with action" + action.Id)
 	res, err := m.RPC.CallSystem(data.NewAction(constants.ACTION_START_ACTIVITY, "", action))
 	if err != nil {
 		return err
 	}
-	log.Println("Controller:StartActivity response", res.ToString())
+	logger.GetInstance().Debug().Str("category", "appcontroller").Msg("Start activity with response " + res.ToString())
 	return nil
 }
 
@@ -163,11 +166,11 @@ func (m *Controller) StartActivity(action data.Action) error {
 func (c *Controller) SetActivityResult(val interface{}) {
 	res, err := c.RPC.CallSystem(data.NewAction(constants.SYSTEM_ACTIVITY_RESULT, c.Config.PackageId, val))
 	if err != nil {
-		log.Println("SetActivityResult() response failure", err.Error())
+		logger.GetInstance().Error().Str("category", "appcontroller").Err(err).Caller().Msg("Activity result response failure")
 		return
 	}
 	if res != nil {
-		log.Println("SetActivityResult() response ", res.ToString())
+		logger.GetInstance().Debug().Str("category", "appcontroller").Msg("Activity result response success " + res.ToString())
 	}
 }
 

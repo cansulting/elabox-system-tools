@@ -4,9 +4,9 @@ import (
 	"context"
 	"ela/foundation/event/data"
 	"ela/foundation/event/protocol"
+	"ela/foundation/logger"
 	"ela/server/config"
 	"ela/server/event"
-	"log"
 	"net/http"
 	"runtime"
 	"time"
@@ -25,7 +25,7 @@ func (m *Manager) IsRunning() bool {
 
 // setup the server
 func (m *Manager) Setup() error {
-	log.Println("Setting up web and event server...")
+	logger.GetInstance().Debug().Str("category", "networking").Msg("Setting up web and event server...")
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	m.httpS = &http.Server{Addr: ":" + config.PORT}
 	// step: initialize event server
@@ -60,10 +60,10 @@ func (m *Manager) ListenAndServe() {
 			// step: waiting for too long?
 			diff := time.Now().Unix() - elapsed
 			if diff > TIMEOUT {
-				log.Println("Server manager error", err.Error())
+				logger.GetInstance().Error().Err(err).Str("category", "networking").Caller().Msg("Server manager error.")
 				break
 			}
-			log.Println("Issue found, retrying...", err.Error())
+			logger.GetInstance().Error().Err(err).Str("category", "networking").Caller().Msg("Issue found, retrying...")
 			// sleep for a while
 			time.Sleep(time.Millisecond * 500)
 		}
