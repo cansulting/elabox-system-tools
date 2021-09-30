@@ -3,8 +3,8 @@ package appman
 import (
 	"ela/foundation/event/data"
 	"ela/foundation/event/protocol"
+	"ela/internal/cwd/system/global"
 	registry "ela/registry/app"
-	"log"
 )
 
 // currently running processes
@@ -64,9 +64,9 @@ func RemoveAppConnect(packageId string, terminate bool) {
 	if app != nil {
 		if terminate {
 			if err := app.Terminate(); err != nil {
-				log.Println("appConnectManager.TerminateAllApp failed terminate "+app.PackageId+". Trying force terminate.", err)
+				global.Logger.Error().Err(err).Caller().Msg("Failed terminate " + app.PackageId + ". Trying force terminate.")
 				if err := app.ForceTerminate(); err != nil {
-					log.Println("appConnectManager.TerminateAllApp failed force terminate ", err)
+					global.Logger.Error().Err(err).Caller().Msg("appConnectManager.TerminateAllApp failed force terminate ")
 				}
 			}
 		}
@@ -79,7 +79,7 @@ func RemoveAppConnect(packageId string, terminate bool) {
 }
 
 func TerminateAllApp() {
-	log.Println("appConnectManager.TerminateAllApp() started")
+	global.Logger.Info().Msg("appConnectManager.TerminateAllApp() started")
 	running := GetAllRunningApps()
 	for pkid := range running {
 		RemoveAppConnect(pkid, true)
@@ -109,14 +109,14 @@ func LaunchApp(packageId string,
 
 // run all start up apps
 func InitializeStartups() {
-	log.Println("appman.Services are starting up...")
+	global.Logger.Info().Msg("Services are starting up...")
 	pkgs, err := registry.RetrieveStartupPackages()
 	if err != nil {
-		log.Println(err)
+		global.Logger.Error().Err(err).Caller().Msg("Failed retrieving startup packages.")
 	}
 	for _, pkg := range pkgs {
 		if err := LaunchApp(pkg.PackageId, nil); err != nil {
-			log.Println(err)
+			global.Logger.Error().Err(err).Caller().Msg("Failed launching app.")
 		}
 	}
 }

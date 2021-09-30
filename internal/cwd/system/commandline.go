@@ -7,7 +7,6 @@ import (
 	"ela/foundation/event/protocol"
 	"ela/foundation/system"
 	"ela/internal/cwd/system/config"
-	"log"
 	"os"
 )
 
@@ -33,22 +32,22 @@ func processCmdline() {
 // use to terminate the system
 // @timeout is the time it takes to terminate the system
 func terminate(timeout int16) {
-	log.Println("Terminating...")
+	println("Terminating...")
 	// step: check theres an existing connection with the system server.
 	// if nothing then its terminated already
 	con := connectToSystem()
 	if con == nil {
-		log.Println("System already terminated.")
+		println("System already terminated.")
 		return
 	}
 	res, err := con.SendServiceRequest(
 		constants.SYSTEM_SERVICE_ID,
 		data.NewAction(constants.SYSTEM_TERMINATE, "", timeout))
 	if err != nil {
-		log.Println("Terminate ", err.Error())
+		println("Terminate ", err.Error())
 		return
 	}
-	log.Println("Terminate", res)
+	println("Terminate", res)
 }
 
 // connect to system. return connector if success

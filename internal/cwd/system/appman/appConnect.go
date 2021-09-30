@@ -7,7 +7,6 @@ import (
 	"ela/foundation/event/protocol"
 	"ela/foundation/path"
 	"ela/internal/cwd/system/global"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -73,12 +72,16 @@ func (app *AppConnect) Launch() error {
 	}
 	// node running
 	if app.nodejs != nil {
-		log.Println("Launching " + app.PackageId + " nodejs")
-		go app.nodejs.Run()
+		global.Logger.Info().Msg("Launching " + app.PackageId + " nodejs")
+		go func() {
+			if err := app.nodejs.Run(); err != nil {
+				global.Logger.Error().Err(err).Msg("Failed running node js " + app.PackageId)
+			}
+		}()
 	}
 	// binary runnning
 	if app.Config.HasMainExec() {
-		log.Println("Launching " + app.PackageId + " app")
+		global.Logger.Info().Msg("Launching " + app.PackageId + " app")
 		cmd := exec.Command(app.Location)
 		cmd.Dir = filepath.Dir(app.Location)
 
@@ -93,7 +96,7 @@ func (app *AppConnect) IsClientConnected() bool {
 }
 
 func (app *AppConnect) ForceTerminate() error {
-	log.Println("Force Terminating", app.Config.PackageId)
+	global.Logger.Info().Stack().Msg("Force Terminating " + app.Config.PackageId)
 	app.launched = false
 	if app.process != nil {
 		if err := app.process.Kill(); err != nil {
@@ -105,10 +108,10 @@ func (app *AppConnect) ForceTerminate() error {
 
 // this terminate the app naturally
 func (app *AppConnect) Terminate() error {
-	log.Println("Terminating", app.Config.PackageId)
+	global.Logger.Info().Msg("Terminating " + app.Config.PackageId)
 	if app.nodejs != nil {
 		if err := app.nodejs.Stop(); err != nil {
-			log.Println("AppConnect nodejs "+app.PackageId, "failed to terminate.", err.Error())
+			global.Logger.Error().Err(err).Caller().Msg("AppConnect nodejs " + app.PackageId + "failed to terminate.")
 		}
 	}
 	if !app.IsClientConnected() {
@@ -128,12 +131,12 @@ func asyncRun(app *AppConnect, cmd *exec.Cmd) {
 	cmd.Stderr = app
 	err := cmd.Start()
 	if err != nil {
-		log.Println("ERROR launching "+app.PackageId, err)
+		global.Logger.Error().Err(err).Caller().Msg("ERROR launching " + app.PackageId)
 		return
 	}
 	app.process = cmd.Process
 	if err := cmd.Wait(); err != nil {
-		defer log.Println("ERROR launching "+app.PackageId, err)
+		global.Logger.Error().Err(err).Msg("ERROR launching " + app.PackageId)
 	}
 }
 
