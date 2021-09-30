@@ -2,14 +2,14 @@ package utils
 
 import (
 	"ela/foundation/errors"
+	"ela/foundation/logger"
 	"ela/registry/app"
-	"log"
 	"os"
 )
 
 // delete package based package id
 func UninstallPackage(packageId string, deleteData bool) error {
-	log.Println("Deleting old package", packageId)
+	logger.GetInstance().Debug().Msg("Deleting old package " + packageId)
 	// step: retrieve package location
 	pk, err := app.RetrievePackage(packageId)
 	if err != nil {
@@ -22,7 +22,7 @@ func UninstallPackage(packageId string, deleteData bool) error {
 	location := pk.GetInstallDir()
 	// is file not exist. skip
 	if _, err := os.Stat(location); err != nil {
-		log.Println("")
+		//log.Println("")
 		return nil
 	}
 	// step: remove app directory
@@ -32,7 +32,7 @@ func UninstallPackage(packageId string, deleteData bool) error {
 	// step: remove app data
 	if deleteData {
 		if err := os.RemoveAll(pk.GetDataDir()); err != nil {
-			log.Println("Remove pacakage data failed", err.Error())
+			logger.GetInstance().Error().Err(err).Caller().Msg("Remove pacakage data failed")
 			return nil
 		}
 	}

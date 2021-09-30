@@ -4,15 +4,13 @@ import (
 	"C"
 	"ela/foundation/app"
 	"ela/internal/cwd/packageinstaller/constants"
-	"ela/internal/cwd/packageinstaller/logging"
-	"log"
 	"os"
 )
 
 func main() {
 	InitializePath()
-	logging.Initialize("installer.log")
-	// install via commandline
+
+	// install via commandline?
 	args := os.Args
 	if len(args) > 1 {
 		startCommandline()
@@ -22,10 +20,10 @@ func main() {
 	var err error
 	constants.AppController, err = app.NewController(&activity{}, nil)
 	if err != nil {
-		log.Fatal(err.Error())
+		constants.Logger.Fatal().Err(err).Caller().Msg("Failed to initialize App Controller")
 		return
 	}
 	if err := app.RunApp(constants.AppController); err != nil {
-		log.Fatal(err)
+		constants.Logger.Fatal().Err(err).Caller().Msg("Failed running app")
 	}
 }

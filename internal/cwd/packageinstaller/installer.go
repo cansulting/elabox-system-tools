@@ -9,11 +9,11 @@ import (
 	"ela/foundation/path"
 	"ela/foundation/perm"
 	"ela/internal/cwd/global"
+	pkconst "ela/internal/cwd/packageinstaller/constants"
 	"ela/internal/cwd/packageinstaller/pkg"
 	"ela/internal/cwd/packageinstaller/utils"
 	"ela/registry/app"
 	"io"
-	"log"
 	"os"
 )
 
@@ -56,7 +56,7 @@ func (instance *installer) Start() error {
 	// step: create backup for app bin
 	if instance.BackupEnabled {
 		if err := instance.backup.AddFiles(packageInfo.GetInstallDir()); err != nil {
-			log.Println("installer failed to backup app dir "+packageInfo.GetInstallDir(), err.Error(), "continue...")
+			pkconst.Logger.Error().Err(err).Caller().Msg("installer failed to backup app dir " + packageInfo.GetInstallDir())
 		}
 	}
 	// preinstall
@@ -67,7 +67,7 @@ func (instance *installer) Start() error {
 	if err := utils.UninstallPackage(packageInfo.PackageId, false); err != nil {
 		return err
 	}
-	log.Println("installer:start installing ", packageInfo.PackageId)
+	pkconst.Logger.Info().Msg("start installing " + packageInfo.PackageId)
 	// step: init install location and filters
 	appInstallPath, wwwInstallPath := _getInstallLocation(packageInfo)
 	filters := []utils.Filter{
@@ -86,11 +86,10 @@ func (instance *installer) Start() error {
 	// step: iterate each file and save it
 	for _, file := range instance.packageContent.Files {
 		// step: open source file
-		log.Println("installer:decompress() extracting", file.Name)
+		pkconst.Logger.Debug().Msg("extracting " + file.Name)
 		reader, err := file.Open()
 		if err != nil {
-			log.Println("installer::decompress error", file.Name, err)
-			return err
+			return errors.SystemNew("File open error "+file.Name, err)
 		}
 		defer reader.Close()
 		file.DataOffset()
@@ -105,7 +104,7 @@ func (instance *installer) Start() error {
 			// use Filter to customize the destination or change name
 			newPath, err, applied := Filter.CanApply(targetPath, reader, file.CompressedSize64)
 			if err != nil {
-				log.Println("error", "installer::uncompress to file ", file.Name, "...", err)
+				pkconst.Logger.Error().Err(err).Caller().Msg("uncompressing file " + file.Name + ". continue...")
 				return nil
 			}
 			// Filter was applied. break
@@ -130,7 +129,7 @@ func (instance *installer) Start() error {
 		}
 		// no Filter was applied. use the default destination
 		if filterApplied == nil {
-			log.Println("installer no Filter. skipped ", targetPath)
+			pkconst.Logger.Warn().Msg("keyword no filter. skipped " + targetPath)
 			continue
 		}
 	}
@@ -147,7 +146,7 @@ func (t *installer) initializeAppDirs() {
 		t.packageInfo.ChangeToSystemLocation()
 	}
 	if err := os.MkdirAll(dataDir, perm.PUBLIC_WRITE); err != nil {
-		log.Println("installer.initializeAppDirs failed", err)
+		pkconst.Logger.Error().Err(err).Caller().Msg("Mkdirall failed " + dataDir)
 	}
 }
 
@@ -213,7 +212,7 @@ func (t *installer) preinstall() error {
 
 // several steps before installation finalizes
 func (t *installer) Finalize() error {
-	log.Println("Finalizing installer")
+	pkconst.Logger.Debug().Msg("Finalizing installer")
 	if err := t.registerPackage(); err != nil {
 		return errors.SystemNew("Unable to register package "+t.backup.PackageId, err)
 	}
@@ -229,7 +228,7 @@ func (t *installer) Finalize() error {
 // use to revert changes based from backup
 func (t *installer) RevertChanges() error {
 	if t.BackupEnabled && t.backup != nil {
-		log.Println("Reverting changes...")
+		pkconst.Logger.Debug().Msg("Reverting changes...")
 		bkSrc := t.backup.GetSource()
 		t._closeBackup()
 		bk := utils.Backup{}
@@ -269,7 +268,7 @@ func (instance *installer) _closeBackup() {
 	if instance.backup != nil {
 		err := instance.backup.Close()
 		if err != nil {
-			log.Println(err.Error())
+			pkconst.Logger.Error().Err(err).Caller().Msg("Failed to close backup.")
 		}
 	}
 }

@@ -5,7 +5,6 @@ import (
 	"ela/foundation/errors"
 	"ela/foundation/path"
 	pkc "ela/internal/cwd/packageinstaller/constants"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -22,7 +21,7 @@ func isSystemRunning() bool {
 
 // restart the main system
 func RestartSystem() error {
-	log.Println("Restarting system...")
+	pkc.Logger.Info().Msg("Restarting system...")
 	// step: execute system binary
 	systemPath := path.GetAppMain(constants.SYSTEM_SERVICE_ID, false)
 	cmd := exec.Command(systemPath)
@@ -36,11 +35,11 @@ func RestartSystem() error {
 }
 
 func TerminateSystem() error {
-	log.Println("Terminating system...")
+	pkc.Logger.Info().Msg("Terminating system...")
 	// step: execute system binary
 	systemPath := path.GetAppMain(constants.SYSTEM_SERVICE_ID, false)
 	if _, err := os.Stat(systemPath); err != nil {
-		log.Println("Terminate skipped. System is not installed.")
+		pkc.Logger.Warn().Msg("Terminate skipped. System is not installed.")
 		return nil
 	}
 	cmd := exec.Command(systemPath, "terminate")

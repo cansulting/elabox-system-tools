@@ -2,13 +2,15 @@ package pkg
 
 import (
 	"archive/zip"
+	"bytes"
 	"ela/foundation/app/data"
 	"ela/foundation/errors"
 	"ela/foundation/perm"
 	"ela/internal/cwd/global"
 	"ela/internal/cwd/packageinstaller/constants"
+	"ela/internal/cwd/packageinstaller/landing"
 	"ela/internal/cwd/packageinstaller/utils"
-	"log"
+	"encoding/json"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -33,7 +35,7 @@ func LoadFromSource(src string) (*Data, error) {
 		return nil, errors.SystemNew("Failed to load package. @"+src, nil)
 	}
 	src = filepath.Clean(src)
-	log.Println("Loading package @", src)
+	constants.Logger.Debug().Msg("Loading package @" + src)
 	// step: read package
 	z, err := zip.OpenReader(src)
 	if err != nil {
@@ -93,7 +95,7 @@ func (instance *Data) RunCustomInstaller(srcPkg string, wait bool, args ...strin
 		return errors.SystemNew("RunCustomInstaller() failed cloning to tempfile", err)
 	}
 	// step: run
-	log.Println("Running custom installer ", installerPath)
+	constants.Logger.Debug().Msg("Running custom installer " + installerPath)
 	args2 := make([]string, 0, 10)
 	args2 = append(args2, srcPkg)
 	if len(args) > 0 {
@@ -118,9 +120,18 @@ func (instance *Data) RunCustomInstaller(srcPkg string, wait bool, args ...strin
 }
 
 // called when custom installer has write log
-func (instance *Data) Write(bytes []byte) (int, error) {
-	log.Print(string(bytes))
-	return len(bytes), nil
+func (instance *Data) Write(values []byte) (int, error) {
+	msg := string(values)
+	print(msg)
+	decoder := json.NewDecoder(bytes.NewReader(values))
+	var log map[string]interface{}
+	if err := decoder.Decode(&log); err != nil {
+		landing.BroadcastLog(msg)
+	} else {
+		landing.BroadcastLog(log["message"].(string))
+	}
+
+	return len(values), nil
 }
 
 func (instance *Data) ExtractScripts() error {
@@ -213,7 +224,7 @@ func (instance *Data) execScript(script string) error {
 func (instance *Data) StartPreInstall() error {
 	// has pre install script?
 	if _, err := os.Stat(instance.preInstall); err == nil {
-		log.Println("-------------Execute pre install script-------------")
+		constants.Logger.Debug().Msg("-------------Execute pre install script-------------")
 		return instance.execScript(instance.preInstall)
 	}
 	return nil
@@ -223,7 +234,7 @@ func (instance *Data) StartPreInstall() error {
 func (instance *Data) StartPostInstall() error {
 	// has pre install script?
 	if _, err := os.Stat(instance.postInstall); err == nil {
-		log.Println("-------------Execute post install script-------------")
+		constants.Logger.Debug().Msg("-------------Execute post install script-------------")
 		return instance.execScript(instance.postInstall)
 	}
 	return nil
@@ -244,7 +255,7 @@ func (instance *Data) Clean() error {
 // returns path to the landing page dir hence return error if there are issues
 func (instance *Data) ExtractLandingPage() (string, error) {
 	targetp := constants.GetTempPath() + "/" + global.PKEY_WWW
-	log.Println("Extracting landing @", targetp)
+	constants.Logger.Debug().Msg("Extracting landing @" + targetp)
 	found, err := instance.ExtractFiles(global.PKEY_WWW, constants.GetTempPath(), 1000)
 	if err != nil {
 		return "", errors.SystemNew("Failed extracting landing page.", err)
