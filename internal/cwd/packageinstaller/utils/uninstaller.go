@@ -1,10 +1,11 @@
 package utils
 
 import (
-	"ela/foundation/errors"
-	"ela/foundation/logger"
-	"ela/registry/app"
 	"os"
+
+	"github.com/cansulting/elabox-system-tools/foundation/errors"
+	"github.com/cansulting/elabox-system-tools/foundation/logger"
+	"github.com/cansulting/elabox-system-tools/registry/app"
 )
 
 // delete package based package id

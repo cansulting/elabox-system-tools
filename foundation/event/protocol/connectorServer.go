@@ -1,8 +1,8 @@
 package protocol
 
 import (
-	"ela/foundation/event/data"
-	"ela/foundation/system"
+	"github.com/cansulting/elabox-system-tools/foundation/event/data"
+	"github.com/cansulting/elabox-system-tools/foundation/system"
 )
 
 // interface for service communication to clients

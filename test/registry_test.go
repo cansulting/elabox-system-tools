@@ -1,11 +1,12 @@
 package main
 
 import (
-	"ela/internal/cwd/system/appman"
-	"ela/internal/cwd/system/servicecenter"
-	"ela/registry/app"
 	"log"
 	"testing"
+
+	"github.com/cansulting/elabox-system-tools/internal/cwd/system/appman"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/system/servicecenter"
+	"github.com/cansulting/elabox-system-tools/registry/app"
 )
 
 func TestPackageRegistration(test *testing.T) {

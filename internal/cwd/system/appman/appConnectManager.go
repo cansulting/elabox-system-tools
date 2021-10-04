@@ -1,10 +1,10 @@
 package appman
 
 import (
-	"ela/foundation/event/data"
-	"ela/foundation/event/protocol"
-	"ela/internal/cwd/system/global"
-	registry "ela/registry/app"
+	"github.com/cansulting/elabox-system-tools/foundation/event/data"
+	"github.com/cansulting/elabox-system-tools/foundation/event/protocol"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/system/global"
+	registry "github.com/cansulting/elabox-system-tools/registry/app"
 )
 
 // currently running processes

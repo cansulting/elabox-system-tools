@@ -1,9 +1,9 @@
 package app
 
 import (
-	"ela/foundation/app/data"
-	"ela/foundation/errors"
-	"ela/registry/util"
+	"github.com/cansulting/elabox-system-tools/foundation/app/data"
+	"github.com/cansulting/elabox-system-tools/foundation/errors"
+	"github.com/cansulting/elabox-system-tools/registry/util"
 )
 
 func retrievePackagesFor(action string, table string) ([]string, error) {

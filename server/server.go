@@ -2,14 +2,15 @@ package server
 
 import (
 	"context"
-	"ela/foundation/event/data"
-	"ela/foundation/event/protocol"
-	"ela/foundation/logger"
-	"ela/server/config"
-	"ela/server/event"
 	"net/http"
 	"runtime"
 	"time"
+
+	"github.com/cansulting/elabox-system-tools/foundation/event/data"
+	"github.com/cansulting/elabox-system-tools/foundation/event/protocol"
+	"github.com/cansulting/elabox-system-tools/foundation/logger"
+	"github.com/cansulting/elabox-system-tools/server/config"
+	"github.com/cansulting/elabox-system-tools/server/event"
 )
 
 type Manager struct {

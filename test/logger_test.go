@@ -1,9 +1,9 @@
 package main
 
 import (
-	"ela/foundation/constants"
-	"ela/foundation/errors"
-	"ela/foundation/logger"
+	"github.com/cansulting/elabox-system-tools/foundation/constants"
+	"github.com/cansulting/elabox-system-tools/foundation/errors"
+	"github.com/cansulting/elabox-system-tools/foundation/logger"
 	"testing"
 )
 

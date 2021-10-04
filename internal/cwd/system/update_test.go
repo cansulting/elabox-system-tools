@@ -1,11 +1,12 @@
 package main
 
 import (
-	"ela/foundation/app"
-	"ela/foundation/constants"
-	"ela/foundation/event"
-	"ela/foundation/event/data"
 	"testing"
+
+	"github.com/cansulting/elabox-system-tools/foundation/app"
+	"github.com/cansulting/elabox-system-tools/foundation/constants"
+	"github.com/cansulting/elabox-system-tools/foundation/event"
+	"github.com/cansulting/elabox-system-tools/foundation/event/data"
 )
 
 const SAMPLE_PACKAGE = "ela.system.installer"

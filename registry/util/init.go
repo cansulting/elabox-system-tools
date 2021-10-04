@@ -2,13 +2,14 @@ package util
 
 import (
 	"database/sql"
-	"ela/foundation/constants"
-	"ela/foundation/errors"
-	"ela/foundation/logger"
-	"ela/foundation/path"
-	"ela/foundation/perm"
-	"ela/registry/config"
 	"os"
+
+	"github.com/cansulting/elabox-system-tools/foundation/constants"
+	"github.com/cansulting/elabox-system-tools/foundation/errors"
+	"github.com/cansulting/elabox-system-tools/foundation/logger"
+	"github.com/cansulting/elabox-system-tools/foundation/path"
+	"github.com/cansulting/elabox-system-tools/foundation/perm"
+	"github.com/cansulting/elabox-system-tools/registry/config"
 
 	_ "github.com/mattn/go-sqlite3"
 )

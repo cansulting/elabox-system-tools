@@ -1,9 +1,9 @@
 package servicecenter
 
 import (
-	"ela/internal/cwd/system/global"
-	"ela/internal/cwd/system/web"
-	"ela/server"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/system/global"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/system/web"
+	"github.com/cansulting/elabox-system-tools/server"
 )
 
 /*

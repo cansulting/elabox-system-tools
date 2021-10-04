@@ -1,13 +1,14 @@
 package main
 
 import (
-	"ela/foundation/system"
-	"ela/internal/cwd/system/appman"
-	"ela/internal/cwd/system/config"
-	"ela/internal/cwd/system/global"
-	"ela/internal/cwd/system/servicecenter"
 	"os"
 	"time"
+
+	"github.com/cansulting/elabox-system-tools/foundation/system"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/system/appman"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/system/config"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/system/global"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/system/servicecenter"
 )
 
 func main() {

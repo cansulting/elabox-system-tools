@@ -1,9 +1,10 @@
 package appman
 
 import (
-	"ela/foundation/app/data"
-	"ela/foundation/errors"
 	"os/exec"
+
+	"github.com/cansulting/elabox-system-tools/foundation/app/data"
+	"github.com/cansulting/elabox-system-tools/foundation/errors"
 )
 
 /*
@@ -15,7 +16,7 @@ type Nodejs struct {
 	running bool
 }
 
-// start running node js 
+// start running node js
 func (n *Nodejs) Run() error {
 	n.running = true
 	path := n.Config.GetNodejsDir() + "/index.js"

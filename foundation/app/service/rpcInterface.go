@@ -11,7 +11,7 @@
 package service
 
 import (
-	"ela/foundation/event/data"
+	"github.com/cansulting/elabox-system-tools/foundation/event/data"
 )
 
 type RPCInterface interface {

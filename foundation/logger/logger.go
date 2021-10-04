@@ -11,8 +11,8 @@
 package logger
 
 import (
-	"ela/foundation/constants"
-	"ela/foundation/perm"
+	"github.com/cansulting/elabox-system-tools/foundation/constants"
+	"github.com/cansulting/elabox-system-tools/foundation/perm"
 	"fmt"
 	"io"
 	"os"

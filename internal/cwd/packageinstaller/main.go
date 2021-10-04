@@ -2,8 +2,8 @@ package main
 
 import (
 	"C"
-	"ela/foundation/app"
-	"ela/internal/cwd/packageinstaller/constants"
+	"github.com/cansulting/elabox-system-tools/foundation/app"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/constants"
 	"os"
 )
 

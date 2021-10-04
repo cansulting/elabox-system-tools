@@ -1,15 +1,16 @@
 package system_update
 
 import (
-	"ela/foundation/app/data"
-	"ela/foundation/errors"
-	"ela/foundation/path"
 	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"time"
+
+	"github.com/cansulting/elabox-system-tools/foundation/app/data"
+	"github.com/cansulting/elabox-system-tools/foundation/errors"
+	"github.com/cansulting/elabox-system-tools/foundation/path"
 )
 
 // step: create a copy of this application

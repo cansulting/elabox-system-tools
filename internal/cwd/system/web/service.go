@@ -1,13 +1,14 @@
 package web
 
 import (
-	"ela/foundation/constants"
-	"ela/foundation/path"
 	"log"
 	"net/http"
 	"os"
 	"runtime/debug"
 	"strings"
+
+	"github.com/cansulting/elabox-system-tools/foundation/constants"
+	"github.com/cansulting/elabox-system-tools/foundation/path"
 
 	_ "net/http/pprof"
 )

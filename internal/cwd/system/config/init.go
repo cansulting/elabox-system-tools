@@ -1,10 +1,10 @@
 package config
 
 import (
-	"ela/foundation/constants"
-	"ela/foundation/errors"
-	"ela/foundation/logger"
-	"ela/registry/app"
+	"github.com/cansulting/elabox-system-tools/foundation/constants"
+	"github.com/cansulting/elabox-system-tools/foundation/errors"
+	"github.com/cansulting/elabox-system-tools/foundation/logger"
+	"github.com/cansulting/elabox-system-tools/registry/app"
 )
 
 const ELAENV = "ELAENV"         // environment variable for build mode

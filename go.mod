@@ -1,4 +1,4 @@
-module ela
+module github.com/cansulting/elabox-system-tools
 
 go 1.16
 

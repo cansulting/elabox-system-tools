@@ -14,13 +14,14 @@ package data
 
 import (
 	"archive/zip"
-	"ela/foundation/constants"
-	"ela/foundation/errors"
-	"ela/foundation/path"
 	"encoding/json"
 	"io"
 	"io/ioutil"
 	"os"
+
+	"github.com/cansulting/elabox-system-tools/foundation/constants"
+	"github.com/cansulting/elabox-system-tools/foundation/errors"
+	"github.com/cansulting/elabox-system-tools/foundation/path"
 )
 
 const SYSTEM = "system"      // identifies the package is installed on system location

@@ -1,13 +1,14 @@
 package main
 
 import (
-	"ela/foundation/constants"
-	"ela/foundation/event"
-	"ela/foundation/event/data"
-	"ela/foundation/event/protocol"
-	"ela/foundation/system"
-	"ela/internal/cwd/system/config"
 	"os"
+
+	"github.com/cansulting/elabox-system-tools/foundation/constants"
+	"github.com/cansulting/elabox-system-tools/foundation/event"
+	"github.com/cansulting/elabox-system-tools/foundation/event/data"
+	"github.com/cansulting/elabox-system-tools/foundation/event/protocol"
+	"github.com/cansulting/elabox-system-tools/foundation/system"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/system/config"
 )
 
 // process commandline

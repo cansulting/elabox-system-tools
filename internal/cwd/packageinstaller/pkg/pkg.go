@@ -3,18 +3,19 @@ package pkg
 import (
 	"archive/zip"
 	"bytes"
-	"ela/foundation/app/data"
-	"ela/foundation/errors"
-	"ela/foundation/perm"
-	"ela/internal/cwd/global"
-	"ela/internal/cwd/packageinstaller/constants"
-	"ela/internal/cwd/packageinstaller/landing"
-	"ela/internal/cwd/packageinstaller/utils"
 	"encoding/json"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/cansulting/elabox-system-tools/foundation/app/data"
+	"github.com/cansulting/elabox-system-tools/foundation/errors"
+	"github.com/cansulting/elabox-system-tools/foundation/perm"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/global"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/constants"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/landing"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/utils"
 )
 
 const sh = "/bin/bash"

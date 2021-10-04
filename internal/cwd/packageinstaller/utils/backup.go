@@ -2,14 +2,15 @@ package utils
 
 import (
 	"archive/zip"
-	"ela/foundation/errors"
-	"ela/foundation/perm"
 	"encoding/json"
 	"io"
 	"io/ioutil"
 	"log"
 	"os"
 	"strconv"
+
+	"github.com/cansulting/elabox-system-tools/foundation/errors"
+	"github.com/cansulting/elabox-system-tools/foundation/perm"
 )
 
 const CONFIG_FILENAME = "config"

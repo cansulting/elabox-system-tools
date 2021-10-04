@@ -1,15 +1,16 @@
 package appman
 
 import (
-	"ela/foundation/app/data"
-	"ela/foundation/constants"
-	eventd "ela/foundation/event/data"
-	"ela/foundation/event/protocol"
-	"ela/foundation/path"
-	"ela/internal/cwd/system/global"
 	"os"
 	"os/exec"
 	"path/filepath"
+
+	"github.com/cansulting/elabox-system-tools/foundation/app/data"
+	"github.com/cansulting/elabox-system-tools/foundation/constants"
+	eventd "github.com/cansulting/elabox-system-tools/foundation/event/data"
+	"github.com/cansulting/elabox-system-tools/foundation/event/protocol"
+	"github.com/cansulting/elabox-system-tools/foundation/path"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/system/global"
 )
 
 /*

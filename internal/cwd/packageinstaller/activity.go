@@ -1,12 +1,13 @@
 package main
 
 import (
-	"ela/foundation/constants"
-	"ela/foundation/errors"
-	"ela/foundation/event/data"
-	global "ela/internal/cwd/packageinstaller/constants"
-	"ela/internal/cwd/packageinstaller/pkg"
 	"time"
+
+	"github.com/cansulting/elabox-system-tools/foundation/constants"
+	"github.com/cansulting/elabox-system-tools/foundation/errors"
+	"github.com/cansulting/elabox-system-tools/foundation/event/data"
+	global "github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/constants"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/pkg"
 )
 
 type activity struct {

@@ -1,13 +1,14 @@
 package main
 
 import (
-	"ela/foundation/logger"
-	pkconst "ela/internal/cwd/packageinstaller/constants"
-	"ela/internal/cwd/packageinstaller/landing"
-	"ela/internal/cwd/packageinstaller/pkg"
-	"ela/internal/cwd/packageinstaller/utils"
 	"os"
 	"time"
+
+	"github.com/cansulting/elabox-system-tools/foundation/logger"
+	pkconst "github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/constants"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/landing"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/pkg"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/utils"
 
 	"github.com/rs/zerolog"
 )

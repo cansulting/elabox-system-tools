@@ -1,11 +1,12 @@
 package utils
 
 import (
-	"ela/foundation/errors"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/cansulting/elabox-system-tools/foundation/errors"
 )
 
 // create directories if not exist

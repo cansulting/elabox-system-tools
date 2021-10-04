@@ -1,6 +1,6 @@
 package protocol
 
-import "ela/foundation/event/data"
+import "github.com/cansulting/elabox-system-tools/foundation/event/data"
 
 /*
 	connectorClient.go

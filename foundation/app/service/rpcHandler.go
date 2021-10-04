@@ -11,9 +11,9 @@
 package service
 
 import (
-	"ela/foundation/constants"
-	"ela/foundation/event/data"
-	"ela/foundation/event/protocol"
+	"github.com/cansulting/elabox-system-tools/foundation/constants"
+	"github.com/cansulting/elabox-system-tools/foundation/event/data"
+	"github.com/cansulting/elabox-system-tools/foundation/event/protocol"
 )
 
 // callback function whenever recieve an action from server

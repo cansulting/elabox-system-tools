@@ -1,6 +1,6 @@
 package appman
 
-import "ela/internal/cwd/system/global"
+import "github.com/cansulting/elabox-system-tools/internal/cwd/system/global"
 
 func Initialize(commandline bool) error {
 	if !commandline && global.RUN_STARTUPAPPS {

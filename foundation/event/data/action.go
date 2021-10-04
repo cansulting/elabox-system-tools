@@ -1,7 +1,7 @@
 package data
 
 import (
-	"ela/foundation/errors"
+	"github.com/cansulting/elabox-system-tools/foundation/errors"
 	"encoding/json"
 	"log"
 	"reflect"

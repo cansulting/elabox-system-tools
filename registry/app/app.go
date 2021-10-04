@@ -1,11 +1,11 @@
 package app
 
 import (
-	"ela/foundation/app/data"
-	"ela/foundation/constants"
-	"ela/foundation/errors"
-	"ela/foundation/logger"
-	"ela/registry/util"
+	"github.com/cansulting/elabox-system-tools/foundation/app/data"
+	"github.com/cansulting/elabox-system-tools/foundation/constants"
+	"github.com/cansulting/elabox-system-tools/foundation/errors"
+	"github.com/cansulting/elabox-system-tools/foundation/logger"
+	"github.com/cansulting/elabox-system-tools/registry/util"
 )
 
 /*

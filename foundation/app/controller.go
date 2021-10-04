@@ -6,16 +6,17 @@ package app
 	Application can contains service, activity and broadcast listener
 */
 import (
-	appd "ela/foundation/app/data"
-	"ela/foundation/app/protocol"
-	"ela/foundation/app/service"
-	"ela/foundation/constants"
-	"ela/foundation/errors"
-	event "ela/foundation/event"
-	"ela/foundation/event/data"
-	protocolE "ela/foundation/event/protocol"
-	"ela/foundation/logger"
 	"time"
+
+	appd "github.com/cansulting/elabox-system-tools/foundation/app/data"
+	"github.com/cansulting/elabox-system-tools/foundation/app/protocol"
+	"github.com/cansulting/elabox-system-tools/foundation/app/service"
+	"github.com/cansulting/elabox-system-tools/foundation/constants"
+	"github.com/cansulting/elabox-system-tools/foundation/errors"
+	event "github.com/cansulting/elabox-system-tools/foundation/event"
+	"github.com/cansulting/elabox-system-tools/foundation/event/data"
+	protocolE "github.com/cansulting/elabox-system-tools/foundation/event/protocol"
+	"github.com/cansulting/elabox-system-tools/foundation/logger"
 )
 
 ///////////////////////// FUNCTIONS ////////////////////////////////////

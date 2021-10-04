@@ -1,13 +1,14 @@
 package utils
 
 import (
-	"ela/foundation/constants"
-	"ela/foundation/errors"
-	"ela/foundation/path"
-	pkc "ela/internal/cwd/packageinstaller/constants"
 	"os"
 	"os/exec"
 	"path/filepath"
+
+	"github.com/cansulting/elabox-system-tools/foundation/constants"
+	"github.com/cansulting/elabox-system-tools/foundation/errors"
+	"github.com/cansulting/elabox-system-tools/foundation/path"
+	pkc "github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/constants"
 )
 
 // check if system is currently running

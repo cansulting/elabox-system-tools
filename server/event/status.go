@@ -1,8 +1,8 @@
 package event
 
 import (
-	"ela/foundation/constants"
-	"ela/foundation/system"
+	"github.com/cansulting/elabox-system-tools/foundation/constants"
+	"github.com/cansulting/elabox-system-tools/foundation/system"
 	"log"
 
 	socketio "github.com/graarh/golang-socketio"

@@ -1,14 +1,15 @@
 package landing
 
 import (
-	econstants "ela/foundation/constants"
-	"ela/foundation/errors"
-	"ela/foundation/system"
-	"ela/internal/cwd/packageinstaller/constants"
-	"ela/server"
 	"net/http"
 	"os"
 	"time"
+
+	econstants "github.com/cansulting/elabox-system-tools/foundation/constants"
+	"github.com/cansulting/elabox-system-tools/foundation/errors"
+	"github.com/cansulting/elabox-system-tools/foundation/system"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/constants"
+	"github.com/cansulting/elabox-system-tools/server"
 )
 
 const PORT = "80"

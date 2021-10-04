@@ -1,8 +1,8 @@
 package app
 
 import (
-	_app "ela/foundation/app"
-	"ela/foundation/event/data"
+	_app "github.com/cansulting/elabox-system-tools/foundation/app"
+	"github.com/cansulting/elabox-system-tools/foundation/event/data"
 )
 
 func RunTestApp(controller *_app.Controller, pendingAction data.ActionGroup) {

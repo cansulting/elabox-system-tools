@@ -1,18 +1,20 @@
 package servicecenter
 
 import (
-	"ela/foundation/constants"
-	"ela/foundation/errors"
-	"ela/foundation/event/data"
-	"ela/foundation/event/protocol"
-	"ela/foundation/system"
-	"ela/internal/cwd/system/appman"
-	"ela/internal/cwd/system/global"
 	"os"
 	"time"
 
-	"ela/registry/app"
+	"github.com/cansulting/elabox-system-tools/foundation/constants"
+	"github.com/cansulting/elabox-system-tools/foundation/errors"
+	"github.com/cansulting/elabox-system-tools/foundation/event/data"
+	"github.com/cansulting/elabox-system-tools/foundation/event/protocol"
+	"github.com/cansulting/elabox-system-tools/foundation/system"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/system/appman"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/system/global"
+
 	"log"
+
+	"github.com/cansulting/elabox-system-tools/registry/app"
 )
 
 // callback when recieved service requests from client

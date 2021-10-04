@@ -1,9 +1,10 @@
 package appman
 
 import (
-	"ela/foundation/event/data"
-	"ela/foundation/event/protocol"
 	"log"
+
+	"github.com/cansulting/elabox-system-tools/foundation/event/data"
+	"github.com/cansulting/elabox-system-tools/foundation/event/protocol"
 )
 
 /*
