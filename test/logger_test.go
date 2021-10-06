@@ -1,16 +1,22 @@
 package main
 
 import (
-	"github.com/cansulting/elabox-system-tools/foundation/constants"
+	"os"
+	"strconv"
+	"testing"
+	"time"
+
 	"github.com/cansulting/elabox-system-tools/foundation/errors"
 	"github.com/cansulting/elabox-system-tools/foundation/logger"
-	"testing"
 )
 
-func TestLogger(t *testing.T) {
-	t.Log("Check the log file @" + constants.LOG_FILE)
+const LOGFILE = "log.txt"
+
+func TestLoggerWrite(t *testing.T) {
 	// we need to initialize logger by passing the current app package
-	logger.Init("ela.testing")
+	//logger.Init("ela.testing")
+	// or you can use use pre defined log file
+	logger.InitFromFile("ela.testing", "log.txt")
 
 	// for debug level. Debug is for additional information specifically for debugging.
 	logger.GetInstance().Debug().Msg("Hello")
@@ -30,10 +36,38 @@ func TestLogger(t *testing.T) {
 
 	// for warning. for logs that warns
 	logger.GetInstance().Warn().Str("category", "system").Msg("This is a sample warning with category")
-	
+
 	// for fatal and panic related
 	//logger.GetInstance().Fatal().Stack().Msg("This is fatal log")
 	//logger.GetInstance().Panic().Stack().Msg("This is panic log")
 
 	t.Log("Sucess")
+}
+
+func TestLoggerRead(t *testing.T) {
+	t.Log("Testing empty log...")
+	os.Remove(LOGFILE)
+	src := LOGFILE
+	reader, err := logger.NewReader(src)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	reader.Load()
+
+	t.Log("Testing thousand of log...")
+	logger.InitFromFile("ela.testing", LOGFILE)
+	for i := 0; i < 1000; i++ {
+		logger.GetInstance().Debug().Str("category", "testing").Msg("This is testing number " + strconv.Itoa(i))
+	}
+
+	c := make(chan int)
+	go func(c chan int) {
+		time.Sleep(time.Second * 7)
+		reader.Load()
+		t.Log("Success!")
+		c <- 1
+	}(c)
+
+	<-c
 }

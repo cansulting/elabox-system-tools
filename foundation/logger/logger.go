@@ -11,28 +11,35 @@
 package logger
 
 import (
-	"github.com/cansulting/elabox-system-tools/foundation/constants"
-	"github.com/cansulting/elabox-system-tools/foundation/perm"
 	"fmt"
 	"io"
 	"os"
+
+	"github.com/cansulting/elabox-system-tools/foundation/constants"
+	"github.com/cansulting/elabox-system-tools/foundation/perm"
 
 	"github.com/rs/zerolog"
 )
 
 var instanceLogger *zerolog.Logger
 var ConsoleOut = true // true if write log on console not only in file
+var currentLogFileSrc = constants.LOG_FILE
 
 // this creates a new log if not yet created
 func Init(packageId string) *zerolog.Logger {
+	return InitFromFile(packageId, constants.LOG_FILE)
+}
+
+func InitFromFile(packageId string, srcLog string) *zerolog.Logger {
 	//if instanceLogger == nil {
 	// init logfile
-	logfile, err := os.OpenFile(constants.LOG_FILE, os.O_CREATE|os.O_RDWR|os.O_APPEND, perm.PUBLIC_WRITE)
+	currentLogFileSrc = srcLog
+	logfile, err := os.OpenFile(srcLog, os.O_CREATE|os.O_RDWR|os.O_APPEND, perm.PUBLIC_WRITE)
 	if err != nil {
-		fmt.Println("Error opening logfile "+constants.LOG_FILE, err)
+		fmt.Println("Error opening logfile "+srcLog, err)
 		return nil
 	}
-	fmt.Println("Log file opened @", constants.LOG_FILE)
+	fmt.Println("Log file opened @", srcLog)
 	var writer io.Writer = logfile
 	if ConsoleOut {
 		writer = zerolog.MultiLevelWriter(logfile, os.Stdout)
@@ -52,4 +59,8 @@ func GetInstance() *zerolog.Logger {
 func SetHook(h zerolog.Hook) {
 	logger := instanceLogger.Hook(h)
 	instanceLogger = &logger
+}
+
+func ClearLog() {
+	os.WriteFile(currentLogFileSrc, nil, perm.PUBLIC)
 }
