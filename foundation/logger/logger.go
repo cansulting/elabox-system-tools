@@ -62,5 +62,6 @@ func SetHook(h zerolog.Hook) {
 }
 
 func ClearLog() {
-	os.WriteFile(currentLogFileSrc, nil, perm.PUBLIC)
+	empty := ""
+	os.WriteFile(currentLogFileSrc, []byte(empty), perm.PUBLIC)
 }

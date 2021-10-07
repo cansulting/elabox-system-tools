@@ -1,10 +1,11 @@
 package main
 
 import (
-	"os"
+	"fmt"
 	"strconv"
+	"sync"
+	"sync/atomic"
 	"testing"
-	"time"
 
 	"github.com/cansulting/elabox-system-tools/foundation/errors"
 	"github.com/cansulting/elabox-system-tools/foundation/logger"
@@ -45,29 +46,146 @@ func TestLoggerWrite(t *testing.T) {
 }
 
 func TestLoggerRead(t *testing.T) {
+	logger.InitFromFile("ela.testing", LOGFILE)
+	logger.ClearLog()
 	t.Log("Testing empty log...")
-	os.Remove(LOGFILE)
 	src := LOGFILE
 	reader, err := logger.NewReader(src)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	reader.Load()
+	reader.Load(0, 0, nil)
 
 	t.Log("Testing thousand of log...")
-	logger.InitFromFile("ela.testing", LOGFILE)
-	for i := 0; i < 1000; i++ {
-		logger.GetInstance().Debug().Str("category", "testing").Msg("This is testing number " + strconv.Itoa(i))
+
+	logger.ConsoleOut = false
+	for i := 0; i < 500; i++ {
+		logger.GetInstance().Debug().Str("category", "testing").Int("index", i).Msg("This is testing number " + strconv.Itoa(i))
 	}
 
-	c := make(chan int)
-	go func(c chan int) {
-		time.Sleep(time.Second * 7)
-		reader.Load()
-		t.Log("Success!")
-		c <- 1
-	}(c)
+	if err := getAllUnloadedLogs("debug", 500, reader); err != nil {
+		t.Error(err)
+		return
+	}
+	t.Log("Success!")
+}
 
-	<-c
+func TestLoggerQuery(t *testing.T) {
+	t.Log("Testing Query Started...")
+	logger.InitFromFile("ela.testing", LOGFILE)
+	logger.ClearLog()
+
+	// create mix log for debug, info and error
+	var waitg sync.WaitGroup
+	waitg.Add(3)
+	errT := 1000
+	debugT := 1000
+	infoT := 1500
+	go func() {
+		for i := 0; i < debugT; i++ {
+			logger.GetInstance().Debug().Str("category", "testing").Int("index", i).Msg(strconv.Itoa(i) + " This is Debug")
+		}
+		waitg.Done()
+	}()
+	go func() {
+		for i := 0; i < infoT; i++ {
+			logger.GetInstance().Info().Str("category", "testing").Int("index", i).Msg(strconv.Itoa(i) + " This is Info")
+		}
+		waitg.Done()
+	}()
+	go func() {
+		for i := 0; i < errT; i++ {
+			logger.GetInstance().Error().Str("category", "testing").Int("index", i).Msg(strconv.Itoa(i) + " This is Error")
+		}
+		waitg.Done()
+	}()
+	waitg.Wait()
+
+	reader, err := logger.NewReader(LOGFILE)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	var errV int32 = 0
+	var info int32 = 0
+	var debug int32 = 0
+
+	reader.Load(0, -1, func(i int, l logger.Log) bool {
+		switch l["level"] {
+		case "error":
+			atomic.AddInt32(&errV, 1)
+		case "info":
+			atomic.AddInt32(&info, 1)
+		}
+		return true
+	})
+	reader.Load(0, 0, func(i int, l logger.Log) bool {
+		switch l["level"] {
+		case "debug":
+			debug++
+		}
+		return true
+	})
+	if err := getAllUnloadedLogs("error", errT, reader); err != nil {
+		t.Error(err)
+		return
+	}
+	if err := getAllUnloadedLogs("info", infoT, reader); err != nil {
+		t.Error(err)
+		return
+	}
+	fmt.Println("Error =", errV, "Info =", info, "Debug Per Chunk=", debug)
+	if int(errV) != errT || int(info) != infoT {
+		t.Error("Theres a missing log...")
+		return
+	}
+
+	fmt.Println("Checking search query...")
+	found := false
+	var index2Search float64 = 0
+	reader.Load(0, -1, func(i int, l logger.Log) bool {
+		if l["level"] == "error" && l["index"] == index2Search {
+			found = true
+			return false
+		}
+		return true
+	})
+	if !found {
+		t.Error("Log with", index2Search, "not found")
+		return
+	} else {
+		fmt.Println("Found search index", index2Search, "!")
+	}
+	t.Log("Success!")
+}
+
+func getAllUnloadedLogs(level string, totalLogs int, reader *logger.Reader) error {
+	retrieved := make([]bool, totalLogs)
+	founderror := ""
+	reader.Load(0, -1, func(i int, l logger.Log) bool {
+		if l["level"] == level {
+			index := int(l["index"].(float64))
+			if !retrieved[index] {
+				retrieved[index] = true
+			} else {
+				founderror = "Redundant value" + strconv.Itoa(index)
+				return false
+			}
+		}
+		return true
+	})
+	if founderror != "" {
+		return errors.SystemNew(founderror, nil)
+	}
+
+	for i := 0; i < totalLogs; i++ {
+		if !retrieved[i] {
+			fmt.Println()
+			return errors.SystemNew("Unretrieved index"+strconv.Itoa(i), nil)
+		}
+	}
+
+	fmt.Println("All", level, "was retrieved")
+	return nil
 }

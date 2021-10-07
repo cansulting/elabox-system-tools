@@ -10,7 +10,7 @@ import (
 	"github.com/cansulting/elabox-system-tools/foundation/perm"
 )
 
-const BUF_LENGTH = 400 //1024 * 500
+const CHUNK_SIZE = 1024 * 10 // the chunk to read per batch. the reading will be separated into batch to minimize load
 const LOG_FILE = constants.LOG_FILE
 
 type Log map[string]interface{}
@@ -21,9 +21,24 @@ type Reader struct {
 	lastOffset int64
 }
 
-var stringPool sync.Pool = sync.Pool{
+// reuseable pool of bytes
+var chunkPool sync.Pool = sync.Pool{
 	New: func() interface{} {
-		return make([]byte, BUF_LENGTH)
+		return make([]byte, CHUNK_SIZE)
+	},
+}
+
+// reusable pool of string
+var stringPool = sync.Pool{
+	New: func() interface{} {
+		str := ""
+		return str
+	},
+}
+
+var logPool = sync.Pool{
+	New: func() interface{} {
+		return Log{}
 	},
 }
 
@@ -64,14 +79,44 @@ func (r *Reader) refreshFile() {
 }
 
 // use to load some logs.
-func (r *Reader) Load() []map[string]interface{} {
+// @start - start position of file reading backwards. start <= 0 means start from latest log
+// @length - the number of bytes to read. -1 if read all. 0 if use the single chunk, see the CHUNK_SIZE
+func (r *Reader) Load(start int64, length int64, filter func(int, Log) bool) {
 	r.refreshFile()
-	for offset := r.lastOffset; offset >= 0; {
-		offset -= BUF_LENGTH
-		if offset < 0 {
-			offset = 0
+	if r.lastOffset <= 0 {
+		return
+	}
+	var from int64 = 0
+	var to int64 = r.lastOffset
+	if start > 0 && start < r.lastOffset {
+		to = start
+	}
+	if length >= 0 && length < CHUNK_SIZE {
+		length = CHUNK_SIZE
+	} else if length < 0 {
+		length = r.lastOffset
+	}
+	from = to - length
+	if from < 0 {
+		from = 0
+	}
+	//println("Reading " + strconv.Itoa(int(from)) + " - " + strconv.Itoa(int(to)))
+	// read file bytes from specified range
+	chunkI := 0 // counter for chunk
+	var waitG sync.WaitGroup
+	for offset := to; offset >= from; {
+		// step: initialize chunk
+		chunk := chunkPool.Get().([]byte)
+		toffset := offset - int64(len(chunk))
+		// create a chunk with new size if it doesnt fit
+		if toffset < 0 {
+			chunkPool.Put(chunk)
+			chunk = make([]byte, offset)
+			toffset = 0
 		}
-		chunk := stringPool.Get().([]byte)
+		offset = toffset
+
+		//  step: read file at offset
 		readN, err := r.logFile.ReadAt(chunk, offset)
 		if err != nil {
 			println(err)
@@ -81,48 +126,118 @@ func (r *Reader) Load() []map[string]interface{} {
 			println("Finished")
 			break
 		}
-		// skip until newline is found
-		if offset > 0 {
-			skips := seekToNewline(chunk)
-			if skips > 0 {
-				chunk = chunk[skips:]
-				offset += skips
-			}
+		// step: fix heading
+		// the heading might be incomplete
+		logs := stringPool.Get().(string)
+		if offset > 0 && chunk[0] != '\n' {
+			hchunks, newOffset := r.findHeadingFragment(offset)
+			offset = newOffset
+			chunk = append(hchunks, chunk...)
+			logs = string(chunk)
+		} else {
+			logs = string(chunk)
 		}
-		r.processChunk(chunk)
-		stringPool.Put(chunk)
+		waitG.Add(1)
+		go func() {
+			r.processLogs(logs, chunkI, filter)
+			waitG.Done()
+		}()
+		// if len(chunk) < CHUNK_SIZE {
+		// 	chunk = append(chunk, make([]byte, CHUNK_SIZE-len(chunk))...)
+		// }
+		chunkPool.Put(chunk)
 		if offset <= 0 {
 			break
 		}
+		chunkI++
 	}
-	return nil
+	waitG.Wait()
 }
 
-// seek until newline is found. returns the number of bytes to skip
-func seekToNewline(chunk []byte) int64 {
+// load logs and stop when specific limit of logs returned
+func (r *Reader) LoadLimit(start int64, limit int16, filter func(int, Log) bool) {
+
+}
+
+// seek until newline is found. returns index
+func searchNewline(chunk []byte) int {
 	length := len(chunk)
 	for i := 0; i < length; i++ {
 		if chunk[i] == '\n' {
-			return int64(i)
+			return i
 		}
 	}
 	return -1
 }
 
+var tmpChunk = make([]byte, 20)
+
+// This lookup the missing heading of json value. This specifically searches for newline
+// @param offset - the tail position of file.
+// @return []byte - the missing heading, int64 - the new tail offset
+func (r *Reader) findHeadingFragment(offset int64) ([]byte, int64) {
+	var size int64 = 20
+	heading := make([]byte, size)
+	init := false
+	// iterate starting from end of file
+	for i := offset - size; ; i -= size {
+		// nothing left to process? then read from 0 offset and return
+		if i < 0 {
+			missingL := size + i
+			arry := make([]byte, missingL, size)
+			_, err := r.logFile.ReadAt(arry, 0)
+			if err != nil {
+				panic(err)
+			}
+			heading = append(arry, heading...)
+			return heading, 0
+		}
+		// read string
+		_, err := r.logFile.ReadAt(tmpChunk, i)
+		if err != nil {
+			panic(err)
+		}
+		// append the process string
+		if init {
+			heading = append(tmpChunk, heading...)
+		} else {
+			copy(heading, tmpChunk)
+			init = true
+		}
+		// search for newline. if found YEHEY!
+		foundI := searchNewline(tmpChunk)
+		if foundI >= 0 {
+			return heading, offset - int64(len(tmpChunk)) + int64(foundI)
+		}
+	}
+	//return heading, offset
+}
+
 // use this to process chunk
-func (r *Reader) processChunk(chunk []byte) []Log {
-	str := string(chunk)
-	splitted := strings.Split(str, "\n")
+func (r *Reader) processLogs(chunkStr string, chunkIndex int, filter func(int, Log) bool) {
+	splitted := strings.Split(chunkStr, "\n")
 	logs := make([]Log, len(splitted))
+	hasFilter := false
+	if filter != nil {
+		hasFilter = true
+	}
 	for i := len(splitted) - 1; i >= 0; i-- {
-		var log Log
+		log := logPool.Get().(Log)
+		// failed parsing json
 		if err := json.Unmarshal([]byte(splitted[i]), &log); err != nil {
 			continue
 		}
 		logs[i] = log
-		println(splitted[i])
+		if hasFilter {
+			if !filter(chunkIndex, log) {
+				logPool.Put(log)
+				return
+			}
+		}
+		logPool.Put(log)
+		//println(splitted[i])
 	}
-	return logs
+	stringPool.Put(chunkStr)
 }
 
 func (r *Reader) Reset() {
