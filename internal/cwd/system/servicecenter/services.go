@@ -1,3 +1,15 @@
+// Copyright 2021 The Elabox Authors
+// This file is part of the elabox-system-tools library.
+
+// The elabox-system-tools library is under open source LGPL license.
+// If you simply compile or link an LGPL-licensed library with your own code,
+// you can release your application under any license you want, even a proprietary license.
+// But if you modify the library or copy parts of it into your code,
+// you’ll have to release your application under similar terms as the LGPL.
+// Please check license description @ https://www.gnu.org/licenses/lgpl-3.0.txt
+
+// This file provide services for client requests
+
 package servicecenter
 
 import (
@@ -5,11 +17,11 @@ import (
 	"time"
 
 	"github.com/cansulting/elabox-system-tools/foundation/constants"
-	"github.com/cansulting/elabox-system-tools/foundation/errors"
 	"github.com/cansulting/elabox-system-tools/foundation/event/data"
 	"github.com/cansulting/elabox-system-tools/foundation/event/protocol"
 	"github.com/cansulting/elabox-system-tools/foundation/system"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/system/appman"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/system/debugging"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/system/global"
 
 	"log"
@@ -22,7 +34,7 @@ func OnRecievedRequest(
 	client protocol.ClientInterface,
 	action data.Action,
 ) interface{} {
-	log.Println("app.onRecievedRequest action=", action.Id)
+	println("app.onRecievedRequest action=", action.Id)
 	switch action.Id {
 	case constants.ACTION_RPC:
 		valAction, err := action.DataToActionData()
@@ -53,23 +65,27 @@ func OnRecievedRequest(
 	return ""
 }
 
+// client app changed its state
 func onAppChangeState(
 	client protocol.ClientInterface,
 	action data.Action) interface{} {
-	state := action.DataToInt()
+	state := constants.AppRunningState(action.DataToInt())
 
-	// if awake then send pending actions to client
-	if state == constants.APP_AWAKE {
-		app := appman.GetAppConnect(action.PackageId, client)
+	switch {
+	case state == constants.APP_AWAKE || state == constants.APP_AWAKE_DEBUG:
+		var app *appman.AppConnect
+		if state == constants.APP_AWAKE {
+			app = appman.GetAppConnect(action.PackageId, client)
+		} else {
+			app = debugging.DebugApp(action.PackageId, client)
+		}
 		if app != nil {
 			return app.PendingActions
 		} else {
-			log.Println("appman.OnAppchangeState() package was not registered for ",
-				action.PackageId,
-				"App component might not work properly.")
-			return nil
+			global.Logger.Warn().Caller().Msg("Trying to awake package " + action.PackageId + " but not installed.")
+			return ""
 		}
-	} else if state == constants.APP_SLEEP {
+	case state == constants.APP_SLEEP:
 		// if sleep then wait to terminate the app
 		appman.RemoveAppConnect(action.PackageId, false)
 	}
@@ -86,33 +102,33 @@ func startActivity(action data.Action, client protocol.ClientInterface) string {
 	if packageId == "" {
 		pks, err := app.RetrievePackagesWithActivity(action.Id)
 		if err != nil {
-			return errors.SystemNew("appman.StartActivity failed to start "+packageId, err).Error()
+			return CreateResponse(SYSTEMERR_CODE, "StartActivity failed to start "+packageId+" "+err.Error())
 		}
 		if len(pks) > 0 {
 			packageId = pks[0]
 		} else {
-			return "cant find package with action " + action.Id
+			return CreateResponse(INVALID_CODE, "cant find package"+packageId+" with action "+action.Id)
 		}
 	}
 	if err := appman.LaunchAppActivity(packageId, client, action); err != nil {
-		return `{"code":401, "message":` + err.Error() + ` }`
+		return CreateResponse(SYSTEMERR_CODE, err.Error())
 	}
-	log.Println("Start activity", action.Id, packageId, action.DataToString())
-	return `{"code":200, "message":"Launched"}`
+	global.Logger.Debug().Msg("Start activity with " + action.Id + action.DataToString())
+	return CreateSuccessResponse("Launched")
 }
 
 // when activity returns a result
 func onReturnActivityResult(action data.Action) string {
 	packageId := action.PackageId
 	if packageId == "" {
-		return `{"code":400, "message": "package id should be the activity whho return the result"}`
+		return CreateResponse(INVALID_CODE, "package id should be the activity whho return the result")
 	}
 	app := appman.GetAppConnect(packageId, nil)
 	if app == nil || app.StartedBy == "" {
-		return `{"code":401, "message": "Cant find who app who will recieve result"}`
+		return CreateResponse(INVALID_CODE, "cant find the app that would recieve result")
 	}
 	if !appman.IsAppRunning(app.StartedBy) {
-		return `{"code":401, "message": "cant find the app that would recieve result"}`
+		return CreateResponse(INVALID_CODE, "cant find the app that would recieve result")
 	}
 	originApp := appman.GetAppConnect(app.StartedBy, nil)
 	return originApp.RPC.CallAct(action)
@@ -122,7 +138,7 @@ func onReturnActivityResult(action data.Action) string {
 func sendPackageRPC(action data.Action) string {
 	app := appman.GetAppConnect(action.PackageId, nil)
 	if app == nil {
-		return `{"code":401, "message": "Cant find package"}`
+		return CreateResponse(INVALID_CODE, "Cant find package")
 	}
 	return app.RPC.CallAct(action)
 }
@@ -132,7 +148,7 @@ func activateUpdateMode(client protocol.ClientInterface, action data.Action) str
 	pk := action.DataToString()
 	global.Server.EventServer.BroadcastAction(data.NewActionById(constants.BCAST_TERMINATE_N_UPDATE))
 	startActivity(data.NewAction(constants.ACTION_APP_SYSTEM_INSTALL, "", pk), nil)
-	return "success"
+	return CreateSuccessResponse("Activated")
 }
 
 func terminate(seconds uint) string {
@@ -147,5 +163,5 @@ func terminate(seconds uint) string {
 		time.Sleep(time.Millisecond * 100)
 		os.Exit(0)
 	}()
-	return "success"
+	return CreateSuccessResponse("Terminated")
 }
