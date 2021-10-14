@@ -80,7 +80,7 @@ func TestLoggerQuery(t *testing.T) {
 	var waitg sync.WaitGroup
 	waitg.Add(3)
 	errT := 1000
-	debugT := 1000
+	debugT := 500
 	infoT := 1500
 	go func() {
 		for i := 0; i < debugT; i++ {
@@ -135,7 +135,7 @@ func TestLoggerQuery(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	fmt.Println("Error =", errV, "Info =", info, "Debug Per Chunk=", debug)
+	fmt.Println("Error =", errV, "Info =", info)
 	if int(errV) != errT || int(info) != infoT {
 		t.Error("Theres a missing log...")
 		return
@@ -157,6 +157,17 @@ func TestLoggerQuery(t *testing.T) {
 	} else {
 		fmt.Println("Found search index", index2Search, "!")
 	}
+
+	fmt.Println("Check retrieve log with limit")
+	retrieved, _ := reader.LoadLimit(-1, 50, func(l logger.Log) bool {
+		return l["level"] == "debug"
+	})
+	if retrieved == 50 {
+		fmt.Println("retrieve log with limit is working!")
+	} else {
+		t.Error("LoadLimit is not working")
+	}
+
 	t.Log("Success!")
 }
 

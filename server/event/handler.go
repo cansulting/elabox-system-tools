@@ -36,6 +36,7 @@ func (s *SocketIOServer) SubscribeToService(client protocol.ClientInterface, ser
 	if service == "" {
 		service = constants.SYSTEM_SERVICE_ID
 	}
+	//println("Subscribe " + service)
 	if err := s.SubscribeClient(client, service); err != nil {
 		return err.Error()
 	}
@@ -52,11 +53,11 @@ func (s *SocketIOServer) BroadcastAction(action data.Action) string {
 		for _, pk := range pks {
 			launchPackage(action, pk)
 		}*/
-	broadcaster := constants.SYSTEM_SERVICE_ID
+	broadcastTo := constants.SYSTEM_SERVICE_ID
 	if action.PackageId != "" {
-		broadcaster = action.PackageId
+		broadcastTo = action.PackageId
 	}
-	err := s.Broadcast(broadcaster, action.Id, action)
+	err := s.Broadcast(broadcastTo, action.Id, action)
 	if err != nil {
 		return err.Error()
 	} else {

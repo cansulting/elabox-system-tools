@@ -24,6 +24,13 @@ func OnRecievedRequest(
 ) interface{} {
 	log.Println("app.onRecievedRequest action=", action.Id)
 	switch action.Id {
+	case constants.ACTION_RPC:
+		valAction, err := action.DataToActionData()
+		if err != nil {
+			return err.Error()
+		}
+		return sendPackageRPC(valAction)
+
 	case constants.ACTION_START_ACTIVITY:
 		activityAc, err := action.DataToActionData()
 		if err != nil {
@@ -100,11 +107,8 @@ func onReturnActivityResult(action data.Action) string {
 	if packageId == "" {
 		return `{"code":400, "message": "package id should be the activity whho return the result"}`
 	}
-	if !appman.IsAppRunning(packageId) {
-		return `{"code":401, "message": "cant find the app that would recieve result"}`
-	}
 	app := appman.GetAppConnect(packageId, nil)
-	if app.StartedBy == "" {
+	if app == nil || app.StartedBy == "" {
 		return `{"code":401, "message": "Cant find who app who will recieve result"}`
 	}
 	if !appman.IsAppRunning(app.StartedBy) {
@@ -112,6 +116,15 @@ func onReturnActivityResult(action data.Action) string {
 	}
 	originApp := appman.GetAppConnect(app.StartedBy, nil)
 	return originApp.RPC.CallAct(action)
+}
+
+// send RPC to specific package
+func sendPackageRPC(action data.Action) string {
+	app := appman.GetAppConnect(action.PackageId, nil)
+	if app == nil {
+		return `{"code":401, "message": "Cant find package"}`
+	}
+	return app.RPC.CallAct(action)
 }
 
 // client requested to activate update mode
