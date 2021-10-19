@@ -1,9 +1,10 @@
 package appman
 
 import (
-	"ela/foundation/app/data"
-	"log"
 	"os/exec"
+
+	"github.com/cansulting/elabox-system-tools/foundation/app/data"
+	"github.com/cansulting/elabox-system-tools/foundation/errors"
 )
 
 /*
@@ -15,7 +16,8 @@ type Nodejs struct {
 	running bool
 }
 
-func (n *Nodejs) Run() {
+// start running node js
+func (n *Nodejs) Run() error {
 	n.running = true
 	path := n.Config.GetNodejsDir() + "/index.js"
 	cmd := exec.Command("node", path)
@@ -24,19 +26,19 @@ func (n *Nodejs) Run() {
 	cmd.Stdout = n
 	cmd.Stderr = n
 	if err := cmd.Start(); err != nil {
-		log.Println("System.Nodejs:", n.Config.PackageId, "ERROR", err)
-		return
+		return errors.SystemNew("Failed Starting nodejs "+n.Config.PackageId, err)
 	}
 	if err := cmd.Wait(); err != nil {
-		log.Println("System.Nodejs:", n.Config.PackageId, "ERROR", err)
+		return errors.SystemNew("Failed running nodejs "+n.Config.PackageId, err)
 	}
 	n.running = false
+	return nil
 	//n.Stop()
 }
 
 // callback when system has log
 func (n *Nodejs) Write(data []byte) (int, error) {
-	log.Print(string(data))
+	print(string(data))
 	return len(data), nil
 }
 

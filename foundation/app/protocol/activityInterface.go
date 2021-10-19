@@ -10,7 +10,7 @@
 
 package protocol
 
-import "ela/foundation/event/data"
+import "github.com/cansulting/elabox-system-tools/foundation/event/data"
 
 // interface for activity. Use this whenever implementing an activity
 type ActivityInterface interface {

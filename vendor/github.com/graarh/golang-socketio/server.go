@@ -7,13 +7,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/graarh/golang-socketio/protocol"
+	"github.com/graarh/golang-socketio/transport"
 	"math/rand"
 	"net/http"
 	"sync"
 	"time"
-
-	"github.com/graarh/golang-socketio/protocol"
-	"github.com/graarh/golang-socketio/transport"
 )
 
 const (
@@ -44,7 +43,7 @@ type Server struct {
 
 /**
 Close current channel
-*/
+ */
 func (c *Channel) Close() {
 	if c.server != nil {
 		closeChannel(c, &c.server.methods)

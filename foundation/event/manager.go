@@ -1,8 +1,8 @@
 package event
 
 import (
-	"ela/foundation/event/protocol"
-	"ela/foundation/event/socket"
+	"github.com/cansulting/elabox-system-tools/foundation/event/protocol"
+	"github.com/cansulting/elabox-system-tools/foundation/event/socket"
 )
 
 /*

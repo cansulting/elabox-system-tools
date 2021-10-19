@@ -1,13 +1,15 @@
 package landing
 
 import (
-	"ela/foundation/errors"
-	"ela/foundation/system"
-	"ela/server"
-	"log"
 	"net/http"
 	"os"
 	"time"
+
+	econstants "github.com/cansulting/elabox-system-tools/foundation/constants"
+	"github.com/cansulting/elabox-system-tools/foundation/errors"
+	"github.com/cansulting/elabox-system-tools/foundation/system"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/constants"
+	"github.com/cansulting/elabox-system-tools/server"
 )
 
 const PORT = "80"
@@ -24,7 +26,7 @@ func Initialize(landingPagePath string) error {
 
 	// step: init web server
 	fileserver := http.FileServer(http.Dir(landingPagePath))
-	log.Println("Landing page path =", landingPagePath)
+	constants.Logger.Debug().Msg("Landing page path @" + landingPagePath)
 	http.HandleFunc("/", func(rw http.ResponseWriter, r *http.Request) {
 		connected++
 		url := r.URL.Path
@@ -46,15 +48,22 @@ func GetServer() *server.Manager {
 // wait for any users to connect to landing page
 func WaitForConnection() {
 	for connected == 0 {
-		log.Println("Waiting @ port", PORT)
+		constants.Logger.Info().Str("category", "networking").Msg("Waiting @ port" + PORT)
 		time.Sleep(time.Second)
 	}
-	log.Println("Resuming...")
+	constants.Logger.Info().Str("category", "networking").Msg("Resuming...")
+}
+
+// use to broadcast installation log to system
+func BroadcastLog(msg string) {
+	if serverhandler != nil && serverhandler.IsRunning() {
+		serverhandler.EventServer.Broadcast(econstants.SYSTEM_SERVICE_ID, "log", msg)
+	}
 }
 
 // use to shutdown the server
 func Shutdown() error {
-	log.Println("Shutting down event and server...")
+	constants.Logger.Info().Str("category", "networking").Msg("Shutting down event and server...")
 	// close event server
 	if serverhandler != nil {
 		if err := serverhandler.Stop(); err != nil {

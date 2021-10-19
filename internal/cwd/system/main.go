@@ -1,14 +1,14 @@
 package main
 
 import (
-	"ela/foundation/system"
-	"ela/internal/cwd/system/appman"
-	"ela/internal/cwd/system/config"
-	"ela/internal/cwd/system/global"
-	"ela/internal/cwd/system/servicecenter"
-	"log"
 	"os"
 	"time"
+
+	"github.com/cansulting/elabox-system-tools/foundation/system"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/system/appman"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/system/config"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/system/global"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/system/servicecenter"
 )
 
 func main() {
@@ -24,19 +24,19 @@ func main() {
 
 	// step: skip if system already running
 	if connectToSystem() != nil {
-		log.Println("System already running.")
+		println("System already running.")
 		return
 	}
-
-	//global.Initialize()
 	if err := config.Init(); err != nil {
-		log.Panicln(err)
+		global.Logger.Panic().Err(err).Caller().Msg("Failed initializing config.")
+		return
 	}
+	global.Logger.Info().Msg("System start running...")
 	servicecenter.Initialize(commandline)
 	global.Server.EventServer.SetStatus(system.BOOTING, nil)
 	defer servicecenter.Close()
 	if err := appman.Initialize(commandline); err != nil {
-		log.Panicln("installer failed to initialize " + err.Error())
+		global.Logger.Panic().Err(err).Caller().Msg("Application manager failed to initialize.")
 		return
 	}
 	global.Server.EventServer.SetStatus(system.RUNNING, nil)
@@ -44,5 +44,5 @@ func main() {
 	for global.Running {
 		time.Sleep(time.Second * 1)
 	}
-	log.Println("System terminated")
+	global.Logger.Info().Msg("System terminated")
 }

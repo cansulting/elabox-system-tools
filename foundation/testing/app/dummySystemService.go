@@ -1,8 +1,8 @@
 package app
 
 import (
-	"ela/foundation/app/service"
-	"ela/foundation/event/data"
+	"github.com/cansulting/elabox-system-tools/foundation/app/service"
+	"github.com/cansulting/elabox-system-tools/foundation/event/data"
 )
 
 type DummyRPC struct {

@@ -55,6 +55,7 @@ buildpath=../builds/$target
 echo "Building " $packager
 mkdir -p $buildpath/packager
 eval "$gobuild" -o $buildpath/packager/$packager ../cwd/$packager
+ln -sf $PWD/$buildpath/packager/$packager /bin/$packager
 
 #####################
 # build binaries

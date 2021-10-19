@@ -1,12 +1,13 @@
 package main
 
 import (
-	"ela/internal/cwd/system/system_update"
-	reg "ela/registry/app"
 	"log"
 	"os"
 	"os/exec"
 	"testing"
+
+	"github.com/cansulting/elabox-system-tools/internal/cwd/system/system_update"
+	reg "github.com/cansulting/elabox-system-tools/registry/app"
 )
 
 // test install a package and register it

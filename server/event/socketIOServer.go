@@ -1,9 +1,22 @@
+// Copyright 2021 The Elabox Authors
+// This file is part of the elabox-system-tools library.
+
+// The elabox-system-tools library is under open source LGPL license.
+// If you simply compile or link an LGPL-licensed library with your own code,
+// you can release your application under any license you want, even a proprietary license.
+// But if you modify the library or copy parts of it into your code,
+// you’ll have to release your application under similar terms as the LGPL.
+// Please check license description @ https://www.gnu.org/licenses/lgpl-3.0.txt
+
+// This class primarily implements connectorServer with socket io.
+// This will be usable for event server.
+
 package event
 
 import (
-	"ela/foundation/constants"
-	"ela/foundation/event/data"
-	"ela/foundation/event/protocol"
+	"github.com/cansulting/elabox-system-tools/foundation/constants"
+	"github.com/cansulting/elabox-system-tools/foundation/event/data"
+	"github.com/cansulting/elabox-system-tools/foundation/event/protocol"
 	"log"
 	"net/http"
 	"time"
@@ -58,11 +71,7 @@ func (s *SocketIOServer) Broadcast(room string, event string, dataTransfer inter
 // implementation for connector subscribe. makes the server listen to specific room
 func (s *SocketIOServer) Subscribe(room string, callback interface{}) error {
 	log.Println("SocketIOServer", "Subscribe", "room="+room)
-	err := s.socket.On(room, callback)
-	if err != nil {
-		log.Panicln("SocketIOServer", "Subscribe", err)
-	}
-	return err
+	return s.socket.On(room, callback)
 }
 
 // implementation for connector subscribe client

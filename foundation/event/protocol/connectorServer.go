@@ -1,8 +1,8 @@
 package protocol
 
 import (
-	"ela/foundation/event/data"
-	"ela/foundation/system"
+	"github.com/cansulting/elabox-system-tools/foundation/event/data"
+	"github.com/cansulting/elabox-system-tools/foundation/system"
 )
 
 // interface for service communication to clients
@@ -11,11 +11,12 @@ type ConnectorServer interface {
 	Open() error
 	SetStatus(status system.Status, data interface{}) error
 	GetStatus() string
-	/// send data to all room
+	// send data to all room
 	Broadcast(room string, event string, data interface{}) error
-	/// send service response to client
-	BroadcastTo(client ClientInterface, method string, data interface{}) (string, error)
-	/// server listen to room
+	// send service response to client
+	// @recipient the recipient of action
+	BroadcastTo(recipient ClientInterface, method string, data interface{}) (string, error)
+	// server listen to room
 	Subscribe(room string, callback interface{}) error
 	/// make the client listen to room
 	SubscribeClient(socketClient ClientInterface, room string) error

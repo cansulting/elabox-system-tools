@@ -1,15 +1,16 @@
 package main
 
 import (
-	"ela/foundation/constants"
-	"ela/foundation/path"
-	"ela/foundation/perm"
-	"ela/internal/cwd/packageinstaller/landing"
-	"ela/internal/cwd/packageinstaller/pkg"
-	"ela/internal/cwd/packageinstaller/utils"
-	"log"
 	"os"
 	"time"
+
+	"github.com/cansulting/elabox-system-tools/foundation/logger"
+	pkconst "github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/constants"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/landing"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/pkg"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/utils"
+
+	"github.com/rs/zerolog"
 )
 
 /*
@@ -17,35 +18,11 @@ import (
 	Commandline version of installer
 */
 
-type loghandler struct {
-	logfile *os.File
+type loggerHook struct {
 }
 
-func (i loghandler) init() {
-	// create log file
-	if IsArgExist("-l") {
-		logp := path.GetCacheDir() + "/installer.log"
-		log.Println("Check log @", logp)
-		var err error
-		i.logfile, err = os.OpenFile(logp, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, perm.PUBLIC)
-		if err == nil {
-			log.SetOutput(i)
-		}
-	}
-}
-func (i loghandler) close() {
-	i.logfile.Close()
-}
-func (i loghandler) Write(data []byte) (int, error) {
-	print(string(data))
-	s := landing.GetServer()
-	if s != nil && s.IsRunning() {
-		s.EventServer.Broadcast(constants.SYSTEM_SERVICE_ID, "log", string(data))
-	}
-	if i.logfile != nil {
-		i.logfile.Write(data)
-	}
-	return len(data), nil
+func (i loggerHook) Run(e *zerolog.Event, level zerolog.Level, msg string) {
+	landing.BroadcastLog(msg)
 }
 
 func startCommandline() {
@@ -65,55 +42,48 @@ func startCommandline() {
 	systemUpdate := IsArgExist("-s")
 	// true if restarts system
 	restartSystem := IsArgExist("-r") || systemUpdate
-	// step: terminate the system first
-	/*
-		if restartSystem {
-			if err := utils.TerminateSystem(); err != nil {
-				log.Println("Terminate system error", err)
-			}
-		}*/
 	args := os.Args
 	targetPk := args[1]
 	// step: load package
 	content, err := pkg.LoadFromSource(targetPk)
 	if err != nil {
-		log.Fatal("Failed running commandline", err)
+		pkconst.Logger.Fatal().Err(err).Caller().Msg("Failed running commandline")
 		return
 	}
-	// create logger?
+	// request for server broadcast
 	if IsArgExist("-l") || systemUpdate {
-		logger := loghandler{}
-		logger.init()
-		defer logger.close()
+		logger.SetHook(loggerHook{})
+		pkconst.Logger = logger.GetInstance()
 	}
 	// step: we need clients to system update via ports
 	if systemUpdate {
 		startServer(content)
+	} else {
+		logger.ConsoleOut = false
 	}
 	// use custom installer or not?
 	if IsArgExist("-i") || !content.HasCustomInstaller() {
 		normalInstall(content)
 	} else {
 		if err := content.RunCustomInstaller(targetPk, true, "-i"); err != nil {
-			log.Fatal("Failed running custom installer", err)
+			pkconst.Logger.Fatal().Err(err).Caller().Msg("Failed running custom installer")
 			return
 		}
 	}
-	log.Println("Installed success.")
+	pkconst.Logger.Info().Msg("Installed success.")
 	// step: stop listeners
 	if systemUpdate {
 		if err := landing.Shutdown(); err != nil {
-			log.Println("Error shutting down.", err.Error())
+			pkconst.Logger.Error().Err(err).Caller().Msg("Error shutting down.")
 		}
 	}
 	// step: restart system
 	if restartSystem {
 		if err := utils.RestartSystem(); err != nil {
-			log.Fatal(err.Error())
+			pkconst.Logger.Fatal().Err(err)
 			return
 		}
 		time.Sleep(time.Millisecond * 200)
-		//time.Sleep(time.Hour * 1)
 		os.Exit(0)
 	}
 }
@@ -126,18 +96,18 @@ func normalInstall(content *pkg.Data) {
 	if err := newInstall.Start(); err != nil {
 		// failed? revert changes
 		if err := newInstall.RevertChanges(); err != nil {
-			log.Println("Failed reverting installer.", err.Error())
+			pkconst.Logger.Error().Err(err).Caller().Msg("Failed reverting installer.")
 		}
-		log.Fatal(err.Error())
+		pkconst.Logger.Fatal().Err(err).Stack()
 		return
 	}
 	// step: post install
 	if err := newInstall.Finalize(); err != nil {
 		// failed? revert changes
 		if err := newInstall.RevertChanges(); err != nil {
-			log.Println("Failed reverting installer.", err.Error())
+			pkconst.Logger.Error().Err(err).Caller().Msg("Failed reverting installer.")
 		}
-		log.Fatal(err.Error())
+		pkconst.Logger.Fatal().Err(err).Stack()
 		return
 	}
 }
@@ -149,11 +119,11 @@ func startServer(content *pkg.Data) {
 	// is there a landing page?
 	if err == nil {
 		if err := landing.Initialize(landingDir); err != nil {
-			log.Fatal("Unable to initialize server.", err)
+			pkconst.Logger.Fatal().Err(err).Stack().Msg("Unable to initialize server.")
 			return
 		}
 	} else {
-		log.Println("Failed extracting landing page", err, ". Skipping www listener")
+		pkconst.Logger.Error().Err(err).Caller().Msg("Failed extracting landing page. Skipping www listener")
 	}
 	// step: if theres a landing page. wait for user to connect to landing page before continuing
 	//if landingDir != "" {

@@ -1,16 +1,29 @@
+// Copyright 2021 The Elabox Authors
+// This file is part of the elabox-system-tools library.
+
+// The elabox-system-tools library is under open source LGPL license.
+// If you simply compile or link an LGPL-licensed library with your own code,
+// you can release your application under any license you want, even a proprietary license.
+// But if you modify the library or copy parts of it into your code,
+// you’ll have to release your application under similar terms as the LGPL.
+// Please check license description @ https://www.gnu.org/licenses/lgpl-3.0.txt
+
+// The app unit. Specifically controls the lifecycle of binary app.
+// This can be a native app or nodejs app.
+
 package appman
 
 import (
-	"ela/foundation/app/data"
-	"ela/foundation/constants"
-	eventd "ela/foundation/event/data"
-	"ela/foundation/event/protocol"
-	"ela/foundation/path"
-	"ela/internal/cwd/system/global"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
+
+	"github.com/cansulting/elabox-system-tools/foundation/app/data"
+	"github.com/cansulting/elabox-system-tools/foundation/constants"
+	eventd "github.com/cansulting/elabox-system-tools/foundation/event/data"
+	"github.com/cansulting/elabox-system-tools/foundation/event/protocol"
+	"github.com/cansulting/elabox-system-tools/foundation/path"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/system/global"
 )
 
 /*
@@ -62,7 +75,7 @@ func (app *AppConnect) sendPendingActions() error {
 
 // sends action to app client
 func (app *AppConnect) RPCCall(action string, data interface{}) (string, error) {
-	return app.RPC.Call(action, data), nil
+	return app.RPC.Call(action, data)
 }
 
 func (app *AppConnect) Launch() error {
@@ -73,12 +86,16 @@ func (app *AppConnect) Launch() error {
 	}
 	// node running
 	if app.nodejs != nil {
-		log.Println("Launching " + app.PackageId + " nodejs")
-		go app.nodejs.Run()
+		global.Logger.Info().Msg("Launching " + app.PackageId + " nodejs")
+		go func() {
+			if err := app.nodejs.Run(); err != nil {
+				global.Logger.Error().Err(err).Msg("Failed running node js " + app.PackageId)
+			}
+		}()
 	}
 	// binary runnning
 	if app.Config.HasMainExec() {
-		log.Println("Launching " + app.PackageId + " app")
+		global.Logger.Info().Msg("Launching " + app.PackageId + " app")
 		cmd := exec.Command(app.Location)
 		cmd.Dir = filepath.Dir(app.Location)
 
@@ -93,7 +110,7 @@ func (app *AppConnect) IsClientConnected() bool {
 }
 
 func (app *AppConnect) ForceTerminate() error {
-	log.Println("Force Terminating", app.Config.PackageId)
+	global.Logger.Info().Caller().Msg("Force Terminating app " + app.Config.PackageId)
 	app.launched = false
 	if app.process != nil {
 		if err := app.process.Kill(); err != nil {
@@ -105,10 +122,10 @@ func (app *AppConnect) ForceTerminate() error {
 
 // this terminate the app naturally
 func (app *AppConnect) Terminate() error {
-	log.Println("Terminating", app.Config.PackageId)
+	global.Logger.Info().Msg("Terminating " + app.Config.PackageId)
 	if app.nodejs != nil {
 		if err := app.nodejs.Stop(); err != nil {
-			log.Println("AppConnect nodejs "+app.PackageId, "failed to terminate.", err.Error())
+			global.Logger.Error().Err(err).Caller().Msg("AppConnect nodejs " + app.PackageId + "failed to terminate.")
 		}
 	}
 	if !app.IsClientConnected() {
@@ -128,12 +145,12 @@ func asyncRun(app *AppConnect, cmd *exec.Cmd) {
 	cmd.Stderr = app
 	err := cmd.Start()
 	if err != nil {
-		log.Println("ERROR launching "+app.PackageId, err)
+		global.Logger.Error().Err(err).Caller().Msg("ERROR launching " + app.PackageId)
 		return
 	}
 	app.process = cmd.Process
 	if err := cmd.Wait(); err != nil {
-		defer log.Println("ERROR launching "+app.PackageId, err)
+		global.Logger.Error().Err(err).Msg("ERROR launching " + app.PackageId)
 	}
 }
 

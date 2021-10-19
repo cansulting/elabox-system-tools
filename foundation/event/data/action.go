@@ -1,10 +1,24 @@
 package data
 
+// Copyright 2021 The Elabox Authors
+// This file is part of the elabox-system-tools library.
+
+// The elabox-system-tools library is under open source LGPL license.
+// If you simply compile or link an LGPL-licensed library with your own code,
+// you can release your application under any license you want, even a proprietary license.
+// But if you modify the library or copy parts of it into your code,
+// you’ll have to release your application under similar terms as the LGPL.
+// Please check license description @ https://www.gnu.org/licenses/lgpl-3.0.txt
+
+// this file provides funnction for generating response data for RPC
+// response data is json string which will be encoded to Base64 before transmitting
+
 import (
-	"ela/foundation/errors"
 	"encoding/json"
 	"log"
 	"reflect"
+
+	"github.com/cansulting/elabox-system-tools/foundation/errors"
 
 	"github.com/mitchellh/mapstructure"
 )
@@ -16,7 +30,7 @@ type Action struct {
 	// if nothing was specified then look for any valid package that can carry out the action
 	PackageId string `json:"packageId"`
 	// optional. data which will be use to execute the action
-	Value interface{} `json:"data"`
+	Data interface{} `json:"data"`
 	//valueAction *Action     `json:"-"`
 }
 
@@ -25,7 +39,7 @@ func NewAction(id string, packageId string, data interface{}) Action {
 		Id:        id,
 		PackageId: packageId,
 	}
-	action.Value = convertData(data)
+	action.Data = convertData(data)
 	return action
 }
 
@@ -39,10 +53,10 @@ func (a *Action) DataToActionData() (Action, error) {
 	//	return *a.valueAction
 	//}
 	action := Action{}
-	if a.Value == nil {
+	if a.Data == nil {
 		return action, nil
 	}
-	switch a.Value.(type) {
+	switch a.Data.(type) {
 	case string:
 		strObj := a.DataToString()
 		if err := json.Unmarshal([]byte(strObj), &action); err != nil {
@@ -50,7 +64,7 @@ func (a *Action) DataToActionData() (Action, error) {
 		}
 		break
 	case map[string]interface{}:
-		mapstructure.Decode(a.Value, &action)
+		mapstructure.Decode(a.Data, &action)
 		break
 	}
 
@@ -58,28 +72,47 @@ func (a *Action) DataToActionData() (Action, error) {
 	return action, nil
 }
 
-// convert Action.Value to int
+// convert Action.Data to int
 func (a *Action) DataToInt() int {
-	switch a.Value.(type) {
+	switch a.Data.(type) {
 	case int:
-		return a.Value.(int)
+		return a.Data.(int)
 	case float64:
-		var f = a.Value.(float64)
+		var f = a.Data.(float64)
 		return int(f)
 	case float32:
-		var f = a.Value.(float32)
+		var f = a.Data.(float32)
 		return int(f)
 	default:
-		log.Panicln("Failed to concert Action to int ", reflect.TypeOf(a.Value))
+		log.Panicln("Failed to concert Action to int ", reflect.TypeOf(a.Data))
 		return -1
 	}
 }
 
 func (a *Action) DataToString() string {
-	if a.Value != nil {
-		return a.Value.(string)
+	if a.Data != nil {
+		return a.Data.(string)
 	}
 	return ""
+}
+
+
+func (a *Action) DataToMap(dst map[string]interface{}) (map[string]interface{}, error) {
+
+	switch a.Data.(type) {
+	case map[string]interface{}:
+		return a.Data.(map[string]interface{}), nil
+	}
+	str := a.DataToString()
+	if str != "" {
+		if dst == nil {
+			dst = make(map[string]interface{})
+		}
+		if err := json.Unmarshal([]byte(str), &dst); err != nil {
+			return dst, err
+		}
+	}
+	return nil, nil
 }
 
 func convertData(data interface{}) interface{} {
@@ -89,7 +122,7 @@ func convertData(data interface{}) interface{} {
 			tmpd := data.(Action)
 			return tmpd.ToJson()
 			//case ActionGroup:
-			//	a.Value = data.(*ActionGroup).ToJson()
+			//	a.Data = data.(*ActionGroup).ToJson()
 		default:
 			return data
 		}

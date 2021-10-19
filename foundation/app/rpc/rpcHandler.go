@@ -8,18 +8,19 @@
 // you’ll have to release your application under similar terms as the LGPL.
 // Please check license description @ https://www.gnu.org/licenses/lgpl-3.0.txt
 
-package service
+package rpc
 
 import (
-	"ela/foundation/constants"
-	"ela/foundation/event/data"
-	"ela/foundation/event/protocol"
+	"github.com/cansulting/elabox-system-tools/foundation/constants"
+	"github.com/cansulting/elabox-system-tools/foundation/event/data"
+	"github.com/cansulting/elabox-system-tools/foundation/event/protocol"
 )
 
 // callback function whenever recieve an action from server
 type ServiceDelegate func(client protocol.ClientInterface, data data.Action) string
 
-// 2 way communication bridge between app and specific service.
+// 2 way communication between apps and clients
+// Mainly use by app controller
 type RPCHandler struct {
 	connector protocol.ConnectorClient
 }
@@ -31,23 +32,24 @@ func NewRPCHandler(connector protocol.ConnectorClient) *RPCHandler {
 }
 
 // use to listen to specific action from server, service delegate will be called upon response
+// this is also use to define RPC functions
 func (t *RPCHandler) OnRecieved(action string, onServiceResponse ServiceDelegate) {
 	// TODOserviceCommand := t.PackageId + ".service." + action
 	t.connector.Subscribe(action, onServiceResponse)
 }
 
-// sends request to specific package with data attached
-func (t *RPCHandler) Call(packageId string, action data.Action) (*data.Response, error) {
-	strResponse, err := t.connector.SendServiceRequest(packageId, action)
-	if err != nil {
-		return nil, err
-	}
-	return &data.Response{Value: strResponse}, err
+// use to send RPC to specific package
+func (t *RPCHandler) CallRPC(packageId string, action data.Action) (*data.Response, error) {
+	return t.CallSystem(data.NewAction(constants.ACTION_RPC, packageId, action))
 }
 
 // send a request to system with data
 func (t *RPCHandler) CallSystem(action data.Action) (*data.Response, error) {
-	return t.Call(constants.SYSTEM_SERVICE_ID, action)
+	strResponse, err := t.connector.SendSystemRequest(constants.SYSTEM_SERVICE_ID, action)
+	if err != nil {
+		return nil, err
+	}
+	return &data.Response{Value: strResponse}, err
 }
 
 // use to broadcast to the system with specific action data

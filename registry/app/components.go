@@ -1,15 +1,17 @@
 package app
 
 import (
-	"ela/foundation/app/data"
-	"ela/foundation/errors"
-	"ela/registry/util"
+	"github.com/cansulting/elabox-system-tools/foundation/app/data"
+	"github.com/cansulting/elabox-system-tools/foundation/errors"
+	"github.com/cansulting/elabox-system-tools/foundation/logger"
+	"github.com/cansulting/elabox-system-tools/registry/util"
 )
 
 func retrievePackagesFor(action string, table string) ([]string, error) {
 	query := `select packageId from ` + table + ` where action = ?`
 	row, err := util.SelectQuery(query, action)
 	if err != nil {
+		logger.GetInstance().Error().Err(err).Caller().Msg("Failed to retrieve packages for " + action)
 		return nil, errors.SystemNew("records.RetrieveAction failed to retrieve packages for "+action, err)
 	}
 	packages := make([]string, 0, 5)

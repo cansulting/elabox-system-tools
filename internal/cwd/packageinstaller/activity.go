@@ -1,13 +1,13 @@
 package main
 
 import (
-	"ela/foundation/constants"
-	"ela/foundation/errors"
-	"ela/foundation/event/data"
-	global "ela/internal/cwd/packageinstaller/constants"
-	"ela/internal/cwd/packageinstaller/pkg"
-	"log"
 	"time"
+
+	"github.com/cansulting/elabox-system-tools/foundation/constants"
+	"github.com/cansulting/elabox-system-tools/foundation/errors"
+	"github.com/cansulting/elabox-system-tools/foundation/event/data"
+	global "github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/constants"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/pkg"
 )
 
 type activity struct {
@@ -27,7 +27,7 @@ func (a *activity) OnStart(action *data.Action) error {
 		a.finish(err.Error())
 		return nil
 	}
-	log.Println("Installing package @", sourcePkg)
+	global.Logger.Info().Msg("Installing package @" + sourcePkg)
 	if action.Id == constants.ACTION_APP_INSTALL {
 		return a.startNormalInstall(pkgData)
 	}
@@ -73,9 +73,9 @@ func (a *activity) OnEnd() error {
 
 func (a *activity) finish(err string) {
 	if err != "" {
-		log.Println(err)
+		global.Logger.Error().Caller().Stack().Msg(err)
 	} else {
-		log.Println("Install success")
+		global.Logger.Info().Msg("Install success")
 	}
 	a.running = false
 }

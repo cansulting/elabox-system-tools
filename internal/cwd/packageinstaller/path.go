@@ -1,10 +1,11 @@
 package main
 
 import (
-	"ela/foundation/path"
-	"ela/foundation/perm"
 	"log"
 	"os"
+
+	"github.com/cansulting/elabox-system-tools/foundation/path"
+	"github.com/cansulting/elabox-system-tools/foundation/perm"
 )
 
 func InitializePath() {

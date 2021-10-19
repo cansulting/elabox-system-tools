@@ -8,17 +8,18 @@
 // you’ll have to release your application under similar terms as the LGPL.
 // Please check license description @ https://www.gnu.org/licenses/lgpl-3.0.txt
 
-package service
+package rpc
 
 import (
-	"ela/foundation/event/data"
+	"github.com/cansulting/elabox-system-tools/foundation/event/data"
 )
 
 type RPCInterface interface {
 	// use to broadcast to the system
 	CallSystem(action data.Action) (*data.Response, error)
 	// use to broadcast to specific package
-	Call(packageId string, action data.Action) (*data.Response, error)
+	CallRPC(packageId string, action data.Action) (*data.Response, error)
 	Close() error
-	OnRecieved(event string, onServiceResponse ServiceDelegate)
+	// set callback when recieved specific action/event
+	OnRecieved(action string, onServiceResponse ServiceDelegate)
 }

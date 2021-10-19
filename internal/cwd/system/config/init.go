@@ -1,9 +1,10 @@
 package config
 
 import (
-	"ela/foundation/constants"
-	"ela/foundation/errors"
-	"ela/registry/app"
+	"github.com/cansulting/elabox-system-tools/foundation/constants"
+	"github.com/cansulting/elabox-system-tools/foundation/errors"
+	"github.com/cansulting/elabox-system-tools/foundation/logger"
+	"github.com/cansulting/elabox-system-tools/registry/app"
 )
 
 const ELAENV = "ELAENV"         // environment variable for build mode
@@ -11,6 +12,10 @@ const ELAVERSION = "ELAVERSION" // current version of system
 
 // intialize system configuration
 func Init() error {
+	if GetBuildMode() != DEBUG {
+		logger.ConsoleOut = false
+	}
+
 	if err := SetEnv(ELAENV, string(GetBuildMode())); err != nil {
 		return errors.SystemNew("System Config Environment error", err)
 	}

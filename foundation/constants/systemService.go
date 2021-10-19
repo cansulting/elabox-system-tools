@@ -30,6 +30,10 @@ app/service/action will start an activity.
 */
 const ACTION_START_ACTIVITY = "ela.system.START_ACTIVITY"
 
+// use to communicate between dapps via RPC. the target RPC needs to provide actions
+// via calling RPCHandler.onRecieved()
+const ACTION_RPC = "ela.system.RPC"
+
 // system will be in update mode. all system will be terminated and only commandline will be available
 const SYSTEM_UPDATE_MODE = "ela.system.UPDATE"
 
@@ -55,16 +59,10 @@ const SERVICE_PENDING_ACTIONS = "ela.system.PENDING_ACTIONS"
 // sends terminate action to app
 const APP_TERMINATE = "ela.system.APP_TERMINATE"
 
-type ServiceState int
+type AppRunningState int
 
 const (
-	SERVICE_AWAKE = 1 // service is currently running
-	SERVICE_SLEEP = 0 // service is not yet executed
-)
-
-type ApplicationState int
-
-const (
-	APP_AWAKE = 1 // app is running
-	APP_SLEEP     // app was stopped
+	APP_AWAKE       AppRunningState = 1 // package is running
+	APP_SLEEP       AppRunningState = 2 // package was stopped
+	APP_AWAKE_DEBUG AppRunningState = 3 // package is running but in debug mode
 )

@@ -6,9 +6,14 @@ github.com/gorilla/websocket
 github.com/graarh/golang-socketio
 github.com/graarh/golang-socketio/protocol
 github.com/graarh/golang-socketio/transport
-# github.com/mattn/go-sqlite3 v1.14.7
+# github.com/mattn/go-sqlite3 v1.14.8
 ## explicit
 github.com/mattn/go-sqlite3
-# github.com/mitchellh/mapstructure v1.4.1
+# github.com/mitchellh/mapstructure v1.4.2
 ## explicit
 github.com/mitchellh/mapstructure
+# github.com/rs/zerolog v1.25.0
+## explicit
+github.com/rs/zerolog
+github.com/rs/zerolog/internal/cbor
+github.com/rs/zerolog/internal/json

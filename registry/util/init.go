@@ -2,13 +2,14 @@ package util
 
 import (
 	"database/sql"
-	"ela/foundation/constants"
-	"ela/foundation/errors"
-	"ela/foundation/path"
-	"ela/foundation/perm"
-	"ela/registry/config"
-	"log"
 	"os"
+
+	"github.com/cansulting/elabox-system-tools/foundation/constants"
+	"github.com/cansulting/elabox-system-tools/foundation/errors"
+	"github.com/cansulting/elabox-system-tools/foundation/logger"
+	"github.com/cansulting/elabox-system-tools/foundation/path"
+	"github.com/cansulting/elabox-system-tools/foundation/perm"
+	"github.com/cansulting/elabox-system-tools/registry/config"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -21,7 +22,7 @@ func initialize() error {
 	}
 	srcDir := path.GetSystemAppDirData(constants.SYSTEM_SERVICE_ID)
 	src := srcDir + "/" + config.DB_NAME
-	log.Println("Registry:", "DB Initialize @", src)
+	logger.GetInstance().Info().Str("category", "registry").Msg("DB Initialize @" + src)
 	if _, err := os.Stat(srcDir); err != nil {
 		if err := os.MkdirAll(srcDir, perm.PUBLIC_VIEW); err != nil {
 			return err

@@ -1,10 +1,26 @@
+// Copyright 2021 The Elabox Authors
+// This file is part of the elabox-system-tools library.
+
+// The elabox-system-tools library is under open source LGPL license.
+// If you simply compile or link an LGPL-licensed library with your own code,
+// you can release your application under any license you want, even a proprietary license.
+// But if you modify the library or copy parts of it into your code,
+// you’ll have to release your application under similar terms as the LGPL.
+// Please check license description @ https://www.gnu.org/licenses/lgpl-3.0.txt
+
+// This file handles all currently running app via App Connect
+// Use this class to run, stop and get running status of app
+
+// This file manages the app connect.
+
 package appman
 
 import (
-	"ela/foundation/event/data"
-	"ela/foundation/event/protocol"
-	registry "ela/registry/app"
-	"log"
+	appd "github.com/cansulting/elabox-system-tools/foundation/app/data"
+	"github.com/cansulting/elabox-system-tools/foundation/event/data"
+	"github.com/cansulting/elabox-system-tools/foundation/event/protocol"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/system/global"
+	registry "github.com/cansulting/elabox-system-tools/registry/app"
 )
 
 // currently running processes
@@ -31,16 +47,22 @@ func GetAppConnect(packageId string, client protocol.ClientInterface) *AppConnec
 	if pk == nil {
 		return nil
 	}
+	return AddAppConnect(pk, client)
+}
+
+// add app connect to list of running apps
+func AddAppConnect(pk *appd.PackageConfig, client protocol.ClientInterface) *AppConnect {
 	// create service if exist
 	//var service *ServiceConnect = nil
 	//if pk.HasServices() {
 	//service = onServiceOpen(client, pk.PackageId)
 	//}
-	app = newAppConnect(pk, client)
-	running[packageId] = app
+	app := newAppConnect(pk, client)
+	running[pk.PackageId] = app
 	return app
 }
 
+// get package from running list
 func LookupAppConnect(packageId string) *AppConnect {
 	pk, ok := running[packageId]
 	// is already running? return false
@@ -53,10 +75,7 @@ func LookupAppConnect(packageId string) *AppConnect {
 // use to check if app is currently running or not
 func IsAppRunning(packageId string) bool {
 	app := LookupAppConnect(packageId)
-	if app == nil {
-		return false
-	}
-	return true
+	return app != nil
 }
 
 func RemoveAppConnect(packageId string, terminate bool) {
@@ -64,9 +83,9 @@ func RemoveAppConnect(packageId string, terminate bool) {
 	if app != nil {
 		if terminate {
 			if err := app.Terminate(); err != nil {
-				log.Println("appConnectManager.TerminateAllApp failed terminate "+app.PackageId+". Trying force terminate.", err)
+				global.Logger.Error().Err(err).Stack().Msg("Failed terminate " + app.PackageId + ". Trying force terminate.")
 				if err := app.ForceTerminate(); err != nil {
-					log.Println("appConnectManager.TerminateAllApp failed force terminate ", err)
+					global.Logger.Error().Err(err).Caller().Msg("appConnectManager.TerminateAllApp failed force terminate ")
 				}
 			}
 		}
@@ -79,7 +98,7 @@ func RemoveAppConnect(packageId string, terminate bool) {
 }
 
 func TerminateAllApp() {
-	log.Println("appConnectManager.TerminateAllApp() started")
+	global.Logger.Info().Msg("appConnectManager.TerminateAllApp() started")
 	running := GetAllRunningApps()
 	for pkid := range running {
 		RemoveAppConnect(pkid, true)
@@ -109,14 +128,14 @@ func LaunchApp(packageId string,
 
 // run all start up apps
 func InitializeStartups() {
-	log.Println("appman.Services are starting up...")
+	global.Logger.Info().Msg("Services are starting up...")
 	pkgs, err := registry.RetrieveStartupPackages()
 	if err != nil {
-		log.Println(err)
+		global.Logger.Error().Err(err).Caller().Msg("Failed retrieving startup packages.")
 	}
 	for _, pkg := range pkgs {
 		if err := LaunchApp(pkg.PackageId, nil); err != nil {
-			log.Println(err)
+			global.Logger.Error().Err(err).Caller().Msg("Failed launching app.")
 		}
 	}
 }

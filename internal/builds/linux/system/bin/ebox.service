@@ -22,7 +22,7 @@ PermissionsStartOnly=true
 ExecStartPre=/bin/mkdir -p !LOG
 ExecStartPre=/bin/chown syslog:adm !LOG
 ExecStartPre=/bin/chmod 755 !LOG
-StandardOutput=syslog
+# StandardOutput=syslog
 StandardError=syslog
 SyslogIdentifier=ebox
  

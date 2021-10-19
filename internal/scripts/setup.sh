@@ -91,6 +91,12 @@ if [ "$answer" == "y" ]; then
         cd "./landing-page"
         git switch main
     fi
+    if [ ! -d "elabox-logs" ]; then
+        cd $wd
+        git clone https://$uname@github.com/cansulting/elabox-logs
+        cd elabox-logs
+        git switch Development
+    fi
     if [ ! -d "Elastos.ELA" ]; then 
         cd $wd
         git clone https://github.com/elastos/Elastos.ELA.git

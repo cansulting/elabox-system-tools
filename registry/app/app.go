@@ -1,11 +1,11 @@
 package app
 
 import (
-	"ela/foundation/app/data"
-	"ela/foundation/constants"
-	"ela/foundation/errors"
-	"ela/registry/util"
-	"log"
+	"github.com/cansulting/elabox-system-tools/foundation/app/data"
+	"github.com/cansulting/elabox-system-tools/foundation/constants"
+	"github.com/cansulting/elabox-system-tools/foundation/errors"
+	"github.com/cansulting/elabox-system-tools/foundation/logger"
+	"github.com/cansulting/elabox-system-tools/registry/util"
 )
 
 /*
@@ -26,7 +26,7 @@ func RetrieveAllPackages() ([]*data.PackageConfig, error) {
 
 // add package data to db
 func RegisterPackage(pkData *data.PackageConfig) error {
-	log.Println("Registering package " + pkData.PackageId)
+	logger.GetInstance().Info().Str("category", "registry").Msg("Registering package " + pkData.PackageId)
 	query := `
 		replace into 
 		packages(id, location, build, version, name, desc, source, nodejs, exportService) 
@@ -61,7 +61,7 @@ func RegisterPackageSrc(srcDir string) (*data.PackageConfig, error) {
 	if err := RegisterPackage(config); err != nil {
 		return nil, errors.SystemNew("appman.RegisterPackageSrc failed", err)
 	}
-	log.Println("appman.RegisterPackageSrc success!")
+	//log.Println("appman.RegisterPackageSrc success!")
 	return config, nil
 }
 

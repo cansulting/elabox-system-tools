@@ -2,9 +2,10 @@ package app
 
 import (
 	"database/sql"
-	"ela/foundation/app/data"
-	"ela/foundation/errors"
-	"ela/registry/util"
+
+	"github.com/cansulting/elabox-system-tools/foundation/app/data"
+	"github.com/cansulting/elabox-system-tools/foundation/errors"
+	"github.com/cansulting/elabox-system-tools/registry/util"
 )
 
 func convertRawToPackageConfig(rows *sql.Rows) []*data.PackageConfig {
