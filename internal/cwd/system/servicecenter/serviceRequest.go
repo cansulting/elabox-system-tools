@@ -8,7 +8,7 @@
 // you’ll have to release your application under similar terms as the LGPL.
 // Please check license description @ https://www.gnu.org/licenses/lgpl-3.0.txt
 
-// This file provide services for client requests
+// This file provide services for client requests for RPC, broadcast, starting activity etc.
 
 package servicecenter
 
@@ -16,6 +16,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/cansulting/elabox-system-tools/foundation/app/rpc"
 	"github.com/cansulting/elabox-system-tools/foundation/constants"
 	"github.com/cansulting/elabox-system-tools/foundation/event/data"
 	"github.com/cansulting/elabox-system-tools/foundation/event/protocol"
@@ -41,7 +42,7 @@ func OnRecievedRequest(
 		if err != nil {
 			return err.Error()
 		}
-		return sendPackageRPC(valAction)
+		return sendPackageRPC(action.PackageId, valAction)
 
 	case constants.ACTION_START_ACTIVITY:
 		activityAc, err := action.DataToActionData()
@@ -102,45 +103,65 @@ func startActivity(action data.Action, client protocol.ClientInterface) string {
 	if packageId == "" {
 		pks, err := app.RetrievePackagesWithActivity(action.Id)
 		if err != nil {
-			return CreateResponse(SYSTEMERR_CODE, "StartActivity failed to start "+packageId+" "+err.Error())
+			return rpc.CreateResponse(rpc.SYSTEMERR_CODE, "StartActivity failed to start "+packageId+" "+err.Error())
 		}
 		if len(pks) > 0 {
 			packageId = pks[0]
 		} else {
-			return CreateResponse(INVALID_CODE, "cant find package"+packageId+" with action "+action.Id)
+			return rpc.CreateResponse(rpc.INVALID_CODE, "cant find package"+packageId+" with action "+action.Id)
 		}
 	}
 	if err := appman.LaunchAppActivity(packageId, client, action); err != nil {
-		return CreateResponse(SYSTEMERR_CODE, err.Error())
+		return rpc.CreateResponse(rpc.SYSTEMERR_CODE, err.Error())
 	}
 	global.Logger.Debug().Msg("Start activity with " + action.Id + action.DataToString())
-	return CreateSuccessResponse("Launched")
+	return rpc.CreateSuccessResponse("Launched")
 }
 
 // when activity returns a result
 func onReturnActivityResult(action data.Action) string {
 	packageId := action.PackageId
 	if packageId == "" {
-		return CreateResponse(INVALID_CODE, "package id should be the activity whho return the result")
+		return rpc.CreateResponse(rpc.INVALID_CODE, "package id should be the activity whho return the result")
 	}
 	app := appman.GetAppConnect(packageId, nil)
 	if app == nil || app.StartedBy == "" {
-		return CreateResponse(INVALID_CODE, "cant find the app that would recieve result")
+		return rpc.CreateResponse(rpc.INVALID_CODE, "cant find the app that would recieve result")
 	}
 	if !appman.IsAppRunning(app.StartedBy) {
-		return CreateResponse(INVALID_CODE, "cant find the app that would recieve result")
+		return rpc.CreateResponse(rpc.INVALID_CODE, "cant find the app that would recieve result")
 	}
+	// step: start calling the package
 	originApp := appman.GetAppConnect(app.StartedBy, nil)
-	return originApp.RPC.CallAct(action)
+	res, err := originApp.RPC.CallAct(action)
+	if err != nil {
+		global.Logger.Error().Err(err).Caller().Msg("Failed calling activity result to the calling activity " + app.StartedBy)
+		return rpc.CreateResponse(rpc.SYSTEMERR_CODE, err.Error())
+	}
+	return rpc.CreateSuccessResponse(res)
 }
 
 // send RPC to specific package
-func sendPackageRPC(action data.Action) string {
-	app := appman.GetAppConnect(action.PackageId, nil)
-	if app == nil {
-		return CreateResponse(INVALID_CODE, "Cant find package")
+func sendPackageRPC(pkid string, action data.Action) string {
+	if pkid == "" {
+		return rpc.CreateResponse(rpc.INVALID_CODE, "No package provided for action "+action.Id)
 	}
-	return app.RPC.CallAct(action)
+	// step: get package
+	app := appman.GetAppConnect(pkid, nil)
+	if app == nil {
+		return rpc.CreateResponse(rpc.INVALID_CODE, "Cant find package, package should be running")
+	}
+	// step: call rpc
+	res, err := app.RPC.CallAct(action)
+	if err != nil {
+		global.Logger.Error().Err(err).Caller().Msg("Failed to call RPC for pacckage " + pkid)
+		return rpc.CreateResponse(rpc.INVALID_CODE, err.Error())
+	}
+	// step: clean. remove \"
+	if len(res) > 0 {
+		res = res[1 : len(res)-1]
+	}
+	return res
 }
 
 // client requested to activate update mode
@@ -148,7 +169,7 @@ func activateUpdateMode(client protocol.ClientInterface, action data.Action) str
 	pk := action.DataToString()
 	global.Server.EventServer.BroadcastAction(data.NewActionById(constants.BCAST_TERMINATE_N_UPDATE))
 	startActivity(data.NewAction(constants.ACTION_APP_SYSTEM_INSTALL, "", pk), nil)
-	return CreateSuccessResponse("Activated")
+	return rpc.CreateSuccessResponse("Activated")
 }
 
 func terminate(seconds uint) string {
@@ -163,5 +184,5 @@ func terminate(seconds uint) string {
 		time.Sleep(time.Millisecond * 100)
 		os.Exit(0)
 	}()
-	return CreateSuccessResponse("Terminated")
+	return rpc.CreateSuccessResponse("Terminated")
 }

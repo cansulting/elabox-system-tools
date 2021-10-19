@@ -11,6 +11,8 @@
 // This file handles all currently running app via App Connect
 // Use this class to run, stop and get running status of app
 
+// This file manages the app connect.
+
 package appman
 
 import (
@@ -73,10 +75,7 @@ func LookupAppConnect(packageId string) *AppConnect {
 // use to check if app is currently running or not
 func IsAppRunning(packageId string) bool {
 	app := LookupAppConnect(packageId)
-	if app == nil {
-		return false
-	}
-	return true
+	return app != nil
 }
 
 func RemoveAppConnect(packageId string, terminate bool) {

@@ -1,3 +1,16 @@
+// Copyright 2021 The Elabox Authors
+// This file is part of the elabox-system-tools library.
+
+// The elabox-system-tools library is under open source LGPL license.
+// If you simply compile or link an LGPL-licensed library with your own code,
+// you can release your application under any license you want, even a proprietary license.
+// But if you modify the library or copy parts of it into your code,
+// you’ll have to release your application under similar terms as the LGPL.
+// Please check license description @ https://www.gnu.org/licenses/lgpl-3.0.txt
+
+// The app unit. Specifically controls the lifecycle of binary app.
+// This can be a native app or nodejs app.
+
 package appman
 
 import (
@@ -62,7 +75,7 @@ func (app *AppConnect) sendPendingActions() error {
 
 // sends action to app client
 func (app *AppConnect) RPCCall(action string, data interface{}) (string, error) {
-	return app.RPC.Call(action, data), nil
+	return app.RPC.Call(action, data)
 }
 
 func (app *AppConnect) Launch() error {
@@ -97,7 +110,7 @@ func (app *AppConnect) IsClientConnected() bool {
 }
 
 func (app *AppConnect) ForceTerminate() error {
-	global.Logger.Info().Stack().Msg("Force Terminating " + app.Config.PackageId)
+	global.Logger.Info().Caller().Msg("Force Terminating app " + app.Config.PackageId)
 	app.launched = false
 	if app.process != nil {
 		if err := app.process.Kill(); err != nil {

@@ -1,10 +1,23 @@
+// Copyright 2021 The Elabox Authors
+// This file is part of the elabox-system-tools library.
+
+// The elabox-system-tools library is under open source LGPL license.
+// If you simply compile or link an LGPL-licensed library with your own code,
+// you can release your application under any license you want, even a proprietary license.
+// But if you modify the library or copy parts of it into your code,
+// you’ll have to release your application under similar terms as the LGPL.
+// Please check license description @ https://www.gnu.org/licenses/lgpl-3.0.txt
+
+// This file provides two way communication between two apps.
+
 package appman
 
 import (
-	"log"
-
+	"github.com/cansulting/elabox-system-tools/foundation/app/rpc"
+	"github.com/cansulting/elabox-system-tools/foundation/errors"
 	"github.com/cansulting/elabox-system-tools/foundation/event/data"
 	"github.com/cansulting/elabox-system-tools/foundation/event/protocol"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/system/global"
 )
 
 /*
@@ -27,28 +40,33 @@ func NewRPCBridge(
 		PackageId: packageId,
 		Connector: connector,
 	}
-	connector.Subscribe(packageId, newConnect.onBridge)
+	if err := connector.Subscribe(packageId, newConnect.onBridge); err != nil {
+		global.Logger.Error().Err(err).Caller().Msg("Failed subscribing to " + packageId)
+	}
 	return newConnect
 }
 
 func (c *RPCBridge) onBridge(consumer protocol.ClientInterface, data data.Action) string {
-	return c.CallAct(data)
+	res, err := c.CallAct(data)
+	if err != nil {
+		rpc.CreateResponse(rpc.SYSTEMERR_CODE, err.Error())
+	}
+	return rpc.CreateSuccessResponse(res)
 }
 
 // communicate to current package
-func (c *RPCBridge) CallAct(data data.Action) string {
+func (c *RPCBridge) CallAct(data data.Action) (string, error) {
 	if c.Client == nil {
-		return "Ignored no client connected."
+		return "", errors.SystemNew("Ignored no client connected for "+c.PackageId, nil)
 	}
 	response, err := c.Connector.BroadcastTo(c.Client, data.Id, data)
 	if err != nil {
-		log.Println("RPCBridge.Call Response from", c.PackageId, "error "+err.Error())
-		return err.Error()
+		return "", err
 	}
-	return response
+	return response, nil
 }
 
 // call the owning package
-func (c *RPCBridge) Call(action string, _data interface{}) string {
+func (c *RPCBridge) Call(action string, _data interface{}) (string, error) {
 	return c.CallAct(data.NewAction(action, "", _data))
 }
