@@ -1,12 +1,25 @@
+// Copyright 2021 The Elabox Authors
+// This file is part of the elabox-system-tools library.
+
+// The elabox-system-tools library is under open source LGPL license.
+// If you simply compile or link an LGPL-licensed library with your own code,
+// you can release your application under any license you want, even a proprietary license.
+// But if you modify the library or copy parts of it into your code,
+// you’ll have to release your application under similar terms as the LGPL.
+// Please check license description @ https://www.gnu.org/licenses/lgpl-3.0.txt
+
+// This class implements connectorClient interface with the use of socketio
+
 package socket
 
 import (
-	"github.com/cansulting/elabox-system-tools/foundation/constants"
-	"github.com/cansulting/elabox-system-tools/foundation/errors"
-	"github.com/cansulting/elabox-system-tools/foundation/event/data"
 	"log"
 	"runtime"
 	"time"
+
+	"github.com/cansulting/elabox-system-tools/foundation/constants"
+	"github.com/cansulting/elabox-system-tools/foundation/errors"
+	"github.com/cansulting/elabox-system-tools/foundation/event/data"
 
 	gosocketio "github.com/graarh/golang-socketio"
 	"github.com/graarh/golang-socketio/transport"
@@ -22,9 +35,9 @@ func (s *SocketIOClient) GetState() data.ConnectionType {
 }
 
 // implementation for connector client. let client send service requests
-func (s *SocketIOClient) SendServiceRequest(serviceId string, action data.Action) (string, error) {
-	log.Println("socketIOConnectorClient.SendServiceRequest", serviceId, action)
-	return s.socket.Ack(serviceId, action, time.Second*constants.TIMEOUT)
+func (s *SocketIOClient) SendSystemRequest(event string, action data.Action) (string, error) {
+	log.Println("socketIOConnectorClient.SendSystemRequest", event, action)
+	return s.socket.Ack(event, action, time.Second*constants.TIMEOUT)
 }
 
 // implementation for connector client. let this client subscribe to specific room

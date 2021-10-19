@@ -30,7 +30,8 @@ app/service/action will start an activity.
 */
 const ACTION_START_ACTIVITY = "ela.system.START_ACTIVITY"
 
-// this is communication between dapps via RPC
+// use to communicate between dapps via RPC. the target RPC needs to provide actions
+// via calling RPCHandler.onRecieved()
 const ACTION_RPC = "ela.system.RPC"
 
 // system will be in update mode. all system will be terminated and only commandline will be available

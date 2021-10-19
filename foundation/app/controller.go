@@ -1,16 +1,25 @@
 package app
 
-/*
-	controller.go
-	Provides basic implementation application.
-	Application can contains service, activity and broadcast listener
-*/
+// Copyright 2021 The Elabox Authors
+// This file is part of the elabox-system-tools library.
+
+// The elabox-system-tools library is under open source LGPL license.
+// If you simply compile or link an LGPL-licensed library with your own code,
+// you can release your application under any license you want, even a proprietary license.
+// But if you modify the library or copy parts of it into your code,
+// you’ll have to release your application under similar terms as the LGPL.
+// Please check license description @ https://www.gnu.org/licenses/lgpl-3.0.txt
+
+// controller.go
+// Controller class handles the application lifecycle.
+// To initialize call NewController, for debugging use NewControllerWithDebug
+// please see the documentation for more info.
 import (
 	"time"
 
 	appd "github.com/cansulting/elabox-system-tools/foundation/app/data"
 	"github.com/cansulting/elabox-system-tools/foundation/app/protocol"
-	"github.com/cansulting/elabox-system-tools/foundation/app/service"
+	"github.com/cansulting/elabox-system-tools/foundation/app/rpc"
 	"github.com/cansulting/elabox-system-tools/foundation/constants"
 	"github.com/cansulting/elabox-system-tools/foundation/errors"
 	event "github.com/cansulting/elabox-system-tools/foundation/event"
@@ -38,9 +47,23 @@ func RunApp(app *Controller) error {
 
 //////////////////////// CONTROLLER DEFINITION /////////////////////////////
 // constructor for controller
+// @activity the activity function for this app
+// @service the service function for this app
 func NewController(
 	activity protocol.ActivityInterface,
 	service protocol.ServiceInterface) (*Controller, error) {
+	return NewControllerWithDebug(activity, service, false)
+}
+
+// constructor for controller
+// @activity the activity function for this app
+// @service the service function for this app
+// @debugging true if this app functions as debugging app.
+// Please check the system app manager debugapp()
+func NewControllerWithDebug(
+	activity protocol.ActivityInterface,
+	service protocol.ServiceInterface,
+	debugging bool) (*Controller, error) {
 	config := appd.DefaultPackage()
 	if err := config.LoadFromSrc(constants.APP_CONFIG_NAME); err != nil {
 		return nil, err
@@ -49,6 +72,7 @@ func NewController(
 		logger.Init(config.PackageId)
 	}
 	return &Controller{
+		Debugging:  debugging,
 		AppService: service,
 		Activity:   activity,
 		Config:     config,
@@ -58,9 +82,10 @@ func NewController(
 type Controller struct {
 	AppService protocol.ServiceInterface // current service for this app
 	Activity   protocol.ActivityInterface
-	RPC        service.RPCInterface //
+	RPC        rpc.RPCInterface //
 	Config     *appd.PackageConfig
 	forceEnd   bool
+	Debugging  bool // true if the app currently debugging
 }
 
 // true if this app is running
@@ -88,19 +113,20 @@ func (m *Controller) onStart() error {
 	}
 	// step: create RPC
 	if m.RPC == nil {
-		m.RPC = service.NewRPCHandler(connector)
+		m.RPC = rpc.NewRPCHandler(connector)
 		m.RPC.OnRecieved(constants.APP_TERMINATE, m.onTerminate)
 	}
 	// step: send running state
+	awake := constants.APP_AWAKE
+	if m.Debugging {
+		awake = constants.APP_AWAKE_DEBUG
+	}
 	res, err := m.RPC.CallSystem(
-		data.NewAction(
-			constants.APP_CHANGE_STATE,
-			m.Config.PackageId,
-			constants.APP_AWAKE))
+		data.NewAction(constants.APP_CHANGE_STATE, m.Config.PackageId, awake))
 	if err != nil {
 		return err
 	}
-	logger.GetInstance().Debug().Str("category", "appcontroller").Msg(m.Config.PackageId + "onstart pendingActions =" + res.ToString())
+	println(m.Config.PackageId + "onstart pendingActions =" + res.ToString())
 	pendingActions := res.ToActionGroup()
 	// step: initialize service
 	if m.AppService != nil {

@@ -217,7 +217,8 @@ func searchNewline(chunk []byte) int {
 
 var tmpChunk = make([]byte, 20)
 
-// This lookup the missing heading of json value. This specifically searches for newline
+// This lookup the missing heading of json value. This specifically searches for newline backwards 
+// starting from offset
 // @param offset - the tail position of file.
 // @return []byte - the missing heading, int64 - the new tail offset
 func (r *Reader) findHeadingFragment(offset int64) ([]byte, int64) {
