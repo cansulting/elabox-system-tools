@@ -24,17 +24,24 @@ const VERSION = "0.1.0"
 	Config file needs to be loaded first before it can be used.
 */
 type Package struct {
-	Cwd             string   `json:"cwd"`             // current working directory
-	PackageConfig   string   `json:"config"`          // the package config file
-	BinDir          string   `json:"binDir"`          // bin directory. if bin file property was provided this will be skip
-	Bin             string   `json:"bin"`             // bin file
-	Lib             string   `json:"lib"`             // shared library for this package.
-	Packages        []string `json:"packages"`        // list of packages to be included
-	Www             string   `json:"www"`             // www front end to be included in source
-	Nodejs          string   `json:"nodejs"`          // add node js directory if the package contain node js app
-	PostInstall     string   `json:"postinstall"`     // script that will be executed after everything is installed
-	PreInstall      string   `json:"preinstall"`      // script that will be executed upon initialization
-	CustomInstaller string   `json:"customInstaller"` // custom installer
+	Cwd               string   `json:"cwd"`               // current working directory
+	PackageConfig     string   `json:"config"`            // the package config file
+	BinDir            string   `json:"binDir"`            // bin directory. if bin file property was provided this will be skip
+	Bin               string   `json:"bin"`               // bin file
+	Lib               string   `json:"lib"`               // shared library for this package.
+	Packages          []string `json:"packages"`          // list of packages to be included
+	Www               string   `json:"www"`               // www front end to be included in source
+	Nodejs            string   `json:"nodejs"`            // add node js directory if the package contain node js app
+	PostInstall       string   `json:"postinstall"`       // script that will be executed after everything is installed
+	PreInstall        string   `json:"preinstall"`        // script that will be executed upon initialization
+	CustomInstaller   string   `json:"customInstaller"`   // custom installer
+	ContinueOnMissing bool     `json:"continueOnMissing"` // true if continue to package if theres a missing subpackage
+}
+
+func NewPackage() *Package {
+	return &Package{
+		ContinueOnMissing: false,
+	}
 }
 
 // load packager config file from path
@@ -112,13 +119,18 @@ func (c *Package) Compile(destdir string) error {
 			return errors.SystemNew("Package.Compile() failed adding lib files @ "+c.Lib, err)
 		}
 	}
-	// add packages
+	// add sub packages
 	if c.Packages != nil {
 		for _, p := range c.Packages {
 			log.Println("Compile() adding subpackage " + p)
 			pkconfig := data.DefaultPackage()
 			if err := pkconfig.LoadFromZipPackage(p); err != nil {
-				return errors.SystemNew("Package.Compile() failed loading package "+p, err)
+				if !c.ContinueOnMissing {
+					return errors.SystemNew("Compile() failed loading subpackage package "+p, err)
+				} else {
+					log.Println("Warning: subpackage cannot be found @ ", p, ". skipped.")
+					continue
+				}
 			}
 			if err := addFile("packages/"+pkconfig.PackageId+"."+global.PACKAGE_EXT, p, zipwriter); err != nil {
 				return errors.SystemNew("Package.Compile() failed adding package "+p, err)

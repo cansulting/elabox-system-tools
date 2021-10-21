@@ -19,7 +19,7 @@ func main() {
 
 func load(path string) error {
 	log.Println("Ela Packager")
-	pkg := &Package{}
+	pkg := NewPackage()
 	if err := pkg.LoadConfig(path); err != nil {
 		return err
 	}
