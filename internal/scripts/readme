@@ -8,7 +8,7 @@ setup.sh
 - use to setup development environment. download golang, toolchains, dependeng projects etc...
 
 build.sh 
-- build, generate package and binaries of the whole project
+- build, generate package and binaries of Elabox system
 - to use:
     cd <scripts directory>
     ./build.sh -o <can linux/windows/macos> -a <can be amd64/arm64/386>
