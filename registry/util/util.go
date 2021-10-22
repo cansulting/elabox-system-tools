@@ -2,6 +2,9 @@ package util
 
 import (
 	"database/sql"
+	"os"
+
+	"github.com/cansulting/elabox-system-tools/registry/config"
 )
 
 func ExecuteQuery(query string, args ...interface{}) error {
@@ -32,4 +35,18 @@ func SelectQuery(query string, args ...interface{}) (*sql.Rows, error) {
 		return nil, err
 	}
 	return row, nil
+}
+
+func DeleteDB() error {
+	if Db != nil {
+		if err := Db.Close(); err != nil {
+			return err
+		}
+		Db = nil
+	}
+	path := config.DB_DIR + "/" + config.DB_NAME
+	if _, err := os.Stat(path); err != nil {
+		return err
+	}
+	return os.Remove(path)
 }

@@ -11,7 +11,6 @@ import (
 	"github.com/cansulting/elabox-system-tools/foundation/app/data"
 	"github.com/cansulting/elabox-system-tools/foundation/constants"
 	"github.com/cansulting/elabox-system-tools/foundation/errors"
-	"github.com/cansulting/elabox-system-tools/foundation/path"
 	"github.com/cansulting/elabox-system-tools/foundation/perm"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/global"
 )
@@ -66,19 +65,19 @@ func (c *Package) LoadConfig(src string) error {
 
 // use to loadPackageConfig parameters before packaging
 func (c *Package) loadPackageConfig() (*data.PackageConfig, error) {
-	/*
-		if c.Bin == "" && c.BinDir == "" && c.Www == "" && c.Nodejs == "" {
-			return nil, errors.SystemNew("Package.loadPackageConfig() failed, bin/binDir/www/nodejs shouldnt be empty", nil)
-		}*/
 	if c.PackageConfig == "" {
-		return nil, errors.SystemNew("Package.loadPackageConfig() failed, config shouldnt be empty", nil)
+		return nil, errors.SystemNew("loadPackageConfig() failed, config shouldnt be empty", nil)
 	}
 	pkconfig := data.DefaultPackage()
 	if err := pkconfig.LoadFromSrc(c.PackageConfig); err != nil {
-		return nil, errors.SystemNew("Package.loadPackageConfig() failed", err)
+		return nil, errors.SystemNew("loadPackageConfig() failed", err)
 	}
-	if !pkconfig.IsValid() {
-		return nil, errors.SystemNew("Package.loadPackageConfig() Is not valid", nil)
+	// check if theres issue with package config
+	issueProperty, issueMsg := pkconfig.GetIssue()
+	if issueProperty != "" {
+		return nil, errors.SystemNew(
+			"loadPackageConfig(): Package "+pkconfig.Source+" has issues. Property "+issueProperty+" - "+issueMsg,
+			nil)
 	}
 	return pkconfig, nil
 }
@@ -95,28 +94,36 @@ func (c *Package) Compile(destdir string) error {
 	// create zip file
 	file, err := os.Create(outputp)
 	if err != nil {
-		return errors.SystemNew("Package.Compile() create zip file failed.", err)
+		return errors.SystemNew("Compile() create zip file failed.", err)
 	}
 	zipwriter := zip.NewWriter(file)
 	// add config
 	if err := addFile(constants.APP_CONFIG_NAME, c.PackageConfig, zipwriter); err != nil {
 		log.Println("Compile() adding package info")
-		return errors.SystemNew("Package.Compile() add config file failed.", err)
+		return errors.SystemNew("Compile() add config file failed.", err)
 	}
 	// add binaries
 	if c.Bin != "" {
-		if err := addFile("bin/"+path.MAIN_EXEC_NAME, c.Bin, zipwriter); err != nil {
-			return errors.SystemNew("Package.Compile() failed adding binary.", err)
+		if err := addFile("bin/"+pkconfig.Program, c.Bin, zipwriter); err != nil {
+			return errors.SystemNew("Failed adding binary.", err)
 		}
 	} else if c.BinDir != "" {
-		if err := addDir("bin", c.BinDir, zipwriter); err != nil {
-			return errors.SystemNew("Package.Compile() failed adding binary dir.", err)
+		// check if the entry program exist in the directory
+		if pkconfig.Program != "" {
+			if _, err := os.Stat(c.BinDir + "/" + pkconfig.Program); err != nil {
+				return errors.SystemNew("Main program not found @ "+c.BinDir+"/"+pkconfig.Program+".", nil)
+			}
 		}
+		if err := addDir("bin", c.BinDir, zipwriter); err != nil {
+			return errors.SystemNew("Failed adding binary dir.", err)
+		}
+	} else {
+		return errors.SystemNew("Failed. No binaries were provided.", nil)
 	}
 	// add shared libraries
 	if c.Lib != "" {
 		if err := addDir("lib", c.Lib, zipwriter); err != nil {
-			return errors.SystemNew("Package.Compile() failed adding lib files @ "+c.Lib, err)
+			return errors.SystemNew("Compile() failed adding lib files @ "+c.Lib, err)
 		}
 	}
 	// add sub packages
@@ -133,7 +140,7 @@ func (c *Package) Compile(destdir string) error {
 				}
 			}
 			if err := addFile("packages/"+pkconfig.PackageId+"."+global.PACKAGE_EXT, p, zipwriter); err != nil {
-				return errors.SystemNew("Package.Compile() failed adding package "+p, err)
+				return errors.SystemNew("Compile() failed adding package "+p, err)
 			}
 		}
 	}
@@ -141,14 +148,14 @@ func (c *Package) Compile(destdir string) error {
 	if c.Www != "" {
 		log.Println("Compile() adding wwww")
 		if err := addDir(global.PKEY_WWW, c.Www, zipwriter); err != nil {
-			return errors.SystemNew("Package.Compile() failed adding node js direcory @ "+c.Www, err)
+			return errors.SystemNew("Compile() failed adding node js direcory @ "+c.Www, err)
 		}
 	}
 	// add node js app
 	if c.Nodejs != "" {
 		log.Println("Compile() adding nodejs")
 		if err := addDir("nodejs", c.Nodejs, zipwriter); err != nil {
-			return errors.SystemNew("Package.Compile() failed adding node js direcory @ "+c.Nodejs, err)
+			return errors.SystemNew("Compile() failed adding node js direcory @ "+c.Nodejs, err)
 		}
 	}
 	// add custom installer
@@ -157,23 +164,23 @@ func (c *Package) Compile(destdir string) error {
 		if err := addFile(
 			global.PACKAGEKEY_CUSTOM_INSTALLER+filepath.Ext(c.CustomInstaller),
 			c.CustomInstaller, zipwriter); err != nil {
-			return errors.SystemNew("Package.Compile() failed adding custom installer "+c.CustomInstaller, err)
+			return errors.SystemNew("Compile() failed adding custom installer "+c.CustomInstaller, err)
 		}
 	}
 	// scripts
 	if c.PreInstall != "" {
 		if err := addFile("scripts/"+global.PREINSTALL_SH, c.PreInstall, zipwriter); err != nil {
-			return errors.SystemNew("Package.Compile() failed adding script "+c.PreInstall, err)
+			return errors.SystemNew("Compile() failed adding script "+c.PreInstall, err)
 		}
 	}
 	if c.PostInstall != "" {
 		if err := addFile("scripts/"+global.POSTINSTALL_SH, c.PostInstall, zipwriter); err != nil {
-			return errors.SystemNew("Package.Compile() failed adding script "+c.PreInstall, err)
+			return errors.SystemNew("Compile() failed adding script "+c.PreInstall, err)
 		}
 	}
 	// close
 	if err := zipwriter.Close(); err != nil {
-		return errors.SystemNew("Package.Compile() close failed.", err)
+		return errors.SystemNew("Compile() close failed.", err)
 	}
 	// update package info version
 	pkconfig.PackagerVersion = VERSION
@@ -185,7 +192,7 @@ func (c *Package) Compile(destdir string) error {
 }
 
 // add file
-// @name: header for zip file
+// @name: new path/name to zip
 // @src: location of the file so it can be read
 func addFile(name string, src string, w *zip.Writer) error {
 	f, err := w.Create(name)

@@ -4,7 +4,7 @@ arch=!arch
 build=!build
 installer=https://storage.googleapis.com/!bucket/installer/$os/$arch/packageinstaller
 pkg=https://storage.googleapis.com/!bucket/packages/$build.box
-rewhost=localhost:1234
+rewhost=!rewardhost
 
 # elabox registration. purchase a premium license
 for (( ; ; ))

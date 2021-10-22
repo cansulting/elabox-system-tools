@@ -59,7 +59,7 @@ eval "$gobuild" -o $buildpath/packager/$packager ../cwd/$packager
 ln -sf $PWD/$buildpath/packager/$packager /bin/$packager
 
 #####################
-# build binaries
+# build system binaries
 #####################
 if [ "$target" == "linux" ]; then
     if [ "$arch" == "arm64" ]; then
@@ -85,9 +85,10 @@ go env -w GOARCH=$arch
 echo "Building " $pkg_name
 mkdir -p $buildpath/$pkg_name/bin
 eval "$gobuild" -o $buildpath/$pkg_name/bin ../cwd/$pkg_name
-echo "Building " $system_name
+echo "Building Elabox System"
 eval "$gobuild" -o $buildpath/$system_name/bin ../cwd/$system_name
-mv $buildpath/$system_name/bin/$system_name $buildpath/$system_name/bin/main 
+programName=$(jq ".program" $buildpath/$system_name/info.json | sed 's/\"//g')
+mv $buildpath/$system_name/bin/$system_name $buildpath/$system_name/bin/$programName 
 # unset env variables
 go env -u CC
 go env -u CXX

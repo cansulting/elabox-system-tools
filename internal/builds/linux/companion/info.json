@@ -1,9 +1,14 @@
 {
-    "name": "Ela Companion",
-    "description": "Companion App",
-    "packageId": "ela.companion",
-    "version": "0.2.0",
-    "build": 2,
-    "location": "system",
-    "nodejs": true
+	"name": "Ela Companion",
+	"description": "Companion App",
+	"packageId": "ela.companion",
+	"build": 2,
+	"version": "0.1.0",
+	"permissions": null,
+	"exportService": false,
+	"activities": null,
+	"actionListener": null,
+	"location": "system",
+	"nodejs": true,
+	"packagerVersion": "0.1.0"
 }

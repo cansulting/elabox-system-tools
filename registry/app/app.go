@@ -15,7 +15,7 @@ import (
 
 // retrieve all packages
 func RetrieveAllPackages() ([]*data.PackageConfig, error) {
-	row, err := retrievePackagesRaw("", []string{"id, source, name, location, nodejs"})
+	row, err := retrievePackagesRaw("", []string{"id, source, version, name, location, nodejs, program"})
 	if err != nil {
 		return nil, err
 	}
@@ -29,8 +29,8 @@ func RegisterPackage(pkData *data.PackageConfig) error {
 	logger.GetInstance().Info().Str("category", "registry").Msg("Registering package " + pkData.PackageId)
 	query := `
 		replace into 
-		packages(id, location, build, version, name, desc, source, nodejs, exportService) 
-		values(?,?,?,?,?,?,?,?,?)`
+		packages(id, location, build, version, name, desc, source, nodejs, exportService, program) 
+		values(?,?,?,?,?,?,?,?,?,?)`
 	err := util.ExecuteQuery(
 		query,
 		pkData.PackageId,
@@ -42,6 +42,7 @@ func RegisterPackage(pkData *data.PackageConfig) error {
 		pkData.Source,
 		pkData.Nodejs,
 		pkData.ExportServices,
+		pkData.Program,
 	)
 	if err != nil {
 		return errors.SystemNew("records.AddPackage Failed to add "+pkData.PackageId, err)
@@ -66,7 +67,7 @@ func RegisterPackageSrc(srcDir string) (*data.PackageConfig, error) {
 }
 
 func RetrievePackage(id string) (*data.PackageConfig, error) {
-	pks, err := retrievePackagesRaw(id, []string{"id", "source", "version", "name", "location", "nodejs"})
+	pks, err := retrievePackagesRaw(id, []string{"id", "source", "version", "name", "location", "nodejs", "program"})
 	if err != nil {
 		return nil, errors.SystemNew("appman.RetrievePackage failed", err)
 	}
@@ -84,7 +85,7 @@ func RetrievePackagesWithActivity(action string) ([]string, error) {
 // retrieve all packages that needs to execute upon startup
 func RetrieveStartupPackages() ([]*data.PackageConfig, error) {
 	row, err := retrievePackagesWhere(
-		[]string{"id, source, name, location, nodejs, exportService"},
+		[]string{"id, source, name, location, nodejs, exportService, program"},
 		"nodejs=true or exportService=true")
 	if err != nil {
 		return nil, err
@@ -93,7 +94,7 @@ func RetrieveStartupPackages() ([]*data.PackageConfig, error) {
 	results := make([]*data.PackageConfig, 0, 10)
 	for row.Next() {
 		pk := data.DefaultPackage()
-		row.Scan(&pk.PackageId, &pk.Source, &pk.Name, &pk.InstallLocation, &pk.Nodejs, &pk.ExportServices)
+		row.Scan(&pk.PackageId, &pk.Source, &pk.Name, &pk.InstallLocation, &pk.Nodejs, &pk.ExportServices, &pk.Program)
 		results = append(results, pk)
 	}
 	return results, nil

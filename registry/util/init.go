@@ -4,10 +4,8 @@ import (
 	"database/sql"
 	"os"
 
-	"github.com/cansulting/elabox-system-tools/foundation/constants"
 	"github.com/cansulting/elabox-system-tools/foundation/errors"
 	"github.com/cansulting/elabox-system-tools/foundation/logger"
-	"github.com/cansulting/elabox-system-tools/foundation/path"
 	"github.com/cansulting/elabox-system-tools/foundation/perm"
 	"github.com/cansulting/elabox-system-tools/registry/config"
 
@@ -20,7 +18,7 @@ func initialize() error {
 	if Db != nil {
 		return nil
 	}
-	srcDir := path.GetSystemAppDirData(constants.SYSTEM_SERVICE_ID)
+	srcDir := config.DB_DIR
 	src := srcDir + "/" + config.DB_NAME
 	logger.GetInstance().Info().Str("category", "registry").Msg("DB Initialize @" + src)
 	if _, err := os.Stat(srcDir); err != nil {
@@ -55,7 +53,8 @@ func createPackageTable(db *sql.DB) error {
 		version varchar(10) not null,
 		source varchar(400) not null,
 		nodejs tinyint(1) not null,
-		exportService tinyint(1) not null
+		exportService tinyint(1) not null,
+		program varchar(200)
 	)`
 	stmt, err := db.Prepare(packageQuery)
 	if err != nil {

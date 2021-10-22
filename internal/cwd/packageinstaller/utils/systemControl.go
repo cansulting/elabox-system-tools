@@ -21,10 +21,10 @@ func isSystemRunning() bool {
 }
 
 // restart the main system
-func RestartSystem() error {
-	pkc.Logger.Info().Msg("Restarting system...")
+func StartSystem() error {
+	pkc.Logger.Info().Msg("Starting up system...")
 	// step: execute system binary
-	systemPath := path.GetAppMain(constants.SYSTEM_SERVICE_ID, false)
+	systemPath := path.GetAppInstallLocation(constants.SYSTEM_SERVICE_ID, false) + "/" + constants.SYSTEM_SERVICE_ID
 	cmd := exec.Command(systemPath)
 	//cmd.Stderr = os.Stderr
 	//cmd.Stdout = os.Stdout
@@ -36,9 +36,10 @@ func RestartSystem() error {
 }
 
 func TerminateSystem() error {
+
 	pkc.Logger.Info().Msg("Terminating system...")
 	// step: execute system binary
-	systemPath := path.GetAppMain(constants.SYSTEM_SERVICE_ID, false)
+	systemPath := path.GetAppInstallLocation(constants.SYSTEM_SERVICE_ID, false) + "/" + constants.SYSTEM_SERVICE_ID
 	if _, err := os.Stat(systemPath); err != nil {
 		pkc.Logger.Warn().Msg("Terminate skipped. System is not installed.")
 		return nil

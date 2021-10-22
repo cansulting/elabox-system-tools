@@ -4,6 +4,7 @@
 	"packageId": "ela.feeds",
 	"build": 1,
 	"version": "0.1.0",
+	"program": "feedsd",
 	"permissions": null,
 	"exportService": false,
 	"activities": null,

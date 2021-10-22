@@ -1,16 +1,18 @@
 {
-    "name": "Package Manager",
-    "description": "Package Installer",
-    "packageId": "ela.installer",
-    "version": "0.1.0",
-    "build": 1,
-    "location": "system",
-    "permissions": [
-
-    ],
-    "activities": ["ela.action.INSTALL", "ela.action.SYSTEM_INSTALL"],
-    "services:": {
-    },
-    "actionListener": [],
-    "restart": true
+	"name": "Package Manager",
+	"description": "Package Installer",
+	"packageId": "ela.installer",
+	"build": 1,
+	"version": "0.1.0",
+	"program": "packageinstaller",
+	"permissions": [],
+	"exportService": false,
+	"activities": [
+		"ela.action.INSTALL",
+		"ela.action.SYSTEM_INSTALL"
+	],
+	"actionListener": [],
+	"location": "system",
+	"nodejs": false,
+	"packagerVersion": "0.1.0"
 }
