@@ -15,7 +15,6 @@ const PATH_APPDATA = PATH_HOME + "/data"           // where non system bin/apps 
 const PATH_DOWNLOADS = PATH_APPDATA + "/downloads" // where downloaded files will be stored
 const PATH_SYSTEM_WWW = "/var/www"
 const PATH_EXTERNAL_WWW = PATH_HOME + "/www"
-const MAIN_EXEC_NAME = "main"
 const PATH_LIB = "/usr/local/lib/ela"
 
 func GetSystemAppDir() string {
@@ -49,11 +48,11 @@ func GetExternalAppData(packageId string) string {
 }
 
 // get the app main executable
-func GetAppMain(packageId string, external bool) string {
+func GetAppInstallLocation(packageId string, external bool) string {
 	if external {
-		return GetExternalAppDir() + "/" + packageId + "/main"
+		return GetExternalAppDir() + "/" + packageId
 	} else {
-		return GetSystemAppDir() + "/" + packageId + "/main"
+		return GetSystemAppDir() + "/" + packageId
 	}
 }
 

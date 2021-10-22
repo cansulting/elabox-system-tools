@@ -36,6 +36,7 @@ type PackageConfig struct {
 	PackageId   string `json:"packageId"`   // identifies the package/application. this should be unique. format = company.package
 	Build       int16  `json:"build"`       // this should be incremental starting from 1
 	Version     string `json:"version"`     // major.minor.patch
+	Program     string `json:"program"`     // the main program file to execute
 	// request permission for specific action/feature
 	// if the specific action was called and was not defined. the process will be void
 	Permissions      []string `json:"permissions"`
@@ -84,8 +85,20 @@ func (c *PackageConfig) LoadFromBytes(bytes []byte) error {
 }
 
 // use to check if this package is valid
-func (c *PackageConfig) IsValid() bool {
-	return c.PackageId != ""
+func (c *PackageConfig) GetIssue() (string, string) {
+	if c.PackageId == "" {
+		return "packageId", "Input a valid packageId.  eg <company>.<app name>"
+	}
+	if c.Name == "" {
+		return "name", "Provide a proper name for package."
+	}
+	if !c.Nodejs && c.Program == "" {
+		return "program", "Provide a valid file name for main program entry."
+	}
+	if c.Build < 0 {
+		return "build", "Provide a valid build number. Value should be greater to 0"
+	}
+	return "", ""
 }
 
 // returns true if this package is part of the system
@@ -157,8 +170,9 @@ func (c *PackageConfig) GetNodejsDir() string {
 }
 
 // get package's main binary
-func (c *PackageConfig) GetMainExec() string {
-	return path.GetAppMain(c.PackageId, c.InstallLocation == EXTERNAL)
+// returns binary location
+func (c *PackageConfig) GetMainProgram() string {
+	return path.GetAppInstallLocation(c.PackageId, c.InstallLocation == EXTERNAL) + "/" + c.Program
 }
 
 // get package's library directory
@@ -167,8 +181,11 @@ func (c *PackageConfig) GetLibraryDir() string {
 }
 
 // return true if has main binary
-func (c *PackageConfig) HasMainExec() bool {
-	if _, err := os.Stat(c.GetMainExec()); err == nil {
+func (c *PackageConfig) HasMainProgram() bool {
+	if c.Program == "" {
+		return false 
+	}
+	if _, err := os.Stat(c.GetMainProgram()); err == nil {
 		return true
 	}
 	return false
