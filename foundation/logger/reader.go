@@ -97,8 +97,8 @@ func (r *Reader) Load(start int64, length int64, filter func(int, Log) bool) int
 	if r.EndingOffset <= 0 {
 		return 0
 	}
-	var from int64 = 0
-	var to int64 = r.EndingOffset
+	var from int64 = 0 // start of the file
+	var to int64 = r.EndingOffset // end of file
 	if start > 0 && start < r.EndingOffset {
 		to = start
 	}
@@ -138,7 +138,7 @@ func (r *Reader) Load(start int64, length int64, filter func(int, Log) bool) int
 			println("Finished")
 			break
 		}
-		// step: fix heading
+		// step: fix heading/opening of json
 		// the heading might be incomplete
 		logs := stringPool.Get().(string)
 		if offset > 0 && chunk[0] != '\n' {
