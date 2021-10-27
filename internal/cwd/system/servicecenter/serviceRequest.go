@@ -149,7 +149,7 @@ func sendPackageRPC(pkid string, action data.Action) string {
 	// step: get package
 	app := appman.GetAppConnect(pkid, nil)
 	if app == nil {
-		return rpc.CreateResponse(rpc.INVALID_CODE, "Cant find package, package should be running")
+		return rpc.CreateResponse(rpc.INVALID_CODE, "Unable to send RPC, cant find package.")
 	}
 	// step: call rpc
 	res, err := app.RPC.CallAct(action)
