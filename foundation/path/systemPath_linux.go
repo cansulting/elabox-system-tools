@@ -1,10 +1,19 @@
 package path
 
-/*
-	SystemPath.go
-	Constant and variables used by the system.
-	Reference: https://help.ubuntu.com/community/LinuxFilesystemTreeOverview
-*/
+// Copyright 2021 The Elabox Authors
+// This file is part of the elabox-system-tools library.
+
+// The elabox-system-tools library is under open source LGPL license.
+// If you simply compile or link an LGPL-licensed library with your own code,
+// you can release your application under any license you want, even a proprietary license.
+// But if you modify the library or copy parts of it into your code,
+// you’ll have to release your application under similar terms as the LGPL.
+// Please check license description @ https://www.gnu.org/licenses/lgpl-3.0.txt
+
+// SystemPath.go
+// Constant and variables used by the system.
+// Reference: https://help.ubuntu.com/community/LinuxFilesystemTreeOverview
+
 
 const PATH_SYSTEM = "/usr/ela/system"              // where ela binaries will be stored
 const PATH_CACHES = "/tmp/ela"                     // dir where caches will be saved
@@ -15,7 +24,6 @@ const PATH_APPDATA = PATH_HOME + "/data"           // where non system bin/apps 
 const PATH_DOWNLOADS = PATH_APPDATA + "/downloads" // where downloaded files will be stored
 const PATH_SYSTEM_WWW = "/var/www"
 const PATH_EXTERNAL_WWW = PATH_HOME + "/www"
-const MAIN_EXEC_NAME = "main"
 const PATH_LIB = "/usr/local/lib/ela"
 
 func GetSystemAppDir() string {
@@ -49,11 +57,11 @@ func GetExternalAppData(packageId string) string {
 }
 
 // get the app main executable
-func GetAppMain(packageId string, external bool) string {
+func GetAppInstallLocation(packageId string, external bool) string {
 	if external {
-		return GetExternalAppDir() + "/" + packageId + "/main"
+		return GetExternalAppDir() + "/" + packageId
 	} else {
-		return GetSystemAppDir() + "/" + packageId + "/main"
+		return GetSystemAppDir() + "/" + packageId
 	}
 }
 

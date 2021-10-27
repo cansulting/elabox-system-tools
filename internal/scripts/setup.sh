@@ -33,10 +33,12 @@ if [ ! -d "/usr/local/go" ]; then
     echo ""export PATH=$PATH:/usr/local/go/bin"" >> ~/.bash_profile
 
     # install gcc pipelines
+    snap install zig --beta --classic # for cross compiling remove other toolchains
     sudo apt install gcc-aarch64-linux-gnu
     sudo apt install gcc-multilib -y
-    sudo apt install x86_64-linux-gnu-gcc
-    sudo apt-get install gcc-mingw-w64
+    sudo apt install gcc-9-x86-64-linux-gnux32 # linux amd64
+    sudo apt-get install gcc-mingw-w64 # windows
+    sudo apt-get install gcc-i686-linux-gnu #linux intel
     # for carrier build 
     sudo apt-get install build-essential autoconf automake autopoint libtool bison texinfo pkg-config cmake
 else

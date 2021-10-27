@@ -2,7 +2,7 @@ echo "setting up ela system as service"
 fname=ebox
 fnamex=$fname.service
 src=$PWD/$fnamex
-srcbin=$PWD/main
+srcbin=$PWD/ela.system
 target=/lib/systemd/system/$fnamex
 r=$(echo $src)
 # replace source from file

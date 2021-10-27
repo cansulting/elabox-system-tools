@@ -6,6 +6,7 @@ EID_SRC=$PROJ_HOME/Elastos.ELA.SideChain.EID
 ESC_SRC=$PROJ_HOME/Elastos.ELA.SideChain.ESC
 ELA_COMPANION=$PROJ_HOME/elabox-companion
 ELA_LANDING=$PROJ_HOME/landing-page
+ELA_REWARDS=$PROJ_HOME/elabox-rewards
 cos=$(go env GOOS)                  # current os. 
 carc=$(go env GOARCH)               # current archi
 pkg_name=packageinstaller           # package installer project name
@@ -30,7 +31,7 @@ echo "OS="$target
 echo "Arch="$arch
 
 # release mode?
-echo "Build Mode: 1 - RELEASE, 2 - STAGING, Default - DEBUG"
+echo "Build Mode: 1 - RELEASE, 2 - STAGING, 3 - Default - DEBUG (leave empty if DEBUG)"
 read mode
 if [ "$mode" == "1" ]; then
     MODE=RELEASE
@@ -58,12 +59,15 @@ eval "$gobuild" -o $buildpath/packager/$packager ../cwd/$packager
 ln -sf $PWD/$buildpath/packager/$packager /bin/$packager
 
 #####################
-# build binaries
+# build system binaries
 #####################
 if [ "$target" == "linux" ]; then
     if [ "$arch" == "arm64" ]; then
         # specific gcc for arm64
         go env -w CC=aarch64-linux-gnu-gcc
+    elif [ "$arch" == "386" ]; then
+        # intel
+        go env -w CC=i686-linux-gnu-gcc
     fi
 else
     # windows intel
@@ -81,12 +85,20 @@ go env -w GOARCH=$arch
 echo "Building " $pkg_name
 mkdir -p $buildpath/$pkg_name/bin
 eval "$gobuild" -o $buildpath/$pkg_name/bin ../cwd/$pkg_name
-echo "Building " $system_name
+echo "Building Elabox System"
 eval "$gobuild" -o $buildpath/$system_name/bin ../cwd/$system_name
-mv $buildpath/$system_name/bin/$system_name $buildpath/$system_name/bin/main 
+programName=$(jq ".program" $buildpath/$system_name/info.json | sed 's/\"//g')
+mv $buildpath/$system_name/bin/$system_name $buildpath/$system_name/bin/$programName 
 # unset env variables
 go env -u CC
 go env -u CXX
+# build reward if exists
+if [ -d "$ELA_REWARDS" ]; then 
+    wd=$PWD
+    cd $ELA_REWARDS/scripts
+    ./build.sh -o $target -a $arch -d $MODE
+    cd $wd
+fi
 
 #########################
 # build companion app?
@@ -121,8 +133,7 @@ fi
 if [ "$built" == "1" ]; then 
     echo "Build success!"
     echo "Packaging..."
-    pkgerPath=../builds/$cos/$packager/$packager
-    $pkgerPath $buildpath/companion/packager.json
+    packager $buildpath/companion/packager.json
 fi
 
 ##################################
@@ -140,7 +151,7 @@ if [ "$answer" == "y" ]; then
 fi
 
 ##################################
-# elastos mainchain, eid, cli
+# elastos mainchain, eid, cli, esc
 ##################################
 echo "Do you want to rebuild elastos binaries? (y/n)"
 read answer
@@ -191,12 +202,12 @@ fi
 # Packaging
 #########################
 echo "Start packaging..."
-pkgerPath=../builds/$cos/$packager/$packager
-$pkgerPath $buildpath/eid/packager.json
-$pkgerPath $buildpath/esc/packager.json
-$pkgerPath $buildpath/carrier/packager.json
-$pkgerPath $buildpath/mainchain/packager.json
-$pkgerPath $buildpath/$pkg_name/packager.json
-$pkgerPath $buildpath/$system_name/packager.json
+packager $buildpath/eid/packager.json
+packager $buildpath/esc/packager.json
+packager $buildpath/carrier/packager.json
+packager $buildpath/mainchain/packager.json
+packager $buildpath/$pkg_name/packager.json
+packager $buildpath/feeds/packager.json
+packager $buildpath/$system_name/packager.json
 
 go env -u CGO_ENABLED

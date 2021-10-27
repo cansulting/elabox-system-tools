@@ -8,6 +8,8 @@ import (
 	pkconst "github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/constants"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/landing"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/pkg"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/sysinstall.go"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/sysupgrade"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/utils"
 
 	"github.com/rs/zerolog"
@@ -39,30 +41,53 @@ func startCommandline() {
 		println("-i - ignore custom installer")
 		return
 	}
-	systemUpdate := IsArgExist("-s")
+	pk := os.Args[1]
+	processInstallCommand(pk, IsArgExist("-r"), IsArgExist("-s"), IsArgExist("-l"), !IsArgExist("-i"))
+}
+
+func processInstallCommand(targetPk string, restart bool, systemUpdate bool, logging bool, customInstaller bool) {
 	// true if restarts system
-	restartSystem := IsArgExist("-r") || systemUpdate
-	args := os.Args
-	targetPk := args[1]
+	restartSystem := restart || systemUpdate
 	// step: load package
 	content, err := pkg.LoadFromSource(targetPk)
 	if err != nil {
 		pkconst.Logger.Fatal().Err(err).Caller().Msg("Failed running commandline")
 		return
 	}
-	// request for server broadcast
-	if IsArgExist("-l") || systemUpdate {
+	// step: request for server broadcast
+	if logging || systemUpdate {
 		logger.SetHook(loggerHook{})
 		pkconst.Logger = logger.GetInstance()
 	}
 	// step: we need clients to system update via ports
 	if systemUpdate {
 		startServer(content)
+		// step: check if theres a last failed installation
+		lastState := sysinstall.GetLastState()
+		if lastState == sysinstall.SUCCESS {
+			// upgrades
+			oldpk := sysinstall.GetInstalledPackage()
+			oldbuildnum := -1
+			newBuildNum := int(content.Config.Build)
+			if oldpk != nil {
+				oldbuildnum = int(oldpk.Build)
+			}
+			if err := sysupgrade.Start(oldbuildnum, newBuildNum); err != nil {
+				pkconst.Logger.Error().Err(err).Stack().Caller().Msg("Failed system upgrade.")
+				return
+			}
+			if err := sysinstall.MarkInprogress(); err != nil {
+				pkconst.Logger.Error().Err(err).Stack().Caller().Msg("Failed to mark installation as inprogress. install aborted.")
+				return
+			}
+		} else {
+			pkconst.Logger.Info().Msg("Last installation was unsuccessfull, resuming ...")
+		}
 	} else {
 		logger.ConsoleOut = false
 	}
-	// use custom installer or not?
-	if IsArgExist("-i") || !content.HasCustomInstaller() {
+	// step: use custom installer or not?
+	if !customInstaller || !content.HasCustomInstaller() {
 		normalInstall(content)
 	} else {
 		if err := content.RunCustomInstaller(targetPk, true, "-i"); err != nil {
@@ -70,16 +95,22 @@ func startCommandline() {
 			return
 		}
 	}
-	pkconst.Logger.Info().Msg("Installed success.")
-	// step: stop listeners
+	// step: and stop listeners
 	if systemUpdate {
+		// mark as success
+		if err := sysinstall.MarkSuccess(); err != nil {
+			pkconst.Logger.Error().Err(err).Caller().Msg("Failed installation.")
+			return
+		}
+		// shutdown
 		if err := landing.Shutdown(); err != nil {
 			pkconst.Logger.Error().Err(err).Caller().Msg("Error shutting down.")
 		}
 	}
+	pkconst.Logger.Info().Msg("Installed success.")
 	// step: restart system
 	if restartSystem {
-		if err := utils.RestartSystem(); err != nil {
+		if err := utils.StartSystem(); err != nil {
 			pkconst.Logger.Fatal().Err(err)
 			return
 		}
@@ -94,20 +125,20 @@ func normalInstall(content *pkg.Data) {
 	newInstall := NewInstaller(content, true)
 	// step: start install
 	if err := newInstall.Start(); err != nil {
+		pkconst.Logger.Error().Err(err).Stack().Msg("Failed installation.")
 		// failed? revert changes
 		if err := newInstall.RevertChanges(); err != nil {
 			pkconst.Logger.Error().Err(err).Caller().Msg("Failed reverting installer.")
 		}
-		pkconst.Logger.Fatal().Err(err).Stack()
 		return
 	}
 	// step: post install
 	if err := newInstall.Finalize(); err != nil {
+		pkconst.Logger.Error().Err(err).Caller().Stack().Msg("Failed installation.")
 		// failed? revert changes
 		if err := newInstall.RevertChanges(); err != nil {
 			pkconst.Logger.Error().Err(err).Caller().Msg("Failed reverting installer.")
 		}
-		pkconst.Logger.Fatal().Err(err).Stack()
 		return
 	}
 }
@@ -125,10 +156,6 @@ func startServer(content *pkg.Data) {
 	} else {
 		pkconst.Logger.Error().Err(err).Caller().Msg("Failed extracting landing page. Skipping www listener")
 	}
-	// step: if theres a landing page. wait for user to connect to landing page before continuing
-	//if landingDir != "" {
-	//	landing.WaitForConnection()
-	//}
 }
 
 func IsArgExist(arg string) bool {

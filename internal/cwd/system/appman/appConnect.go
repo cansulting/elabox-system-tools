@@ -22,7 +22,6 @@ import (
 	"github.com/cansulting/elabox-system-tools/foundation/constants"
 	eventd "github.com/cansulting/elabox-system-tools/foundation/event/data"
 	"github.com/cansulting/elabox-system-tools/foundation/event/protocol"
-	"github.com/cansulting/elabox-system-tools/foundation/path"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/system/global"
 )
 
@@ -58,7 +57,7 @@ func newAppConnect(
 		Config:         pk,
 		PendingActions: eventd.NewActionGroup(),
 		PackageId:      pk.PackageId,
-		Location:       path.GetAppMain(pk.PackageId, !pk.IsSystemPackage()),
+		Location:       pk.GetMainProgram(),
 		RPC:            NewRPCBridge(pk.PackageId, client, global.Server.EventServer),
 		nodejs:         node,
 	}
@@ -80,7 +79,7 @@ func (app *AppConnect) RPCCall(action string, data interface{}) (string, error) 
 
 func (app *AppConnect) Launch() error {
 	if app.launched {
-		if app.Config.HasMainExec() {
+		if app.Config.HasMainProgram() {
 			return app.sendPendingActions()
 		}
 	}
@@ -94,7 +93,7 @@ func (app *AppConnect) Launch() error {
 		}()
 	}
 	// binary runnning
-	if app.Config.HasMainExec() {
+	if app.Config.HasMainProgram() {
 		global.Logger.Info().Msg("Launching " + app.PackageId + " app")
 		cmd := exec.Command(app.Location)
 		cmd.Dir = filepath.Dir(app.Location)

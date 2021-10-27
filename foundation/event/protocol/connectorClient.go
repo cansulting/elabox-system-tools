@@ -1,7 +1,3 @@
-package protocol
-
-import "github.com/cansulting/elabox-system-tools/foundation/event/data"
-
 // Copyright 2021 The Elabox Authors
 // This file is part of the elabox-system-tools library.
 
@@ -14,6 +10,10 @@ import "github.com/cansulting/elabox-system-tools/foundation/event/data"
 
 // this file provides funnction for generating response data for RPC
 // response data is json string which will be encoded to Base64 before transmitting
+
+package protocol
+
+import "github.com/cansulting/elabox-system-tools/foundation/event/data"
 
 // connectorClient.go
 // interface for client communication and request handling

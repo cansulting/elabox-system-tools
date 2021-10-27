@@ -57,8 +57,12 @@ func LoadFromZipFiles(files []*zip.File) (*Data, error) {
 	if err := res.Config.LoadFromZipFiles(res.Files); err != nil {
 		return nil, errors.SystemNew("Pkg.Load() failed loading config", err)
 	}
-	if !res.Config.IsValid() {
-		return nil, errors.SystemNew("LoadFromZipFiles() Package is not valid", nil)
+	// check package config if has issues
+	issueProperty, issueMsg := res.Config.GetIssue()
+	if issueProperty != "" {
+		return nil, errors.SystemNew(
+			"Package "+res.Config.Source+" has issues. "+issueProperty+" - "+issueMsg,
+			nil)
 	}
 	return res, nil
 }

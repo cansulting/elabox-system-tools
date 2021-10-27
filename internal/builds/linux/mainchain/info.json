@@ -1,8 +1,15 @@
 {
-    "name": "Mainchain",
-    "description": "Mainchain Node",
-    "packageId": "ela.mainchain",
-    "version": "0.3.0",
-    "build": 1,
-    "location": "external"
+	"name": "Mainchain",
+	"description": "Mainchain Node",
+	"packageId": "ela.mainchain",
+	"build": 1,
+	"version": "0.3.0",
+	"program": "ela",
+	"permissions": null,
+	"exportService": false,
+	"activities": null,
+	"actionListener": null,
+	"location": "external",
+	"nodejs": false,
+	"packagerVersion": "0.1.0"
 }

@@ -5,15 +5,18 @@
     "bin": "",
     "www": "./www",
     "packages": [
+        "../../../../../elabox-rewards/build/ela.rewards.box",
         "../packageinstaller/ela.installer.box", 
         "../companion/ela.companion.box",
         "../carrier/ela.carrier.box", 
         "../mainchain/ela.mainchain.box",
         "../eid/ela.eid.box",
-        "../esc/ela.esc.box"
+        "../esc/ela.esc.box",
+        "../feeds/ela.feeds.box"
     ],
     "customInstaller": "../packageinstaller/bin/packageinstaller",
     "lib": "",
     "postinstall":"./scripts/postinstall.sh",
-    "preinstall":"./scripts/preinstall.sh"
+    "preinstall":"./scripts/preinstall.sh",
+    "continueOnMissing": true
 }

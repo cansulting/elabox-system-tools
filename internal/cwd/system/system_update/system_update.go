@@ -15,7 +15,7 @@ import (
 
 // step: create a copy of this application
 func CopyInstallerBinary(pkconfig *data.PackageConfig) (string, error) {
-	binPath := path.GetAppMain(pkconfig.PackageId, !pkconfig.IsSystemPackage())
+	binPath := pkconfig.GetMainProgram()
 	dest := path.GetCacheDir() + "/" + filepath.Base(binPath)
 	log.Println("Cloning binary @ " + dest)
 	bytes, err := ioutil.ReadFile(binPath)
