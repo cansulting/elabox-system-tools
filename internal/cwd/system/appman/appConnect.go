@@ -53,15 +53,17 @@ func newAppConnect(
 	if pk.Nodejs {
 		node = &Nodejs{Config: pk}
 	}
-	return &AppConnect{
+	res := &AppConnect{
 		Config:         pk,
 		PendingActions: eventd.NewActionGroup(),
 		PackageId:      pk.PackageId,
 		Location:       pk.GetMainProgram(),
-		RPC:            NewRPCBridge(pk.PackageId, client, global.Server.EventServer),
+		RPC:            nil,
 		nodejs:         node,
 		process:        nil,
 	}
+	res.RPC = NewRPCBridge(pk.PackageId, res, global.Server.EventServer)
+	return res
 }
 
 // send pending actions

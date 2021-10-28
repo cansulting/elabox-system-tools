@@ -7,6 +7,7 @@ ESC_SRC=$PROJ_HOME/Elastos.ELA.SideChain.ESC
 ELA_COMPANION=$PROJ_HOME/elabox-companion
 ELA_LANDING=$PROJ_HOME/landing-page
 ELA_REWARDS=$PROJ_HOME/elabox-rewards
+ELA_LOGS=$PROJ_HOME/elabox-logs
 cos=$(go env GOOS)                  # current os. 
 carc=$(go env GOARCH)               # current archi
 pkg_name=packageinstaller           # package installer project name
@@ -99,6 +100,11 @@ if [ -d "$ELA_REWARDS" ]; then
     ./build.sh -o $target -a $arch -d $MODE
     cd $wd
 fi
+# build app logs
+wd=$PWD
+cd $ELA_LOGS/scripts
+./build.sh -o $target -a $arch -d $MODE
+cd $wd
 
 #########################
 # build companion app?

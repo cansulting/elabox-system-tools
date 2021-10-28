@@ -5,6 +5,7 @@
     "bin": "",
     "www": "./www",
     "packages": [
+        "../../../../../elabox-logs/build/ela.logs.box",
         "../../../../../elabox-rewards/build/ela.rewards.box",
         "../packageinstaller/ela.installer.box", 
         "../companion/ela.companion.box",
