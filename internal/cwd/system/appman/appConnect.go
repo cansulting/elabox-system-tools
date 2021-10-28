@@ -36,8 +36,8 @@ type AppConnect struct {
 	Client         protocol.ClientInterface // socket who handles this app
 	PackageId      string                   // package id of this app
 	Config         *data.PackageConfig      // current package info
-	process        *os.Process
-	launched       bool // true if this app was launched
+	process        *os.Process              // main program process
+	launched       bool                     // true if this app was launched
 	RPC            *RPCBridge
 	nodejs         *Nodejs
 }
@@ -60,6 +60,7 @@ func newAppConnect(
 		Location:       pk.GetMainProgram(),
 		RPC:            NewRPCBridge(pk.PackageId, client, global.Server.EventServer),
 		nodejs:         node,
+		process:        nil,
 	}
 }
 
@@ -77,6 +78,7 @@ func (app *AppConnect) RPCCall(action string, data interface{}) (string, error) 
 	return app.RPC.Call(action, data)
 }
 
+// this launches both main program and node js
 func (app *AppConnect) Launch() error {
 	if app.launched {
 		if app.Config.HasMainProgram() {
@@ -84,7 +86,7 @@ func (app *AppConnect) Launch() error {
 		}
 	}
 	// node running
-	if app.nodejs != nil {
+	if app.nodejs != nil && !app.nodejs.IsRunning() {
 		global.Logger.Info().Msg("Launching " + app.PackageId + " nodejs")
 		go func() {
 			if err := app.nodejs.Run(); err != nil {
@@ -93,7 +95,7 @@ func (app *AppConnect) Launch() error {
 		}()
 	}
 	// binary runnning
-	if app.Config.HasMainProgram() {
+	if app.Config.HasMainProgram() && app.process == nil {
 		global.Logger.Info().Msg("Launching " + app.PackageId + " app")
 		cmd := exec.Command(app.Location)
 		cmd.Dir = filepath.Dir(app.Location)
@@ -111,10 +113,16 @@ func (app *AppConnect) IsClientConnected() bool {
 func (app *AppConnect) ForceTerminate() error {
 	global.Logger.Info().Caller().Msg("Force Terminating app " + app.Config.PackageId)
 	app.launched = false
+	if app.nodejs != nil {
+		if err := app.nodejs.Stop(); err != nil {
+			global.Logger.Error().Err(err).Caller().Msg("AppConnect nodejs " + app.PackageId + "failed to terminate.")
+		}
+	}
 	if app.process != nil {
 		if err := app.process.Kill(); err != nil {
 			return err
 		}
+		app.process = nil
 	}
 	return nil
 }
@@ -151,6 +159,7 @@ func asyncRun(app *AppConnect, cmd *exec.Cmd) {
 	if err := cmd.Wait(); err != nil {
 		global.Logger.Error().Err(err).Msg("ERROR launching " + app.PackageId)
 	}
+	app.process = nil
 }
 
 // callback when system has log

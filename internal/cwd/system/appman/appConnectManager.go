@@ -16,6 +16,8 @@
 package appman
 
 import (
+	"errors"
+
 	appd "github.com/cansulting/elabox-system-tools/foundation/app/data"
 	"github.com/cansulting/elabox-system-tools/foundation/event/data"
 	"github.com/cansulting/elabox-system-tools/foundation/event/protocol"
@@ -112,6 +114,14 @@ func LaunchAppActivity(
 	pendingActivity data.Action) error {
 	// start launching the activity
 	app := GetAppConnect(packageId, nil)
+	if app == nil {
+		return errors.New("Package " + packageId + " was not found.")
+	}
+	// check if already launched
+	if app.launched {
+		return nil
+	}
+	// start lauching
 	app.PendingActions.AddPendingActivity(&pendingActivity)
 	err := app.Launch()
 	if err != nil {
@@ -120,9 +130,12 @@ func LaunchAppActivity(
 	return nil
 }
 
-func LaunchApp(packageId string,
-	caller protocol.ClientInterface) error {
+// use to launch app
+func LaunchApp(packageId string) error {
 	app := GetAppConnect(packageId, nil)
+	if app == nil {
+		return errors.New("Package " + packageId + " was not found.")
+	}
 	return app.Launch()
 }
 
@@ -134,7 +147,7 @@ func InitializeStartups() {
 		global.Logger.Error().Err(err).Caller().Msg("Failed retrieving startup packages.")
 	}
 	for _, pkg := range pkgs {
-		if err := LaunchApp(pkg.PackageId, nil); err != nil {
+		if err := LaunchApp(pkg.PackageId); err != nil {
 			global.Logger.Error().Err(err).Caller().Msg("Failed launching app.")
 		}
 	}

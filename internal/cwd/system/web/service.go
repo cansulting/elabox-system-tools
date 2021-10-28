@@ -1,14 +1,16 @@
 package web
 
 import (
-	"log"
 	"net/http"
 	"os"
 	"runtime/debug"
 	"strings"
 
 	"github.com/cansulting/elabox-system-tools/foundation/constants"
+	"github.com/cansulting/elabox-system-tools/foundation/event/data"
 	"github.com/cansulting/elabox-system-tools/foundation/path"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/system/appman"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/system/global"
 
 	_ "net/http/pprof"
 )
@@ -49,7 +51,7 @@ func (s *WebService) Start() error {
 		//log.Println(pkg, r.URL.Path)
 		// switch package?
 		if pkg != lastPkg {
-			log.Println("Package", pkg, "selected")
+			s.onPackageSelected(pkg)
 			lastPkg = pkg
 			debug.FreeOSMemory()
 		}
@@ -63,6 +65,15 @@ func (s *WebService) Start() error {
 	})
 
 	return nil
+}
+
+// callback when package was selected
+func (s *WebService) onPackageSelected(pkg string) {
+	global.Logger.Debug().Str("category", "web").Msg("Package " + pkg + " selected.")
+	// start the activity
+	if err := appman.LaunchAppActivity(pkg, nil, data.NewActionById(constants.ACTION_APP_LAUNCH)); err != nil {
+		global.Logger.Error().Err(err).Str("category", "web").Msg("Failed to launch activity.")
+	}
 }
 
 func (s *WebService) Close() error {

@@ -16,9 +16,16 @@ type Nodejs struct {
 	running bool
 }
 
+// return true if currently running
+func (n *Nodejs) IsRunning() bool {
+	return n.running
+}
+
 // start running node js
 func (n *Nodejs) Run() error {
 	n.running = true
+	defer func() { n.running = false }()
+	
 	path := n.Config.GetNodejsDir() + "/index.js"
 	cmd := exec.Command("node", path)
 	n.cmd = cmd
@@ -31,7 +38,6 @@ func (n *Nodejs) Run() error {
 	if err := cmd.Wait(); err != nil {
 		return errors.SystemNew("Failed running nodejs "+n.Config.PackageId, err)
 	}
-	n.running = false
 	return nil
 	//n.Stop()
 }
