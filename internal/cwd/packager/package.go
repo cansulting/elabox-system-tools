@@ -117,9 +117,9 @@ func (c *Package) Compile(destdir string) error {
 		if err := addDir("bin", c.BinDir, zipwriter); err != nil {
 			return errors.SystemNew("Failed adding binary dir.", err)
 		}
-	} else {
-		return errors.SystemNew("Failed. No binaries were provided.", nil)
-	}
+	} //else {
+	// 	return errors.SystemNew("Failed. No binaries were provided.", nil)
+	// }
 	// add shared libraries
 	if c.Lib != "" {
 		if err := addDir("lib", c.Lib, zipwriter); err != nil {
