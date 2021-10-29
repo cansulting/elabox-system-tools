@@ -1,9 +1,21 @@
+// Copyright 2021 The Elabox Authors
+// This file is part of the elabox-system-tools library.
+
+// The elabox-system-tools library is under open source LGPL license.
+// If you simply compile or link an LGPL-licensed library with your own code,
+// you can release your application under any license you want, even a proprietary license.
+// But if you modify the library or copy parts of it into your code,
+// you’ll have to release your application under similar terms as the LGPL.
+// Please check license description @ https://www.gnu.org/licenses/lgpl-3.0.txt
+
+// These file provides functionality for http client requests
+
 package web
 
 import (
 	"net/http"
 	"os"
-	"runtime/debug"
+	"runtime"
 	"strings"
 
 	"github.com/cansulting/elabox-system-tools/foundation/constants"
@@ -53,7 +65,7 @@ func (s *WebService) Start() error {
 		if pkg != lastPkg {
 			s.onPackageSelected(pkg)
 			lastPkg = pkg
-			debug.FreeOSMemory()
+			runtime.GC()
 		}
 		fpath := wwwPath + "/" + lastPkg + r.URL.Path
 		f, err := os.Stat(fpath)
@@ -69,6 +81,9 @@ func (s *WebService) Start() error {
 
 // callback when package was selected
 func (s *WebService) onPackageSelected(pkg string) {
+	if pkg == PAGE_LANDING {
+		return
+	}
 	global.Logger.Debug().Str("category", "web").Msg("Package " + pkg + " selected.")
 	// start the activity
 	if err := appman.LaunchAppActivity(pkg, nil, data.NewActionById(constants.ACTION_APP_LAUNCH)); err != nil {
