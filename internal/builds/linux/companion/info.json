@@ -4,6 +4,7 @@
 	"packageId": "ela.companion",
 	"build": 2,
 	"version": "0.1.0",
+	"program": "",
 	"permissions": null,
 	"exportService": false,
 	"activities": null,

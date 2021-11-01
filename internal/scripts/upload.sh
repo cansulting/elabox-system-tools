@@ -3,7 +3,8 @@ os=$(go env GOOS)
 arch=$(go env GOARCH)
 build=3
 bucket=elabox-debug
-rewardhost=208.87.134.80:1235 #debug host default
+#debug host default
+rewardhost=208.87.134.80:1235 
 echo "OS="$os
 echo "Arch="$arch
 echo "Upload for version 1 - Staging, 2 - Release, None = Debug"
@@ -34,7 +35,7 @@ cp -R $shi $shbk
 sed -i "s|\!bucket|$bucket|" $shbk
 sed -i "s|\!build|$build|" $shbk
 sed -i "s|\!arch|$arch|" $shbk
-sed -i "s|\!rewardhost|$rewardhost" $shbk
+sed -i "s|\!rewardhost|$rewardhost|" $shbk
 
 gsutil rm $gsinstaller
 gsutil cp $installer $gsinstaller
