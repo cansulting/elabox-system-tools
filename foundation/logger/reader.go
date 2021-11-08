@@ -76,16 +76,10 @@ func openLogfile(src string) (*os.File, error) {
 
 // use to refresh file. the file might changed last time
 func (r *Reader) refreshFile() {
-	var newEndingOffset int64 = -1
 	info, err := os.Stat(r.logFile.Name())
 	if err == nil {
-		newEndingOffset = info.Size()
+		r.EndingOffset = info.Size()
 	}
-	if r.EndingOffset > 0 && newEndingOffset > 0 {
-		return
-	}
-	r.EndingOffset = newEndingOffset
-
 }
 
 // use to load some logs.
@@ -97,7 +91,7 @@ func (r *Reader) Load(start int64, length int64, filter func(int, Log) bool) int
 	if r.EndingOffset <= 0 {
 		return 0
 	}
-	var from int64 = 0 // start of the file
+	var from int64 = 0            // start of the file
 	var to int64 = r.EndingOffset // end of file
 	if start > 0 && start < r.EndingOffset {
 		to = start
@@ -217,7 +211,7 @@ func searchNewline(chunk []byte) int {
 
 var tmpChunk = make([]byte, 20)
 
-// This lookup the missing heading of json value. This specifically searches for newline backwards 
+// This lookup the missing heading of json value. This specifically searches for newline backwards
 // starting from offset
 // @param offset - the tail position of file.
 // @return []byte - the missing heading, int64 - the new tail offset
