@@ -55,9 +55,13 @@ func RunApp(app *Controller) error {
 func NewController(
 	activity protocol.ActivityInterface,
 	service protocol.ServiceInterface) (*Controller, error) {
+
 	config := appd.DefaultPackage()
 	if err := config.LoadFromSrc(constants.APP_CONFIG_NAME); err != nil {
-		return nil, err
+		if logger.GetInstance() == nil {
+			logger.Init(config.PackageId)
+		}
+		logger.GetInstance().Panic().Err(err).Msg("Unable to find package info.json")
 	}
 	if logger.GetInstance() == nil {
 		logger.Init(config.PackageId)
