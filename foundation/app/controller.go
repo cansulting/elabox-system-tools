@@ -15,6 +15,7 @@ package app
 // To initialize call NewController, for debugging use NewControllerWithDebug
 // please see the documentation for more info.
 import (
+	"strconv"
 	"time"
 
 	appd "github.com/cansulting/elabox-system-tools/foundation/app/data"
@@ -26,6 +27,7 @@ import (
 	"github.com/cansulting/elabox-system-tools/foundation/event/data"
 	protocolE "github.com/cansulting/elabox-system-tools/foundation/event/protocol"
 	"github.com/cansulting/elabox-system-tools/foundation/logger"
+	"github.com/cansulting/elabox-system-tools/foundation/system"
 )
 
 ///////////////////////// FUNCTIONS ////////////////////////////////////
@@ -49,21 +51,10 @@ func RunApp(app *Controller) error {
 // constructor for controller
 // @activity the activity function for this app
 // @service the service function for this app
+// Please check the system app manager debugapp()
 func NewController(
 	activity protocol.ActivityInterface,
 	service protocol.ServiceInterface) (*Controller, error) {
-	return NewControllerWithDebug(activity, service, false)
-}
-
-// constructor for controller
-// @activity the activity function for this app
-// @service the service function for this app
-// @debugging true if this app functions as debugging app.
-// Please check the system app manager debugapp()
-func NewControllerWithDebug(
-	activity protocol.ActivityInterface,
-	service protocol.ServiceInterface,
-	debugging bool) (*Controller, error) {
 	config := appd.DefaultPackage()
 	if err := config.LoadFromSrc(constants.APP_CONFIG_NAME); err != nil {
 		return nil, err
@@ -72,7 +63,7 @@ func NewControllerWithDebug(
 		logger.Init(config.PackageId)
 	}
 	return &Controller{
-		Debugging:  debugging,
+		Debugging:  system.IDE,
 		AppService: service,
 		Activity:   activity,
 		Config:     config,
@@ -104,7 +95,10 @@ func (m *Controller) IsRunning() bool {
 
 // callback when this app was started
 func (m *Controller) onStart() error {
-	logger.GetInstance().Info().Str("category", "appcontroller").Msg("Starting App" + m.Config.PackageId)
+	logger.GetInstance().
+		Info().
+		Str("category", "appcontroller").
+		Msg("Starting App " + m.Config.PackageId + ". Ide = " + strconv.FormatBool(system.IDE))
 	// step: init connector
 	connector := event.CreateClientConnector()
 	err := connector.Open(-1)
