@@ -10,8 +10,7 @@
             "request": "launch",
             "mode": "debug",
             "program": "${workspaceFolder}/internal/cwd/system",
-            "sudo": true
-            //"debugAdapter": "dlv-dap"
+            "buildFlags": "-tags=IDE"
         },
         {
             "name": "Launch Installer",
@@ -20,13 +19,7 @@
             "mode": "debug",
             "args": ["../../builds/linux/system/ela.system.box","-s","-l"],
             "program": "${workspaceFolder}/internal/cwd/packageinstaller",
-        },
-        {
-            "name": "Launch Webserver",
-            "type": "go",
-            "request": "launch",
-            "mode": "debug",
-            "program": "${workspaceFolder}/internal/cwd/webserver",
+            "buildFlags": "-tags=IDE"
         },
         {
             "name": "Launch Test Service",
