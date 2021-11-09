@@ -66,6 +66,14 @@ func newAppConnect(
 	return res
 }
 
+// use to check if this app is currently running
+func (app *AppConnect) IsRunning() bool {
+	if app.nodejs != nil {
+		return app.nodejs.IsRunning()
+	}
+	return app.process != nil
+}
+
 // send pending actions
 func (app *AppConnect) sendPendingActions() error {
 	_, err := app.RPCCall(constants.SERVICE_PENDING_ACTIONS, app.PendingActions)

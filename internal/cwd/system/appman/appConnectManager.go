@@ -118,7 +118,7 @@ func LaunchAppActivity(
 		return errors.New("Package " + packageId + " was not found.")
 	}
 	// check if already launched
-	if app.launched {
+	if app.IsRunning() {
 		return nil
 	}
 	// start lauching
