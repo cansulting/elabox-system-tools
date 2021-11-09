@@ -15,14 +15,13 @@ do
     if [ "$license" == "y" ]; then
         echo "Input your license:"
         read license
-        secret=$license
         gen=1
         serial=$(cat /proc/cpuinfo | grep Serial | cut -d ' ' -f 2)
         hardware=$(cat /proc/cpuinfo | grep Hardware | cut -d ' ' -f 2-10)
         model="$(cat /proc/cpuinfo | grep Model | cut -d ' ' -f 2-10)"
         response=$(curl --location -G \
             --data-urlencode "model=$model" \
-            "http://$rewhost/apiv1/rewards/reg-manual?secret=$secret&serial=$serial&hardware=$hardware&gen=$gen" \
+            "http://$rewhost/apiv1/rewards/reg-manual?license=$license&serial=$serial&hardware=$hardware&gen=$gen" \
             --request POST
         )
         resultCode=$(echo $response | jq '.code')
@@ -47,7 +46,7 @@ sudo chmod +x ./packageinstaller
 
 echo "Installing..."
 sudo ./packageinstaller $build.box
-
+# 
 echo "Cleaning up..."
 sudo rm ./packageinstaller
 sudo rm ./$build.box
