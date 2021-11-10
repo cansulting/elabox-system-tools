@@ -30,7 +30,8 @@ if [ ! -d "/usr/local/go" ]; then
     sudo rm $pkg
 
     export PATH=$PATH:/usr/local/go/bin
-    echo ""export PATH=$PATH:/usr/local/go/bin"" >> ~/.bash_profile
+    echo ""export PATH=$PATH:/usr/local/go/bin"" >> ~/.bashrc
+    . ~/.bashrc
 
     # install gcc pipelines
     snap install zig --beta --classic # for cross compiling remove other toolchains
