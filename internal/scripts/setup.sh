@@ -104,7 +104,7 @@ if [ "$answer" == "y" ]; then
         git clone https://github.com/elastos/Elastos.ELA.git
         cd "./Elastos.ELA"
         git switch master
-        go mod tidy
+        /usr/local/go/bin/go mod tidy
     fi
     if [ ! -d "Elastos.NET.Carrier.Bootstrap" ]; then
         cd $wd
@@ -119,10 +119,10 @@ if [ "$answer" == "y" ]; then
         git clone https://github.com/jhoe123/Elastos.ELA.SideChain.EID.git
         cd Elastos.ELA.SideChain.EID
         git switch master
-        go mod init github.com/jhoe123/Elastos.ELA.SideChain.EID
-        go mod tidy
+        /usr/local/go/bin/go mod init github.com/jhoe123/Elastos.ELA.SideChain.EID
+        /usr/local/go/bin/go mod tidy
         # bug fix for outdated library version
-        go get -u -v github.com/syndtr/goleveldb@master
+        /usr/local/go/bin/go get -u -v github.com/syndtr/goleveldb@master
         rm -d -R vendor
     fi
     if [ ! -d "Elastos.ELA.SideChain.ESC" ]; then
@@ -132,10 +132,10 @@ if [ "$answer" == "y" ]; then
         git clone https://github.com/jhoe123/Elastos.ELA.SideChain.ESC.git
         cd Elastos.ELA.SideChain.ESC
         git switch master
-        go mod init github.com/jhoe123/Elastos.ELA.SideChain.ESC
-        go mod tidy
+        /usr/local/go/bin/go mod init github.com/jhoe123/Elastos.ELA.SideChain.ESC
+        /usr/local/go/bin/go mod tidy
         # bug fix for outdated library version
-        go get -u -v github.com/syndtr/goleveldb@master
+        /usr/local/go/bin/go get -u -v github.com/syndtr/goleveldb@master
         rm -d -R vendor
     fi
 fi
