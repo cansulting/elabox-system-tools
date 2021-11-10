@@ -45,7 +45,9 @@ else
     echo "Golang, GCC libraries installed. skipping..."
 fi
 
+#########################
 # install gcp tools
+#########################
 echo "Do you want to setup environment for package uploading? (y/n)"
 read answer
 if [[ "$answer" == "y" ]]; then
@@ -69,73 +71,70 @@ fi
 ## SETUP GIT PROJECTS
 ######################################
 wd=../../../
-echo "Do you want to setup git projects? (y/n)"
-read answer
-if [ "$answer" == "y" ]; then
-    cd $wd
-    wd=$PWD
-    echo "Set working directory" ${wd} ".(Leave empty if use default.)"
-    read answer
-    if [ "$answer" != "" ]; then 
-        wd=$answer
-    fi
-    echo "Your git username? "
-    read uname
+cd $wd
+wd=$PWD
 
-    if [ ! -d "elabox-companion" ]; then
-        git clone https://$uname@github.com/cansulting/elabox-companion.git
-        cd "./elabox-companion"
-        git switch Development
-    fi 
-    if [ ! -d "landing-page" ]; then
-        cd $wd
-        git clone https://$uname@github.com/bonhokage06/landing-page.git
-        cd "./landing-page"
-        git switch main
-    fi
-    if [ ! -d "elabox-logs" ]; then
-        cd $wd
-        git clone https://$uname@github.com/cansulting/elabox-logs
-        cd elabox-logs
-        git switch Development
-    fi
-    if [ ! -d "Elastos.ELA" ]; then 
-        cd $wd
-        git clone https://github.com/elastos/Elastos.ELA.git
-        cd "./Elastos.ELA"
-        git switch master
-        /usr/local/go/bin/go mod tidy
-    fi
-    if [ ! -d "Elastos.NET.Carrier.Bootstrap" ]; then
-        cd $wd
-        git clone https://github.com/elastos/Elastos.NET.Carrier.Bootstrap.git
-        cd "./Elastos.NET.Carrier.Bootstrap"
-        git switch master
-    fi
-    if [ ! -d "Elastos.ELA.SideChain.EID" ]; then
-        cd $wd
-        # added library
-        echo "Y" | sudo apt-get install autoconf libudev
-        git clone https://github.com/jhoe123/Elastos.ELA.SideChain.EID.git
-        cd Elastos.ELA.SideChain.EID
-        git switch master
-        /usr/local/go/bin/go mod init github.com/jhoe123/Elastos.ELA.SideChain.EID
-        /usr/local/go/bin/go mod tidy
-        # bug fix for outdated library version
-        /usr/local/go/bin/go get -u -v github.com/syndtr/goleveldb@master
-        rm -d -R vendor
-    fi
-    if [ ! -d "Elastos.ELA.SideChain.ESC" ]; then
-        cd $wd
-        # added library
-        echo "Y" | sudo apt-get install autoconf libudev
-        git clone https://github.com/jhoe123/Elastos.ELA.SideChain.ESC.git
-        cd Elastos.ELA.SideChain.ESC
-        git switch master
-        /usr/local/go/bin/go mod init github.com/jhoe123/Elastos.ELA.SideChain.ESC
-        /usr/local/go/bin/go mod tidy
-        # bug fix for outdated library version
-        /usr/local/go/bin/go get -u -v github.com/syndtr/goleveldb@master
-        rm -d -R vendor
-    fi
+echo "Set working directory" ${wd} ".(Leave empty if use default.)"
+read answer
+if [ "$answer" != "" ]; then 
+    wd=$answer
+fi
+echo "Your git username? "
+read uname
+
+if [ ! -d "elabox-companion" ]; then
+    git clone https://$uname@github.com/cansulting/elabox-companion.git
+    cd "./elabox-companion"
+    git switch Development
+fi 
+if [ ! -d "landing-page" ]; then
+    cd $wd
+    git clone https://$uname@github.com/bonhokage06/landing-page.git
+    cd "./landing-page"
+    git switch main
+fi
+if [ ! -d "elabox-logs" ]; then
+    cd $wd
+    git clone https://$uname@github.com/cansulting/elabox-logs
+    cd elabox-logs
+    git switch Development
+fi
+if [ ! -d "Elastos.ELA" ]; then 
+    cd $wd
+    git clone https://github.com/elastos/Elastos.ELA.git
+    cd "./Elastos.ELA"
+    git switch master
+    /usr/local/go/bin/go mod tidy
+fi
+if [ ! -d "Elastos.NET.Carrier.Bootstrap" ]; then
+    cd $wd
+    git clone https://github.com/elastos/Elastos.NET.Carrier.Bootstrap.git
+    cd "./Elastos.NET.Carrier.Bootstrap"
+    git switch master
+fi
+if [ ! -d "Elastos.ELA.SideChain.EID" ]; then
+    cd $wd
+    # added library
+    echo "Y" | sudo apt-get install autoconf libudev
+    git clone https://github.com/jhoe123/Elastos.ELA.SideChain.EID.git
+    cd Elastos.ELA.SideChain.EID
+    git switch master
+    /usr/local/go/bin/go mod init github.com/jhoe123/Elastos.ELA.SideChain.EID
+    /usr/local/go/bin/go mod tidy
+    # bug fix for outdated library version
+    /usr/local/go/bin/go get -u -v github.com/syndtr/goleveldb@master
+    rm -d -R vendor
+fi
+if [ ! -d "Elastos.ELA.SideChain.ESC" ]; then
+    cd $wd
+    # added library
+    echo "Y" | sudo apt-get install autoconf libudev
+    git clone https://github.com/jhoe123/Elastos.ELA.SideChain.ESC.git
+    cd Elastos.ELA.SideChain.ESC
+    git switch master
+    /usr/local/go/bin/go mod init github.com/jhoe123/Elastos.ELA.SideChain.ESC
+    /usr/local/go/bin/go mod tidy
+    # bug fix for outdated library version
+    /usr/local/go/bin/go get -u -v github.com/syndtr/goleveldb@master
+    rm -d -R vendor
 fi
