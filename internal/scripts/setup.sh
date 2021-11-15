@@ -31,7 +31,6 @@ if [ ! -d "/usr/local/go" ]; then
 
     export PATH=$PATH:/usr/local/go/bin
     echo ""export PATH=$PATH:/usr/local/go/bin"" >> ~/.bashrc
-    . ~/.bashrc
 
     # install gcc pipelines
     snap install zig --beta --classic # for cross compiling remove other toolchains
@@ -42,6 +41,7 @@ if [ ! -d "/usr/local/go" ]; then
     sudo apt-get install gcc-i686-linux-gnu #linux intel
     # for carrier build 
     sudo apt-get install build-essential autoconf automake autopoint libtool bison texinfo pkg-config cmake
+    . ~/.bashrc
 else
     echo "Golang, GCC libraries installed. skipping..."
 fi
@@ -99,6 +99,12 @@ if [ ! -d "elabox-logs" ]; then
     git clone https://$uname@github.com/cansulting/elabox-logs
     cd elabox-logs
     git switch Development
+fi
+if [ ! -d "mastodon-hub" ]; then
+    cd $wd
+    git clone https://$uname@github.com/cansulting/mastodon-hub
+    cd mastodon-hub
+    git switch development
 fi
 if [ ! -d "Elastos.ELA" ]; then 
     cd $wd
