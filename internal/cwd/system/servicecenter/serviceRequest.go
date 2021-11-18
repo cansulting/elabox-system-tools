@@ -152,7 +152,7 @@ func sendPackageRPC(pkid string, action data.Action) string {
 		return rpc.CreateResponse(rpc.INVALID_CODE, "Unable to send RPC, cant find package.")
 	}
 	// step: call rpc
-	if !app.IsRunning() {
+	if app.Client == nil {
 		global.Logger.Error().Caller().Msg("Package is not loaded yet " + pkid)
 		return rpc.CreateResponse(rpc.INVALID_CODE, "Package "+pkid+" is not loaded yet.")
 	}

@@ -16,6 +16,7 @@ package rpc
 import (
 	"encoding/base64"
 	"strconv"
+	"strings"
 )
 
 const SUCCESS_CODE = 200
@@ -29,9 +30,16 @@ func CreateResponse(code int16, msg string) string {
 
 func CreateResponseQ(code int16, msg string, addQoute bool) string {
 	if addQoute {
+		if msg != "" {
+			msg = strings.Replace(msg, "\"", "\\\"", -1)
+		}
 		msg = "\"" + msg + "\""
 	}
 	return base64.StdEncoding.EncodeToString([]byte("{\"code\":" + strconv.Itoa(int(code)) + ", \"message\": " + msg + "}"))
+}
+
+func CreateJsonResponse(code int16, msg string) string {
+	return CreateResponseQ(code, msg, false)
 }
 
 // returns success json response
