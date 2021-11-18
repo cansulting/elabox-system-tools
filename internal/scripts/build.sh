@@ -49,6 +49,16 @@ go env -w CGO_ENABLED=1
 echo "cgo enabled"
 
 #####################
+# Questions
+#####################
+echo "Rebuild companion client & server? 1 - All, 2 - Client, 3 - Server, Enter - none"
+read answerComp
+echo "Rebuild elabox landing page? (y/n)"
+read answerLand
+echo "Do you want to rebuild elastos binaries? (y/n)"
+read answerEla
+
+#####################
 # build packager
 #####################
 go env -u GOOS
@@ -110,10 +120,8 @@ cd $wd
 # build companion app?
 #########################
 built=0
-echo "Rebuild companion client & server? 1 - All, 2 - Client, 3 - Server, Enter - none"
-read answer
 # client building
-if [[ "$answer" == "1" || "$answer" == "2" ]]; then 
+if [[ "$answerComp" == "1" || "$answerComp" == "2" ]]; then 
     echo "Start building client companion app, please wait this will take awhile..." 
     initDir=$PWD
     cd $ELA_COMPANION/src_client
@@ -126,7 +134,7 @@ if [[ "$answer" == "1" || "$answer" == "2" ]]; then
     built=1
 fi
 # server building
-if [[ "$answer" == "1" || "$answer" == "3" ]]; then 
+if [[ "$answerComp" == "1" || "$answerComp" == "3" ]]; then 
     echo "Start building server companion app, please wait this will take awhile..." 
     initDir=$PWD
     cd $ELA_COMPANION/src_server
@@ -145,9 +153,7 @@ fi
 ##################################
 # build landing page
 ##################################
-echo "Rebuild elabox landing page? (y/n)"
-read answer
-if [ "$answer" == "y" ]; then
+if [ "$answerLand" == "y" ]; then
     wd=$PWD
     cd $ELA_LANDING
     sudo npm install
@@ -159,9 +165,7 @@ fi
 ##################################
 # elastos mainchain, eid, cli, esc
 ##################################
-echo "Do you want to rebuild elastos binaries? (y/n)"
-read answer
-if [ "$answer" == "y" ]; then
+if [ "$answerEla" == "y" ]; then
     echo "Building ELA from source..."
     wd=$PWD
     cd $ELA_SRC 
