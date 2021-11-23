@@ -6,6 +6,9 @@ installer=https://storage.googleapis.com/!bucket/installer/$os/$arch/packageinst
 pkg=https://storage.googleapis.com/!bucket/packages/$build.box
 rewhost=!rewardhost
 
+# utility package
+apt install jq
+
 # elabox registration. purchase a premium license
 for (( ; ; ))
 do
