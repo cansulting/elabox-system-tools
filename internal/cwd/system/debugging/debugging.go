@@ -19,7 +19,11 @@ import (
 )
 
 // use to debug a package. if package is already running then stop it, hence create a debug app
-func DebugApp(pkid string, client protocol.ClientInterface) (*appman.AppConnect) {
+func DebugApp(pkid string, client protocol.ClientInterface) *appman.AppConnect {
+	app := appman.LookupAppConnect(pkid)
+	if app != nil && app.Client != nil && app.Client.IsAlive() {
+		return app
+	}
 	// step: stop if app is already running
 	appman.RemoveAppConnect(pkid, true)
 	return appman.AddAppConnect(&data.PackageConfig{PackageId: pkid}, client)

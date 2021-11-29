@@ -15,6 +15,7 @@ package app
 // To initialize call NewController, for debugging use NewControllerWithDebug
 // please see the documentation for more info.
 import (
+	"os"
 	"strconv"
 	"time"
 
@@ -27,6 +28,7 @@ import (
 	"github.com/cansulting/elabox-system-tools/foundation/event/data"
 	protocolE "github.com/cansulting/elabox-system-tools/foundation/event/protocol"
 	"github.com/cansulting/elabox-system-tools/foundation/logger"
+	"github.com/cansulting/elabox-system-tools/foundation/perm"
 	"github.com/cansulting/elabox-system-tools/foundation/system"
 )
 
@@ -103,6 +105,9 @@ func (m *Controller) onStart() error {
 		Info().
 		Str("category", "appcontroller").
 		Msg("Starting App " + m.Config.PackageId + ". Ide = " + strconv.FormatBool(system.IDE))
+	// step: resolve dir for data
+	os.MkdirAll(m.Config.GetDataDir(), perm.PUBLIC_WRITE)
+
 	// step: init connector
 	connector := event.CreateClientConnector()
 	err := connector.Open(-1)

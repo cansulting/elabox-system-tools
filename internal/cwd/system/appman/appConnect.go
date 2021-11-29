@@ -61,6 +61,7 @@ func newAppConnect(
 		RPC:            nil,
 		nodejs:         node,
 		process:        nil,
+		Client:         client,
 	}
 	res.RPC = NewRPCBridge(pk.PackageId, res, global.Server.EventServer)
 	return res
@@ -117,7 +118,7 @@ func (app *AppConnect) Launch() error {
 }
 
 func (app *AppConnect) IsClientConnected() bool {
-	return app.Client != nil
+	return app.Client != nil && app.Client.IsAlive()
 }
 
 func (app *AppConnect) ForceTerminate() error {
