@@ -8,7 +8,7 @@
 // you’ll have to release your application under similar terms as the LGPL.
 // Please check license description @ https://www.gnu.org/licenses/lgpl-3.0.txt
 
-// This file provides commandline for system 
+// This file provides commandline for system
 // This can be use via
 // sudo ebox -t        					-- to terminate
 // sudo ebox -status   					-- to view system status
@@ -25,6 +25,7 @@ import (
 	"github.com/cansulting/elabox-system-tools/foundation/event/protocol"
 	"github.com/cansulting/elabox-system-tools/foundation/system"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/system/config"
+	"github.com/cansulting/elabox-system-tools/registry/app"
 )
 
 // process commandline
@@ -38,11 +39,15 @@ func processCmdline() {
 		println(getStatus())
 	case "env":
 		print(config.GetEnv(args[2]))
+	case "version", "-v":
+		pkg, _ := app.RetrievePackage(constants.SYSTEM_SERVICE_ID)
+		println(config.GetBuildMode(), pkg)
 	case "help":
 		println("Commands:")
-		println("terminate/t", "-", "Terminate the current running system and its all apps.")
+		println("terminate/-t", "-", "Terminate the current running system and its all apps.")
 		println("status", "-", "Use to check the current status of system.")
 		println("env", "-", "Use to set or get environment variable")
+		println("version/-v", "-", "Check the current version.")
 	}
 }
 
