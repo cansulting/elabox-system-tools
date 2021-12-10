@@ -7,7 +7,7 @@ pkg=https://storage.googleapis.com/!bucket/packages/$build.box
 rewhost=!rewardhost
 
 # utility package
-apt install jq
+sudo apt install jq
 
 # check if already registered. return true if registered
 isRegistered() {

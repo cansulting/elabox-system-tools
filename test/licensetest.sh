@@ -2,6 +2,8 @@
 # use to check if serial was already registered
 rewhost=208.87.134.80:1236 #STAGING host
 
+apt install jq
+
 # check if already registered. return true if registered
 isRegistered() {
     serial=$(cat /proc/cpuinfo | grep Serial | cut -d ' ' -f 2)
