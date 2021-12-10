@@ -9,14 +9,46 @@ rewhost=!rewardhost
 # utility package
 apt install jq
 
-# elabox registration. purchase a premium license
+# check if already registered. return true if registered
+isRegistered() {
+    serial=$(cat /proc/cpuinfo | grep Serial | cut -d ' ' -f 2)
+    response=$(curl --location -G \
+            "http://$rewhost/apiv1/rewards/check-device?serial=$serial" \
+            --request POST
+        )
+    resultCode=$(echo $response | jq '.code')
+    resultData=$(echo $response | jq '.data')
+    if [ "$resultCode" == 200 ]; then
+        if [ "$resultData" != "null" ]; then
+            echo "true"
+        else
+            echo false
+        fi
+    else
+        echo "Failed registration ".$response
+    fi
+}
+
+#########################################
+# Registration
+#########################################
 for (( ; ; ))
 do
     echo ""
+    checkRes=$(isRegistered)
+    # check if already 
+    if [ "$checkRes" == "true" ]; then 
+        echo "Your elabox was registered."
+        break;
+    elif [ "$checkRes" != "false" ]; then 
+        echo "Failed check." . $checkRes . "Retrying check " 
+        continue
+    fi
+
     echo "Register your Elabox? (y/n)"
     read license
     if [ "$license" == "y" ]; then
-        echo "Input your license:"
+        echo "Input your license number:"
         read license
         gen=1
         serial=$(cat /proc/cpuinfo | grep Serial | cut -d ' ' -f 2)

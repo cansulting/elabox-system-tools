@@ -1,8 +1,6 @@
 Scripts to perform various build, install, analysis, etc operations.
 
-For Windows:
-Enable WSL for windows
-NOTE: run under wsl environment
+NOTE: native windows is not tested at the moment
 
 setup.sh 
 - use to setup development environment. download golang, toolchains, dependeng projects etc...

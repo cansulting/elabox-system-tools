@@ -9,9 +9,11 @@ echo "OS="$os
 echo "Arch="$arch
 echo "Upload for version 1 - Staging, 2 - Release, None = Debug"
 read answer
+# RELEASE
 if [ "$answer" == "2" ]; then
     bucket=elabox
     rewardhost=208.87.134.80:1234
+# STAGING
 elif [ "$answer" == "1" ]; then
     bucket=elabox-staging
     rewardhost=208.87.134.80:1236

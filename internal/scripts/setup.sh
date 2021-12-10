@@ -61,6 +61,8 @@ if [[ "$answer" == "y" ]]; then
     ./google-cloud-sdk/install.sh
     ./google-cloud-sdk/bin/gcloud init
     sudo rm google-cloud-sdk-350.0.0-linux-arm.tar.gz
+    export PATH=$PATH:/usr/local/go/bin
+    echo ""export PATH=$PATH:/usr/local/go/bin"" >> ~/.bashrc
     . ~/.bashrc
     cd $cw
 
