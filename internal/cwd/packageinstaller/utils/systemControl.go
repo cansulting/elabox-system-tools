@@ -4,6 +4,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
+	"time"
 
 	"github.com/cansulting/elabox-system-tools/foundation/constants"
 	"github.com/cansulting/elabox-system-tools/foundation/errors"
@@ -35,15 +37,15 @@ func StartSystem() error {
 	return cmd.Process.Release()
 }
 
-func TerminateSystem() error {
-
-	pkc.Logger.Info().Msg("Terminating system...")
+func TerminateSystem(delaySec int) error {
 	// step: execute system binary
 	systemPath := path.GetAppInstallLocation(constants.SYSTEM_SERVICE_ID, false) + "/" + constants.SYSTEM_SERVICE_ID
 	if _, err := os.Stat(systemPath); err != nil {
-		pkc.Logger.Warn().Msg("Terminate skipped. System is not installed.")
+		//pkc.Logger.Warn().Msg("Terminate skipped. System is not installed.")
 		return nil
 	}
+	pkc.Logger.Info().Msg("terminating system in " + strconv.Itoa(delaySec) + " seconds")
+	time.Sleep(time.Second * time.Duration(delaySec))
 	cmd := exec.Command(systemPath, "terminate")
 	cmd.Dir = filepath.Dir(systemPath)
 	if err := cmd.Run(); err != nil {

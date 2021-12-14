@@ -3,7 +3,6 @@ package landing
 import (
 	"net/http"
 	"os"
-	"time"
 
 	econstants "github.com/cansulting/elabox-system-tools/foundation/constants"
 	"github.com/cansulting/elabox-system-tools/foundation/errors"
@@ -43,15 +42,6 @@ func Initialize(landingPagePath string) error {
 
 func GetServer() *server.Manager {
 	return serverhandler
-}
-
-// wait for any users to connect to landing page
-func WaitForConnection() {
-	for connected == 0 {
-		constants.Logger.Info().Str("category", "networking").Msg("Waiting @ port" + PORT)
-		time.Sleep(time.Second)
-	}
-	constants.Logger.Info().Str("category", "networking").Msg("Resuming...")
 }
 
 // use to broadcast installation log to system
