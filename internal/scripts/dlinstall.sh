@@ -5,6 +5,7 @@ build=!build
 installer=https://storage.googleapis.com/!bucket/installer/$os/$arch/packageinstaller
 pkg=https://storage.googleapis.com/!bucket/packages/$build.box
 rewhost=!rewardhost
+gen=1  # current generation of device
 
 # utility package
 sudo apt install jq
@@ -50,7 +51,6 @@ do
     if [ "$license" == "y" ]; then
         echo "Input your license number:"
         read license
-        gen=1
         serial=$(cat /proc/cpuinfo | grep Serial | cut -d ' ' -f 2)
         hardware=$(cat /proc/cpuinfo | grep Hardware | cut -d ' ' -f 2-10)
         model="$(cat /proc/cpuinfo | grep Model | cut -d ' ' -f 2-10)"
