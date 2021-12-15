@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"net"
 	"net/http"
 	"runtime"
 	"time"
@@ -48,26 +49,41 @@ func (m *Manager) Stop() error {
 
 // start serving the server
 func (m *Manager) ListenAndServe() {
-	var TIMEOUT int64 = 10
+	var TIMEOUT int64 = 20
 	m.running = true
-	// step: try connecting
-	go func() {
-		elapsed := time.Now().Unix()
-		for m.running {
-			err := m.httpS.ListenAndServe()
-			if err == nil {
-				break
-			}
-			// step: waiting for too long?
-			diff := time.Now().Unix() - elapsed
-			if diff > TIMEOUT {
-				logger.GetInstance().Error().Err(err).Str("category", "networking").Caller().Msg("Server manager error.")
-				break
-			}
-			logger.GetInstance().Error().Err(err).Str("category", "networking").Caller().Msg("Issue found, retrying...")
-			// sleep for a while
-			time.Sleep(time.Millisecond * 500)
+
+	addr := m.httpS.Addr
+	if addr == "" {
+		addr = ":http"
+	}
+	var ln net.Listener
+	var err error
+	elapsed := time.Now().Unix()
+
+	// try to start listening. until it become available
+	for {
+		ln, err = net.Listen("tcp", addr)
+		if err == nil {
+			break
 		}
-		m.running = false
-	}()
+		// step: waiting for too long?
+		diff := time.Now().Unix() - elapsed
+		if diff > TIMEOUT {
+			logger.GetInstance().Error().Err(err).Str("category", "networking").Caller().Msg("Server manager listen timeout.")
+			break
+		}
+		logger.GetInstance().Error().Err(err).Str("category", "networking").Caller().Msg("Issue found, retrying...")
+		// sleep for a while
+		time.Sleep(time.Second)
+	}
+	// step: try connecting
+	if err == nil {
+		go func() {
+			err := m.httpS.Serve(ln)
+			if err != nil {
+				logger.GetInstance().Error().Err(err).Str("category", "networking").Caller().Msg("Issue found, retrying...")
+			}
+			m.running = false
+		}()
+	}
 }

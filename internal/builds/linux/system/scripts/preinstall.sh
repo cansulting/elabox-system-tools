@@ -4,10 +4,10 @@ user=elabox
 passwd=elabox
 
 # terminate running process
-echo "Killing running nodes..."
-if [ "$(pgrep ela)" != "" ]; then
-    sudo kill $(pgrep ela)
-fi
+# echo "Killing running nodes..."
+# if [ "$(pgrep ela)" != "" ]; then
+#    sudo kill $(pgrep ela)
+# fi
 sudo pkill geth
 sudo pkill ela-bootstrapd
 

@@ -62,9 +62,9 @@ func processInstallCommand(targetPk string, restart bool, systemUpdate bool, log
 	// step: we need clients to system update via ports
 	if systemUpdate {
 		// step: terminate system
-		if err := utils.TerminateSystem(pkconst.TERMINATE_TIMEOUT); err != nil {
-			pkconst.Logger.Debug().Err(err).Caller().Msg("failed terminating system")
-		}
+		// if err := utils.TerminateSystem(pkconst.TERMINATE_TIMEOUT); err != nil {
+		// 	pkconst.Logger.Debug().Err(err).Caller().Msg("failed terminating system")
+		// }
 		startServer(content)
 		// step: check if theres a last failed installation
 		lastState := sysinstall.GetLastState()
