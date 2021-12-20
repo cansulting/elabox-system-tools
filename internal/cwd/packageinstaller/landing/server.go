@@ -35,7 +35,9 @@ func Initialize(landingPagePath string) error {
 			http.Redirect(rw, r, "/", http.StatusFound)
 		}
 	})
-	serverhandler.ListenAndServe()
+	if err := serverhandler.ListenAndServe(); err != nil {
+		return err
+	}
 	serverhandler.EventServer.SetStatus(system.UPDATING, nil)
 	return nil
 }

@@ -33,7 +33,9 @@ func Initialize(commandline bool) error {
 	global.Server = &server.Manager{}
 	global.Server.OnSystemEvent = OnRecievedRequest
 	global.Server.Setup()
-	global.Server.ListenAndServe()
+	if err := global.Server.ListenAndServe(); err != nil {
+		return err
+	}
 	webservice := &web.WebService{}
 	if err := webservice.Start(); err != nil {
 		return err

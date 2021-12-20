@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"net"
 	"net/http"
 	"runtime"
@@ -47,8 +48,8 @@ func (m *Manager) Stop() error {
 	return m.httpS.Shutdown(context.TODO())
 }
 
-// start serving the server
-func (m *Manager) ListenAndServe() {
+// start server requests handling
+func (m *Manager) ListenAndServe() error {
 	var TIMEOUT int64 = 20
 	m.running = true
 
@@ -69,8 +70,7 @@ func (m *Manager) ListenAndServe() {
 		// step: waiting for too long?
 		diff := time.Now().Unix() - elapsed
 		if diff > TIMEOUT {
-			logger.GetInstance().Error().Err(err).Str("category", "networking").Caller().Msg("Server manager listen timeout.")
-			break
+			return errors.New("Server initialization timeout. Stop existing process that uses port before continuing. Inner error - " + err.Error())
 		}
 		logger.GetInstance().Error().Err(err).Str("category", "networking").Caller().Msg("Issue found, retrying...")
 		// sleep for a while
@@ -81,9 +81,10 @@ func (m *Manager) ListenAndServe() {
 		go func() {
 			err := m.httpS.Serve(ln)
 			if err != nil {
-				logger.GetInstance().Error().Err(err).Str("category", "networking").Caller().Msg("Issue found, retrying...")
+				logger.GetInstance().Error().Err(err).Str("category", "networking").Caller().Msg("Server serve failed..")
 			}
 			m.running = false
 		}()
 	}
+	return nil
 }
