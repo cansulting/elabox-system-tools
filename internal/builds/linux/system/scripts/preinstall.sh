@@ -9,7 +9,9 @@ passwd=elabox
 #    sudo kill $(pgrep ela)
 # fi
 sudo pkill geth
+sudo pkill esc
 sudo pkill ela-bootstrapd
+sudo pkill feedsd
 
 ############################
 ## Setup user, dependent files, caching
