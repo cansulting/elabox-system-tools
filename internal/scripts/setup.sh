@@ -82,29 +82,27 @@ read answer
 if [ "$answer" != "" ]; then 
     wd=$answer
 fi
-echo "Your git username? "
-read uname
 
 if [ ! -d "elabox-companion" ]; then
-    git clone https://$uname@github.com/cansulting/elabox-companion.git
+    git clone https://github.com/cansulting/elabox-companion.git
     cd "./elabox-companion"
     git switch Development
 fi 
 if [ ! -d "landing-page" ]; then
     cd $wd
-    git clone https://$uname@github.com/bonhokage06/landing-page.git
+    git clone https://github.com/bonhokage06/landing-page.git
     cd "./landing-page"
     git switch main
 fi
 if [ ! -d "elabox-logs" ]; then
     cd $wd
-    git clone https://$uname@github.com/cansulting/elabox-logs
+    git clone https://github.com/cansulting/elabox-logs
     cd elabox-logs
     git switch Development
 fi
 if [ ! -d "mastodon-hub" ]; then
     cd $wd
-    git clone https://$uname@github.com/cansulting/mastodon-hub
+    git clone https://github.com/cansulting/mastodon-hub
     cd mastodon-hub
     git switch development
 fi
