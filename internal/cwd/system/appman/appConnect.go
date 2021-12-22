@@ -51,7 +51,7 @@ func newAppConnect(
 	// initialize node js
 	var node *Nodejs
 	if pk.Nodejs {
-		node = &Nodejs{Config: pk}
+		node = &Nodejs{Config: pk, RestartOnFailure: true}
 	}
 	res := &AppConnect{
 		Config:         pk,
