@@ -103,18 +103,7 @@ mv $buildpath/$system_name/bin/$system_name $buildpath/$system_name/bin/$program
 # unset env variables
 go env -u CC
 go env -u CXX
-# build reward if exists
-if [ -d "$ELA_REWARDS" ]; then 
-    wd=$PWD
-    cd $ELA_REWARDS/scripts
-    ./build.sh -o $target -a $arch -d $MODE
-    cd $wd
-fi
-# build app logs
-wd=$PWD
-cd $ELA_LOGS/scripts
-./build.sh -o $target -a $arch -d $MODE
-cd $wd
+
 
 #########################
 # build companion app?

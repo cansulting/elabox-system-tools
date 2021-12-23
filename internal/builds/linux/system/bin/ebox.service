@@ -9,10 +9,9 @@ Type=simple
 User=!USER
 Group=!GROUP
 LimitNOFILE=1024
-
+KillMode=process
 Restart=on-failure
 RestartSec=10
-startLimitIntervalSec=60
 
 WorkingDirectory=!CWD
 ExecStart=!SOURCE

@@ -1,7 +1,7 @@
 #!/bin/bash
 os=$(go env GOOS)   
 arch=$(go env GOARCH)
-build=3
+build=
 bucket=elabox-debug
 #debug host default
 rewardhost=208.87.134.80:1235 
@@ -19,6 +19,10 @@ elif [ "$answer" == "1" ]; then
     rewardhost=208.87.134.80:1236
 fi
 
+# read build number form system's info.json
+pki=../builds/$os/system/info.json
+build=$(jq ".build" $pki)
+
 elapath=gs://$bucket
 . ~/.bashrc     # reload environment var. there are some instance it is not up to date
 gspk=$elapath/packages/$build.box
@@ -28,7 +32,6 @@ gsh=$elapath/installer/$os/$arch/installer.sh
 
 installer=../builds/$os/packageinstaller/bin/packageinstaller
 pkg=../builds/$os/system/ela.system.box
-pki=../builds/$os/system/info.json
 shi=./dlinstall.sh
 shbk=/tmp/dlinstall.sh
 

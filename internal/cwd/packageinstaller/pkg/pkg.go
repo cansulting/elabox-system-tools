@@ -60,9 +60,8 @@ func LoadFromZipFiles(files []*zip.File) (*Data, error) {
 	// check package config if has issues
 	issueProperty, issueMsg := res.Config.GetIssue()
 	if issueProperty != "" {
-		return nil, errors.SystemNew(
-			"Package "+res.Config.Source+" has issues. "+issueProperty+" - "+issueMsg,
-			nil)
+		constants.Logger.Warn().Msg(
+			"Package " + res.Config.Source + " has issues. " + issueProperty + " - " + issueMsg + ". Package might not work properly on recent system version.")
 	}
 	return res, nil
 }

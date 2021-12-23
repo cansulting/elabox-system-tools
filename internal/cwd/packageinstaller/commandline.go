@@ -134,7 +134,7 @@ func normalInstall(content *pkg.Data) {
 		if err := newInstall.RevertChanges(); err != nil {
 			pkconst.Logger.Error().Err(err).Caller().Msg("Failed reverting installer.")
 		}
-		return
+		panic("Failed installing @normalInstall()")
 	}
 	// step: post install
 	if err := newInstall.Finalize(); err != nil {
@@ -143,7 +143,7 @@ func normalInstall(content *pkg.Data) {
 		if err := newInstall.RevertChanges(); err != nil {
 			pkconst.Logger.Error().Err(err).Caller().Msg("Failed reverting installer.")
 		}
-		return
+		panic("Failed installing @normalInstall()")
 	}
 }
 
