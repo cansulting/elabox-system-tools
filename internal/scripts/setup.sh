@@ -22,9 +22,14 @@ do
     esac
 done
 
+# NodeJs 
+curl -sL https://deb.nodesource.com/setup_17.x | sudo -E bash -
+echo 'Y' | sudo apt update 
+sudo apt install nodejs
+
 # download go lang
 if [ ! -d "/usr/local/go" ]; then 
-    pkg=go1.17.$cos-$carc.tar.gz
+    pkg=go1.17.5.$cos-$carc.tar.gz
     wget https://golang.org/dl/$pkg
     sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf $pkg
     sudo rm $pkg
@@ -58,8 +63,8 @@ if [[ "$answer" == "y" ]]; then
     echo "Setting up GCP storage for packages"
     curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-350.0.0-linux-arm.tar.gz
     sudo tar xfz google-cloud-sdk-350.0.0-linux-arm.tar.gz
-    ./google-cloud-sdk/install.sh
-    ./google-cloud-sdk/bin/gcloud init
+    sudo ./google-cloud-sdk/install.sh
+    sudo ./google-cloud-sdk/bin/gcloud init
     sudo rm google-cloud-sdk-350.0.0-linux-arm.tar.gz
     export PATH=$PATH:/usr/local/go/bin
     echo ""export PATH=$PATH:/usr/local/go/bin"" >> ~/.bashrc
