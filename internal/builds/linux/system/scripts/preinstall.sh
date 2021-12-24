@@ -27,7 +27,7 @@ if [ "$exists" == 0 ]; then
     sudo -s -u $user
     # download files
     echo "Downloading files"
-    echo '$user' | curl -sL https://deb.nodesource.com/setup_17.x | sudo -E bash -
+    echo '$user' | curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
     echo 'Y' | sudo apt update 
     echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
 
