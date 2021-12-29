@@ -11,6 +11,7 @@
 package logger
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -24,6 +25,8 @@ import (
 var instanceLogger *zerolog.Logger
 var ConsoleOut = true // true if write log on console not only in file
 var currentLogFileSrc = constants.LOG_FILE
+var logfile *os.File
+var pkgId string
 
 // this creates a new log if not yet created
 func Init(packageId string) *zerolog.Logger {
@@ -33,8 +36,14 @@ func Init(packageId string) *zerolog.Logger {
 func InitFromFile(packageId string, srcLog string) *zerolog.Logger {
 	//if instanceLogger == nil {
 	// init logfile
-	currentLogFileSrc = srcLog
-	logfile, err := os.OpenFile(srcLog, os.O_CREATE|os.O_RDWR|os.O_APPEND, perm.PUBLIC_WRITE)
+	if srcLog == "" {
+		srcLog = constants.LOG_FILE
+	} else {
+		currentLogFileSrc = srcLog
+	}
+	pkgId = packageId
+	var err error
+	logfile, err = os.OpenFile(srcLog, os.O_CREATE|os.O_RDWR|os.O_APPEND, perm.PUBLIC_WRITE)
 	if err != nil {
 		fmt.Println("Error opening logfile "+srcLog, err)
 		return nil
@@ -48,6 +57,14 @@ func InitFromFile(packageId string, srcLog string) *zerolog.Logger {
 	logger := zerolog.New(writer).With().Timestamp().Str("package", packageId).Logger()
 	instanceLogger = &logger
 	return instanceLogger
+}
+
+func Reinit() error {
+	if pkgId == "" {
+		return errors.New("reinit skipped. log is not yet initialized")
+	}
+	Init(pkgId)
+	return nil
 }
 
 // get the current instance of logger
@@ -64,4 +81,15 @@ func SetHook(h zerolog.Hook) {
 func ClearLog() {
 	empty := ""
 	os.WriteFile(currentLogFileSrc, []byte(empty), perm.PUBLIC)
+}
+
+func DeleteLogFile() error {
+	if logfile != nil {
+		logfile.Close()
+		logfile = nil
+	}
+	if err := os.Remove(currentLogFileSrc); err != nil {
+		return err
+	}
+	return nil
 }
