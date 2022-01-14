@@ -55,7 +55,7 @@ func TestLoggerRead(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	reader.Load(0, 0, nil)
+	reader.Load(0, 0, logger.LATEST_FIRST, nil)
 
 	t.Log("Testing thousand of log...")
 
@@ -79,9 +79,9 @@ func TestLoggerQuery(t *testing.T) {
 	// create mix log for debug, info and error
 	var waitg sync.WaitGroup
 	waitg.Add(3)
-	errT := 1000
-	debugT := 500
-	infoT := 1500
+	errT := 100
+	debugT := 150
+	infoT := 200
 	go func() {
 		for i := 0; i < debugT; i++ {
 			logger.GetInstance().Debug().Str("category", "testing").Int("index", i).Msg(strconv.Itoa(i) + " This is Debug")
@@ -111,7 +111,7 @@ func TestLoggerQuery(t *testing.T) {
 	var info int32 = 0
 	var debug int32 = 0
 
-	reader.Load(0, -1, func(i int, l logger.Log) bool {
+	reader.Load(0, -1, logger.LATEST_FIRST, func(i int, l logger.Log) bool {
 		switch l["level"] {
 		case "error":
 			atomic.AddInt32(&errV, 1)
@@ -120,7 +120,7 @@ func TestLoggerQuery(t *testing.T) {
 		}
 		return true
 	})
-	reader.Load(0, 0, func(i int, l logger.Log) bool {
+	reader.Load(0, 0, logger.LATEST_FIRST, func(i int, l logger.Log) bool {
 		switch l["level"] {
 		case "debug":
 			debug++
@@ -144,7 +144,7 @@ func TestLoggerQuery(t *testing.T) {
 	fmt.Println("Checking search query...")
 	found := false
 	var index2Search float64 = 0
-	reader.Load(0, -1, func(i int, l logger.Log) bool {
+	reader.Load(0, -1, logger.LATEST_FIRST, func(i int, l logger.Log) bool {
 		if l["level"] == "error" && l["index"] == index2Search {
 			found = true
 			return false
@@ -159,22 +159,39 @@ func TestLoggerQuery(t *testing.T) {
 	}
 
 	fmt.Println("Check retrieve log with limit")
-	retrieved, _ := reader.LoadLimit(-1, 50, func(l logger.Log) bool {
+	retrieved, _ := reader.LoadSeq(-1, debugT, logger.LATEST_FIRST, func(l logger.Log) bool {
 		return l["level"] == "debug"
 	})
-	if retrieved == 50 {
+	if retrieved == debugT {
 		fmt.Println("retrieve log with limit is working!")
 	} else {
 		t.Error("LoadLimit is not working")
 	}
 
+	fmt.Println("Check log with start from old")
+	var lastRead float64 = 0
+	retrieved, _ = reader.LoadSeq(-1, debugT, logger.OLD_FIRST, func(l logger.Log) bool {
+		if l["level"] == "debug" {
+			if l["index"] != lastRead {
+				t.Error("Failed reading log starting from old")
+				return false
+			}
+			lastRead++
+		}
+		return true
+	})
+	if retrieved == debugT {
+		fmt.Println("retrieve log with limit is working!")
+	} else {
+		t.Error("Failed reading log starting from old")
+	}
 	t.Log("Success!")
 }
 
 func getAllUnloadedLogs(level string, totalLogs int, reader *logger.Reader) error {
 	retrieved := make([]bool, totalLogs)
 	founderror := ""
-	reader.Load(0, -1, func(i int, l logger.Log) bool {
+	reader.Load(0, -1, logger.LATEST_FIRST, func(i int, l logger.Log) bool {
 		if l["level"] == level {
 			index := int(l["index"].(float64))
 			if !retrieved[index] {

@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-const host = "208.87.134.80:1236" //staging
+const host = "208.87.134.80:THISSTAGING" //staging
 
 func retrieveSerial() string {
 	fname := "/proc/cpuinfo"

@@ -1,6 +1,6 @@
 #!/bin/bash
 # use to check if serial was already registered
-rewhost=208.87.134.80:1236 #STAGING host
+rewhost=208.87.134.80:THISSTAGING #STAGING host
 
 apt install jq
 
