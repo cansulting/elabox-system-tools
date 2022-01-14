@@ -1,0 +1,16 @@
+{
+	"name": "Test Application",
+	"description": "This is a test app.",
+	"packageId": "ela.testapp",
+	"build": 1,
+	"version": "0.3.1",
+	"program": "ela.testapp",
+	"permissions": null,
+	"exportService": true,
+	"activities": null,
+	"actionListener": null,
+	"location": "system",
+	"nodejs": false,
+	"packagerVersion": "0.1.0",
+	"ext": null
+}
