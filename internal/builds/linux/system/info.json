@@ -11,5 +11,6 @@
 	"actionListener": null,
 	"location": "system",
 	"nodejs": false,
-	"packagerVersion": "0.1.0"
+	"packagerVersion": "0.1.0",
+	"ext": null
 }
