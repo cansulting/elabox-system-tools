@@ -12,11 +12,11 @@ read answer
 # RELEASE
 if [ "$answer" == "2" ]; then
     bucket=elabox
-    rewardhost=208.87.134.80:1234
+    rewardhost=208.87.134.80:1236
 # STAGING
 elif [ "$answer" == "1" ]; then
     bucket=elabox-staging
-    rewardhost=208.87.134.80:1236
+    rewardhost=208.87.134.80:1234
 fi
 
 # read build number form system's info.json

@@ -10,7 +10,7 @@ ELA_REWARDS=$PROJ_HOME/elabox-rewards
 ELA_LOGS=$PROJ_HOME/elabox-logs
 cos=$(go env GOOS)                  # current os. 
 carc=$(go env GOARCH)               # current archi
-pkg_name=packageinstaller           # package installer project name
+packageinstaller=packageinstaller           # package installer project name
 system_name=system                  # system project name
 packager=packager             
 target=$cos
@@ -93,13 +93,29 @@ else
 fi
 go env -w GOOS=$target 
 go env -w GOARCH=$arch
-echo "Building " $pkg_name
-mkdir -p $buildpath/$pkg_name/bin
-eval "$gobuild" -o $buildpath/$pkg_name/bin ../cwd/$pkg_name
+echo "Building " $packageinstaller
+mkdir -p $buildpath/$packageinstaller/bin
+eval "$gobuild" -o $buildpath/$packageinstaller/bin ../cwd/$packageinstaller
+ln -sf $PWD/$buildpath/$packageinstaller/bin/$packageinstaller /bin/$packageinstaller
 echo "Building Elabox System"
 eval "$gobuild" -o $buildpath/$system_name/bin ../cwd/$system_name
 programName=$(jq ".program" $buildpath/$system_name/info.json | sed 's/\"//g')
 mv $buildpath/$system_name/bin/$system_name $buildpath/$system_name/bin/$programName 
+
+# build reward if exists
+if [ -d "$ELA_REWARDS" ]; then 
+    wd=$PWD
+    cd $ELA_REWARDS/scripts
+    ./build.sh -o $target -a $arch -d $MODE
+    cd $wd
+fi
+
+# build app logs
+wd=$PWD
+cd $ELA_LOGS/scripts
+./build.sh -o $target -a $arch -d $MODE
+cd $wd
+
 # unset env variables
 go env -u CC
 go env -u CXX
@@ -205,7 +221,7 @@ packager $buildpath/eid/packager.json
 packager $buildpath/esc/packager.json
 packager $buildpath/carrier/packager.json
 packager $buildpath/mainchain/packager.json
-packager $buildpath/$pkg_name/packager.json
+packager $buildpath/$packageinstaller/packager.json
 packager $buildpath/feeds/packager.json
 packager $buildpath/$system_name/packager.json
 
