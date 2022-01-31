@@ -128,25 +128,11 @@ if [ ! -d "Elastos.ELA.SideChain.EID" ]; then
     cd $wd
     # added library
     echo "Y" | sudo apt-get install autoconf libudev
-    git clone https://github.com/jhoe123/Elastos.ELA.SideChain.EID.git
-    cd Elastos.ELA.SideChain.EID
-    git switch master
-    /usr/local/go/bin/go mod init github.com/jhoe123/Elastos.ELA.SideChain.EID
-    /usr/local/go/bin/go mod tidy
-    # bug fix for outdated library version
-    /usr/local/go/bin/go get -u -v github.com/syndtr/goleveldb@master
-    rm -d -R vendor
+    git clone https://github.com/elastos/Elastos.ELA.SideChain.EID.git
 fi
 if [ ! -d "Elastos.ELA.SideChain.ESC" ]; then
     cd $wd
     # added library
     echo "Y" | sudo apt-get install autoconf libudev
-    git clone https://github.com/jhoe123/Elastos.ELA.SideChain.ESC.git
-    cd Elastos.ELA.SideChain.ESC
-    git switch master
-    /usr/local/go/bin/go mod init github.com/jhoe123/Elastos.ELA.SideChain.ESC
-    /usr/local/go/bin/go mod tidy
-    # bug fix for outdated library version
-    /usr/local/go/bin/go get -u -v github.com/syndtr/goleveldb@master
-    rm -d -R vendor
+    git clone https://github.com/elastos/Elastos.ELA.SideChain.ESC.git
 fi

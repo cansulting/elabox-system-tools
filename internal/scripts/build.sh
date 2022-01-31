@@ -63,6 +63,7 @@ read answerEla
 #####################
 go env -u GOOS
 go env -u GOARCH
+go env -u GO111MODULE
 buildpath=../builds/$target
 echo "Building " $packager
 mkdir -p $buildpath/packager
@@ -91,6 +92,7 @@ else
         go env -w CC=x86_64-w64-mingw32-gcc
     fi
 fi
+
 go env -w GOOS=$target 
 go env -w GOARCH=$arch
 echo "Building " $packageinstaller
@@ -176,6 +178,7 @@ if [ "$answerEla" == "y" ]; then
     cd $ELA_SRC 
     make all
     echo "Building EID from source..."
+    go env -w GO111MODULE=off
     cd $wd
     cd $EID_SRC
     make geth
@@ -185,6 +188,7 @@ if [ "$answerEla" == "y" ]; then
     cd $ESC_SRC
     make geth
     cd $wd
+    go env -u GO111MODULE
 
     targetdir=$buildpath
     echo "Copying mainchain, eid and cli @$ELA_NODES"
