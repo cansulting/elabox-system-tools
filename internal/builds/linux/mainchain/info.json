@@ -3,7 +3,7 @@
 	"description": "Mainchain Node",
 	"packageId": "ela.mainchain",
 	"build": 1,
-	"version": "0.3.0",
+	"version": "0.8.2",
 	"program": "ela",
 	"permissions": null,
 	"exportService": false,
