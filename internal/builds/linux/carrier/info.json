@@ -11,6 +11,6 @@
 	"actionListener": null,
 	"location": "external",
 	"nodejs": false,
-	"packagerVersion": "0.1.0",
+	"packagerVersion": "6.0.1",
 	"ext": null
 }
