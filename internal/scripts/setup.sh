@@ -136,3 +136,15 @@ if [ ! -d "Elastos.ELA.SideChain.ESC" ]; then
     echo "Y" | sudo apt-get install autoconf libudev
     git clone https://github.com/elastos/Elastos.ELA.SideChain.ESC.git
 fi
+
+######################################
+## GLIDE APP
+######################################
+if [ ! -d "glide-node-server" ]; then
+    cd $wd
+    git clone https://github.com/glide-finance/glide-node-server.git
+fi
+if [ ! -d "glide-frontend" ]; then
+    cd $wd
+    git clone https://github.com/glide-finance/glide-frontend.git
+fi
