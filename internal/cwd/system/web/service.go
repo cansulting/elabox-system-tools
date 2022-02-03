@@ -23,8 +23,6 @@ import (
 	"github.com/cansulting/elabox-system-tools/foundation/path"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/system/appman"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/system/global"
-
-	_ "net/http/pprof"
 )
 
 const PORT = "80"
