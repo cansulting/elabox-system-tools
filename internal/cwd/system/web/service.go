@@ -36,13 +36,13 @@ type WebService struct {
 func (s *WebService) Start() error {
 	s.running = true
 	wwwPath := path.GetSystemWWW()
-	lastPkg := PAGE_LANDING
+	lastPkg := PAGE_COMPANIONAPP
 
 	// handle any requests
 	http.HandleFunc("/", func(rw http.ResponseWriter, r *http.Request) {
 		url := r.URL.Path
 		pkg := lastPkg
-		//log.Println("serve", url)
+		//println("serve", url)
 		// retrieve the package based from url
 		if url != "/" {
 			splits := strings.Split(url, "/")
@@ -57,20 +57,34 @@ func (s *WebService) Start() error {
 			}
 		} else {
 			pkg = PAGE_LANDING
+			url = "/" + PAGE_COMPANIONAPP
 		}
-		//log.Println(pkg, r.URL.Path)
+
 		// switch package?
 		if pkg != lastPkg {
 			s.onPackageSelected(pkg)
 			lastPkg = pkg
 			runtime.GC()
 		}
-		fpath := wwwPath + "/" + lastPkg + r.URL.Path
-		f, err := os.Stat(fpath)
-		if err != nil || f.IsDir() {
-			fpath = wwwPath + "/" + lastPkg + "/index.html"
+
+		// serve the file
+		fpath := wwwPath + url
+		file, err := os.Stat(fpath)
+		//println(fpath)
+		// file not found then locate from last package
+		if err != nil {
+			fpath = wwwPath + "/" + pkg + url
+			//println("Redirect to " + fpath)
+			file, err = os.Stat(fpath)
+			if err != nil {
+				global.Logger.Debug().Str("category", "web").Msg("Failed to serve file " + fpath + ".")
+			}
+			//http.Redirect(rw, r, "/"+pkg+"/index.html", 200)
 		}
-		//log.Println(fpath)
+		if file != nil && file.IsDir() {
+			fpath = wwwPath + "/" + pkg + "/index.html"
+			//println("Redirect to " + fpath)
+		}
 		http.ServeFile(rw, r, fpath)
 	})
 
@@ -85,7 +99,7 @@ func (s *WebService) onPackageSelected(pkg string) {
 	global.Logger.Debug().Str("category", "web").Msg("Package " + pkg + " selected.")
 	// start the activity
 	if err := appman.LaunchAppActivity(pkg, nil, data.NewActionById(constants.ACTION_APP_LAUNCH)); err != nil {
-		global.Logger.Error().Err(err).Str("category", "web").Msg("Failed to launch activity.")
+		global.Logger.Warn().Err(err).Str("category", "web").Msg("Failed to launch activity.")
 	}
 }
 

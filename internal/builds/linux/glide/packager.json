@@ -1,0 +1,9 @@
+{
+    "cwd": "",
+    "config": "info.json",
+    "bin": "",
+    "www": "./www",
+    "packages": [],
+    "lib": "",
+    "continueOnMissing": true
+}

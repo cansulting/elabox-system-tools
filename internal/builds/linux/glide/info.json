@@ -1,0 +1,16 @@
+{
+	"name": "Glide Finance",
+	"description": "Glide Finance",
+	"packageId": "glide",
+	"build": 1,
+	"version": "0.1.0",
+	"program": "",
+	"permissions": null,
+	"exportService": false,
+	"activities": null,
+	"actionListener": null,
+	"location": "system",
+	"nodejs": false,
+	"packagerVersion": "0.1.0",
+	"ext": null
+}
