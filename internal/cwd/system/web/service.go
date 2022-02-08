@@ -74,14 +74,12 @@ func (s *WebService) Start() error {
 		// file not found then locate from last package
 		if err != nil {
 			fpath = wwwPath + "/" + pkg + url
-			//println("Redirect to " + fpath)
 			file, err = os.Stat(fpath)
 			if err != nil {
-				global.Logger.Debug().Str("category", "web").Msg("Failed to serve file " + fpath + ".")
+				fpath = ""
 			}
-			//http.Redirect(rw, r, "/"+pkg+"/index.html", 200)
 		}
-		if file != nil && file.IsDir() {
+		if fpath == "" || file != nil && file.IsDir() {
 			fpath = wwwPath + "/" + pkg + "/index.html"
 			//println("Redirect to " + fpath)
 		}

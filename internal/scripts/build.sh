@@ -174,7 +174,7 @@ if [ "$answerLand" == "y" ]; then
     sudo npm install
     sudo npm run build
     cd $wd
-    rm -rvf $buildpath/system/www && mkdir -p $buildpath/system/www
+    rm -r $buildpath/system/www && mkdir -p $buildpath/system/www
     cp -r $ELA_LANDING/build/* $buildpath/system/www
 fi
 
@@ -236,7 +236,7 @@ if [ "$answerGlide" == "y" ]; then
    # sudo npm install
     #sudo npm run build
     cd $wd
-    rm -rvf $buildpath/glide/www && mkdir -p $buildpath/glide/www
+    rm -r $buildpath/glide/www && mkdir -p $buildpath/glide/www
     cp -r $GLIDE_SRC/build/* $buildpath/glide/www
     packager $buildpath/glide/packager.json
 fi
