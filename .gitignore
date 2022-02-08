@@ -12,4 +12,4 @@ internal/builds/linux/did/bin
 internal/builds/linux/carrier/bin
 internal/builds/linux/mainchain/bin
 internal/builds/linux/system/www
-
+internal/builds/linux/glide/www/

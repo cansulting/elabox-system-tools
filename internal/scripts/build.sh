@@ -4,6 +4,7 @@ ELA_NODES=$PROJ_HOME/elabox-binaries/binaries
 ELA_SRC=$PROJ_HOME/Elastos.ELA
 EID_SRC=$PROJ_HOME/Elastos.ELA.SideChain.EID
 ESC_SRC=$PROJ_HOME/Elastos.ELA.SideChain.ESC
+GLIDE_SRC=$PROJ_HOME/glide-frontend
 ELA_COMPANION=$PROJ_HOME/elabox-companion
 ELA_LANDING=$PROJ_HOME/landing-page
 ELA_REWARDS=$PROJ_HOME/elabox-rewards
@@ -55,8 +56,14 @@ echo "Rebuild companion client & server? 1 - All, 2 - Client, 3 - Server, Enter 
 read answerComp
 echo "Rebuild elabox landing page? (y/n)"
 read answerLand
-echo "Do you want to rebuild elastos binaries? (y/n)"
+echo "Rebuild elastos binaries? (y/n)"
 read answerEla
+if [ -d "$ELA_LOGS" ]; then 
+    echo "Rebuild logging service? (y/n)"
+    read answerLog
+fi
+echo "Rebuild Glide? (y/n)"
+read answerGlide
 
 #####################
 # build packager
@@ -113,10 +120,12 @@ if [ -d "$ELA_REWARDS" ]; then
 fi
 
 # build app logs
-wd=$PWD
-cd $ELA_LOGS/scripts
-./build.sh -o $target -a $arch -d $MODE
-cd $wd
+if [ "$answerLog" == "y" ]; then 
+    wd=$PWD
+    cd $ELA_LOGS/scripts
+    ./build.sh -o $target -a $arch -d $MODE
+    cd $wd
+fi
 
 # unset env variables
 go env -u CC
@@ -135,8 +144,7 @@ if [[ "$answerComp" == "1" || "$answerComp" == "2" ]]; then
     sudo npm install
     sudo npm run build
     cd $initDir
-    rm -r $buildpath/companion/www
-    mkdir -p $buildpath/companion/www
+    rm -r $buildpath/companion/www && mkdir -p $buildpath/companion/www
     cp -r $ELA_COMPANION/src_client/build/* $buildpath/companion/www
     built=1
 fi
@@ -166,6 +174,7 @@ if [ "$answerLand" == "y" ]; then
     sudo npm install
     sudo npm run build
     cd $wd
+    rm -r $buildpath/system/www && mkdir -p $buildpath/system/www
     cp -r $ELA_LANDING/build/* $buildpath/system/www
 fi
 
@@ -215,6 +224,21 @@ if [ "$answerEla" == "y" ]; then
     cp ${ELA_NODES}/ela-bootstrapd $carrierlib
     cp ${ELA_NODES}/bootstrapd.conf $carrierlib
     chmod +x $carrierlib/ela-bootstrapd
+fi
+
+#########################
+# build Glide?
+#########################
+if [ "$answerGlide" == "y" ]; then
+    echo "Building Glide..."
+    wd=$PWD
+    cd $GLIDE_SRC
+   # sudo npm install
+    #sudo npm run build
+    cd $wd
+    rm -r $buildpath/glide/www && mkdir -p $buildpath/glide/www
+    cp -r $GLIDE_SRC/build/* $buildpath/glide/www
+    packager $buildpath/glide/packager.json
 fi
 
 #########################
