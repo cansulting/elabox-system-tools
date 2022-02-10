@@ -79,6 +79,9 @@ if [ "$exists" == 0 ]; then
     fi
 fi
 
+# ESC NODE RPC PORT
+sudo ufw allow 20637
+
 ############################
 ## Setup packages
 ############################
