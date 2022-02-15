@@ -156,6 +156,7 @@ if [[ "$answerComp" == "1" || "$answerComp" == "3" ]]; then
     sudo npm install
     cd $initDir
     mkdir -p $buildpath/companion/nodejs
+    rm -r $buildpath/companion/nodejs && mkdir -p $buildpath/companion/nodejs
     cp -r $ELA_COMPANION/src_server/* $buildpath/companion/nodejs
     built=1
 fi
