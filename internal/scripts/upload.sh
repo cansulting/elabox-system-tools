@@ -11,6 +11,11 @@ echo "Upload for version 1 - Staging, 2 - Release, None = Debug"
 read answer
 # RELEASE
 if [ "$answer" == "2" ]; then
+    echo "Are you sure to upload release version, this will affect consumer version updates? (y/n)"
+    read answer
+    if [ "$answer" != "y" ]; then
+        exit
+    fi
     bucket=elabox
     rewardhost=208.87.134.80:1236
 # STAGING

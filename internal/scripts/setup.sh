@@ -23,7 +23,7 @@ do
 done
 
 # NodeJs 
-curl -sL https://deb.nodesource.com/setup_17.x | sudo -E bash -
+curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash -
 echo 'Y' | sudo apt update 
 sudo apt install nodejs
 
