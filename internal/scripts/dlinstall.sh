@@ -3,7 +3,7 @@
 build=!build
 # select specific build
 if [ "$1" != "" ]; then
-    build = $1
+    build=$1
 fi
 
 os=linux

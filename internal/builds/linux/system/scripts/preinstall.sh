@@ -13,6 +13,11 @@ sudo pkill esc
 sudo pkill ela-bootstrapd
 sudo pkill feedsd
 
+# download files
+echo "Setting up nodejs"
+echo '$user' | curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash -
+echo 'Y' | sudo apt update 
+
 ############################
 ## Setup user, dependent files, caching
 ############################
@@ -25,10 +30,6 @@ if [ "$exists" == 0 ]; then
     echo 'exit' | sudo useradd -p $(openssl passwd -1 $passwd) -m $user
     sudo usermod -aG sudo $user
     sudo -s -u $user
-    # download files
-    echo "Downloading files"
-    echo '$user' | curl -sL https://deb.nodesource.com/setup_17.x | sudo -E bash -
-    echo 'Y' | sudo apt update 
     echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
 
     ############################
