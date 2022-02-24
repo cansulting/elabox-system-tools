@@ -13,12 +13,12 @@ func main() {
 	path := os.Args[1]
 	if err := load(path); err != nil {
 		log.Println(err.Error())
-		return
+		panic(err)
 	}
 }
 
 func load(path string) error {
-	log.Println("Ela Packager")
+	//log.Println("Ela Packager")
 	pkg := NewPackage()
 	if err := pkg.LoadConfig(path); err != nil {
 		return err
