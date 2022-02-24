@@ -8,41 +8,58 @@
 // you’ll have to release your application under similar terms as the LGPL.
 // Please check license description @ https://www.gnu.org/licenses/lgpl-3.0.txt
 
-// this file provides funnction for generating response data for RPC
-// response data is json string which will be encoded to Base64 before transmitting
+// represents data from remote request
 
 package rpc
 
 import (
-	"encoding/base64"
-	"strconv"
-	"strings"
+	"encoding/json"
+	"errors"
+
+	"github.com/cansulting/elabox-system-tools/foundation/event/data"
 )
 
-const SUCCESS_CODE = 200
-const SYSTEMERR_CODE = 400 // theres something wrong with the system
-const INVALID_CODE = 401
-
-// return json string for response
-func CreateResponse(code int16, msg string) string {
-	return CreateResponseQ(code, msg, true)
+type ResponseMessage struct {
+	Code    float32 `json:"code"`
+	Message string  `json:"message"`
 }
 
-func CreateResponseQ(code int16, msg string, addQoute bool) string {
-	if addQoute {
-		if msg != "" {
-			msg = strings.Replace(msg, "\"", "\\\"", -1)
-		}
-		msg = "\"" + msg + "\""
+type Response struct {
+	Value interface{}
+}
+
+func (inst Response) toStringDecoded() (string, error) {
+	return DecodeResponse(inst.Value.(string))
+}
+
+func (inst Response) ToSimpleResponse() (ResponseMessage, error) {
+	val := &ResponseMessage{}
+	if err := inst.ParseJson(val); err != nil {
+		return ResponseMessage{}, err
 	}
-	return base64.StdEncoding.EncodeToString([]byte("{\"code\":" + strconv.Itoa(int(code)) + ", \"message\": " + msg + "}"))
+	return *val, nil
 }
 
-func CreateJsonResponse(code int16, msg string) string {
-	return CreateResponseQ(code, msg, false)
+func (r *Response) ParseJson(obj interface{}) error {
+	if r.Value != nil {
+		strVal := []byte(r.ToString())
+		if err := json.Unmarshal(strVal, obj); err != nil {
+			return err
+		}
+		return nil
+	}
+	return errors.New("cannot parse empty value")
 }
 
-// returns success json response
-func CreateSuccessResponse(msg string) string {
-	return CreateResponseQ(SUCCESS_CODE, msg, true)
+func (r *Response) ToActionGroup() *data.ActionGroup {
+	actiong := data.NewActionGroup()
+	r.ParseJson(&actiong)
+	return actiong
+}
+
+func (r *Response) ToString() string {
+	if dec, err := r.toStringDecoded(); err == nil {
+		return dec
+	}
+	return ""
 }

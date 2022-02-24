@@ -16,9 +16,9 @@ import (
 
 type RPCInterface interface {
 	// use to broadcast to the system
-	CallSystem(action data.Action) (*data.Response, error)
+	CallSystem(action data.Action) (*Response, error)
 	// use to broadcast to specific package
-	CallRPC(packageId string, action data.Action) (*data.Response, error)
+	CallRPC(packageId string, action data.Action) (*Response, error)
 	Close() error
 	// set callback when recieved specific action/event
 	OnRecieved(action string, onServiceResponse ServiceDelegate)
