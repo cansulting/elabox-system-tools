@@ -52,6 +52,8 @@ func OnRecievedRequest(
 		res := startActivity(activityAc, client)
 		log.Println(res)
 		return res
+	case constants.ACTION_START_SERVICE:
+		return startService(action)
 	case constants.APP_CHANGE_STATE:
 		return onAppChangeState(client, action)
 	case constants.SYSTEM_ACTIVITY_RESULT:
@@ -62,8 +64,9 @@ func OnRecievedRequest(
 		return terminate(5)
 	case constants.SYSTEM_TERMINATE_NOW:
 		return terminate(0)
+	default:
+		return rpc.CreateResponse(rpc.NOT_IMPLEMENTED, "request for action "+action.Id+" was not implemented.")
 	}
-	return ""
 }
 
 // client app changed its state
@@ -115,7 +118,19 @@ func startActivity(action data.Action, client protocol.ClientInterface) string {
 		return rpc.CreateResponse(rpc.SYSTEMERR_CODE, err.Error())
 	}
 	global.Logger.Debug().Msg("Start activity with " + action.Id + action.DataToString())
-	return rpc.CreateSuccessResponse("Launched")
+	return rpc.CreateSuccessResponse("started")
+}
+
+func startService(action data.Action) string {
+	pkgid := action.PackageId
+	if pkgid == "" {
+		return rpc.CreateResponse(rpc.INVALID_CODE, "package id shouldnt be empty")
+	}
+	_, err := appman.LaunchAppService(pkgid)
+	if err != nil {
+		return rpc.CreateResponse(rpc.INVALID_CODE, err.Error())
+	}
+	return rpc.CreateSuccessResponse("started")
 }
 
 // when activity returns a result
