@@ -30,6 +30,7 @@ if [ "$exists" == 0 ]; then
     echo 'exit' | sudo useradd -p $(openssl passwd -1 $passwd) -m $user
     sudo usermod -aG sudo $user
     sudo -s -u $user
+
     echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
 
     ############################
