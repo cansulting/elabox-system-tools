@@ -29,6 +29,8 @@ const SYSTEM_BROADCAST = "ela.system.BROADCAST"
 app/service/action will start an activity.
 */
 const ACTION_START_ACTIVITY = "ela.system.START_ACTIVITY"
+const ACTION_START_SERVICE = "ela.system.START_SERVICE" // called to start service
+const ACTION_STOP_STOP = "ela.system.STOP_SERVICE"      // called to stop service
 
 // use to communicate between dapps via RPC. the target RPC needs to provide actions
 // via calling RPCHandler.onRecieved()

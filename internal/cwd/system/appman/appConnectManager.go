@@ -19,6 +19,7 @@ import (
 	"errors"
 
 	appd "github.com/cansulting/elabox-system-tools/foundation/app/data"
+	"github.com/cansulting/elabox-system-tools/foundation/constants"
 	"github.com/cansulting/elabox-system-tools/foundation/event/data"
 	"github.com/cansulting/elabox-system-tools/foundation/event/protocol"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/system/global"
@@ -112,31 +113,48 @@ func LaunchAppActivity(
 	packageId string,
 	caller protocol.ClientInterface,
 	pendingActivity data.Action) error {
-	// start launching the activity
-	app := GetAppConnect(packageId, nil)
+	appc := GetAppConnect(packageId, nil)
+	if appc == nil {
+		return errors.New("package " + packageId + " coculdnt be found")
+	}
+	if !appc.Config.HasActivity(pendingActivity.Id) {
+		return errors.New("package " + packageId + "doesnt have activity")
+	}
+	_, err := SendAppPendingAction(packageId, pendingActivity, data.Action{})
+	return err
+}
+
+func LaunchAppService(pkgid string) (*AppConnect, error) {
+	app := GetAppConnect(pkgid, nil)
 	if app == nil {
-		return errors.New("Package " + packageId + " was not found.")
+		return nil, errors.New("Package " + pkgid + " was not found.")
 	}
-	// check if already launched
-	if app.IsRunning() {
-		return nil
+	if app.launched {
+		return app, nil
 	}
-	// start lauching
-	app.PendingActions.AddPendingActivity(&pendingActivity)
-	err := app.Launch()
-	if err != nil {
-		return err
-	}
-	return nil
+	ac := data.NewActionById(constants.ACTION_START_SERVICE)
+	app.PendingActions.AddPendingService(&ac)
+	return app, app.Launch()
 }
 
 // use to launch app
-func LaunchApp(packageId string) error {
+func SendAppPendingAction(
+	packageId string,
+	activityPending data.Action,
+	servicePending data.Action) (*AppConnect, error) {
 	app := GetAppConnect(packageId, nil)
 	if app == nil {
-		return errors.New("Package " + packageId + " was not found.")
+		return nil, errors.New("Package " + packageId + " was not found.")
 	}
-	return app.Launch()
+
+	if activityPending.Id != "" {
+		app.PendingActions.AddPendingActivity(&activityPending)
+	}
+	if servicePending.Id != "" {
+		app.PendingActions.AddPendingService(&servicePending)
+	}
+
+	return app, app.Launch()
 }
 
 // run all start up apps
@@ -147,7 +165,7 @@ func InitializeStartups() {
 		global.Logger.Error().Err(err).Caller().Msg("Failed retrieving startup packages.")
 	}
 	for _, pkg := range pkgs {
-		if err := LaunchApp(pkg.PackageId); err != nil {
+		if _, err := LaunchAppService(pkg.PackageId); err != nil {
 			global.Logger.Error().Err(err).Caller().Msg("Failed launching app.")
 		}
 	}

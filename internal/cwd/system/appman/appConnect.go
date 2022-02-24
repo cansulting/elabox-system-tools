@@ -92,9 +92,7 @@ func (app *AppConnect) RPCCall(action string, data interface{}) (string, error) 
 // this launches both main program and node js
 func (app *AppConnect) Launch() error {
 	if app.launched {
-		if app.Config.HasMainProgram() {
-			return app.sendPendingActions()
-		}
+		return app.sendPendingActions()
 	}
 	// node running
 	if app.nodejs != nil && !app.nodejs.IsRunning() {

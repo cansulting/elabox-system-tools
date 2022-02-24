@@ -12,4 +12,8 @@ internal/builds/linux/did/bin
 internal/builds/linux/carrier/bin
 internal/builds/linux/mainchain/bin
 internal/builds/linux/system/www
-
+internal/builds/linux/glide/www/
+internal/builds/linux/eid/bin/geth
+internal/builds/linux/esc/bin/esc
+internal/builds/linux/mainchain/bin/ela
+internal/builds/linux/mainchain/bin/ela-cli

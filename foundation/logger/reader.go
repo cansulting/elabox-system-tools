@@ -25,6 +25,13 @@ const LOG_FILE = constants.LOG_FILE
 
 type Log map[string]interface{}
 
+type LoadType int8
+
+const (
+	LATEST_FIRST LoadType = iota
+	OLD_FIRST
+)
+
 // this struct provides log reading.
 type Reader struct {
 	logFile      *os.File
@@ -82,11 +89,13 @@ func (r *Reader) refreshFile() {
 	}
 }
 
-// use to load some logs.
-// @start - start position of file reading backwards. start <= 0 means start from latest log
+// use to load some logs in concurrent chunks
+// @start - start position from file reading backwards. start <= 0 means start from latest log
 // @length - the number of bytes to read. -1 if read all. 0 if use the single chunk, see the CHUNK_SIZE
+// @loadType - which comes first in loading log
+// @filter
 // @return - new offset
-func (r *Reader) Load(start int64, length int64, filter func(int, Log) bool) int64 {
+func (r *Reader) Load(start int64, length int64, loadType LoadType, filter func(int, Log) bool) int64 {
 	r.refreshFile()
 	if r.EndingOffset <= 0 {
 		return 0
@@ -145,7 +154,7 @@ func (r *Reader) Load(start int64, length int64, filter func(int, Log) bool) int
 		}
 		waitG.Add(1)
 		go func() {
-			r.processLogs(logs, chunkI, filter)
+			r.processLogs(logs, chunkI, loadType, filter)
 			waitG.Done()
 		}()
 		// if len(chunk) < CHUNK_SIZE {
@@ -161,25 +170,40 @@ func (r *Reader) Load(start int64, length int64, filter func(int, Log) bool) int
 	return offset
 }
 
-// load logs and stop when specific limit of logs returned
+// load logs in sequencial manner and stop when specific limit of logs returned
+// this is a bit slow because it reads sequencially
 // @start - start position of file reading backwards. start <= 0 means start from latest log
 // @limit - max log to load. -1 if theres no limit
+// @loadType - which comes first in loading
+// @filter: if returned is false then end processing log
 // @return - total loaded, new offset
-func (r *Reader) LoadLimit(start int64, limit int, filter func(Log) bool) (int, int64) {
+func (r *Reader) LoadSeq(start int64, limit int, loadType LoadType, filter func(Log) bool) (int, int64) {
 	r.refreshFile()
 	if r.EndingOffset <= 0 {
 		return 0, 0
 	}
 	offset := start
+
 	if start <= 0 {
-		offset = r.EndingOffset
+		start = 0
+		if loadType == LATEST_FIRST {
+			offset = r.EndingOffset
+		} else {
+			offset = 0
+		}
 	}
 	if limit < 0 {
 		limit = 1000000
 	}
+
 	i := 0
-	for i < limit && offset >= 0 {
-		offset = r.Load(offset, CHUNK_SIZE, func(chunkI int, l Log) bool {
+	newoffset := offset
+	for {
+		if loadType == OLD_FIRST {
+			newoffset += CHUNK_SIZE
+			offset = newoffset
+		}
+		offset = r.Load(offset, CHUNK_SIZE, loadType, func(chunkI int, l Log) bool {
 			if filter(l) {
 				i++
 				// limit was achieved. quit to inner loop
@@ -190,10 +214,22 @@ func (r *Reader) LoadLimit(start int64, limit int, filter func(Log) bool) (int, 
 			return true
 		})
 		// limit was achieved
-		if i >= int(limit) || offset <= 0 {
+		if i >= int(limit) {
 			break
 		}
-		//offset -= CHUNK_SIZE
+		// should we end?
+		if loadType == LATEST_FIRST {
+			if offset <= 0 {
+				break
+			}
+		} else {
+			if newoffset >= r.EndingOffset {
+				break
+			}
+		}
+	}
+	if loadType == OLD_FIRST {
+		offset = newoffset
 	}
 	return i, offset
 }
@@ -254,28 +290,46 @@ func (r *Reader) findHeadingFragment(offset int64) ([]byte, int64) {
 }
 
 // use this to process chunk
-func (r *Reader) processLogs(chunkStr string, chunkIndex int, filter func(int, Log) bool) {
+// @loadType: which comes first in loading the log.
+// @filter: if returned is false then end processing log
+func (r *Reader) processLogs(chunkStr string, chunkIndex int, loadType LoadType, filter func(int, Log) bool) {
 	splitted := strings.Split(chunkStr, "\n")
 	logs := make([]Log, len(splitted))
 	hasFilter := false
 	if filter != nil {
 		hasFilter = true
 	}
-	for i := len(splitted) - 1; i >= 0; i-- {
+	start := len(splitted) - 1
+	if loadType == OLD_FIRST {
+		start = 0
+	}
+	for i := start; ; {
 		log := logPool.Get().(Log)
 		// failed parsing json
-		if err := json.Unmarshal([]byte(splitted[i]), &log); err != nil {
-			continue
+		err := json.Unmarshal([]byte(splitted[i]), &log)
+		if err == nil {
+			logs[i] = log
+			if hasFilter {
+				if !filter(chunkIndex, log) {
+					logPool.Put(log)
+					return
+				}
+			}
+			logPool.Put(log)
 		}
-		logs[i] = log
-		if hasFilter {
-			if !filter(chunkIndex, log) {
-				logPool.Put(log)
-				return
+
+		// should we end?
+		if loadType == LATEST_FIRST {
+			i--
+			if i < 0 {
+				break
+			}
+		} else {
+			i++
+			if i >= len(splitted) {
+				break
 			}
 		}
-		logPool.Put(log)
-		//println(splitted[i])
 	}
 	stringPool.Put(chunkStr)
 }

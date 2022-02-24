@@ -39,14 +39,15 @@ type PackageConfig struct {
 	Program     string `json:"program"`     // the main program file to execute
 	// request permission for specific action/feature
 	// if the specific action was called and was not defined. the process will be void
-	Permissions      []string `json:"permissions"`
-	ExportServices   bool     `json:"exportService"`   // true if the package contains services
-	Activities       []string `json:"activities"`      // if app has activity. this contains definition of actions that will triggerr activity
-	BroacastListener []string `json:"actionListener"`  // defined actions which action listener will listen to
-	InstallLocation  string   `json:"location"`        // which location the package will be installed
-	Source           string   `json:"-"`               // the source location
-	Nodejs           bool     `json:"nodejs"`          // true if this package includes node js
-	PackagerVersion  string   `json:"packagerVersion"` // version of packager of this package
+	Permissions      []string               `json:"permissions"`
+	ExportServices   bool                   `json:"exportService"`   // true if the package contains services
+	Activities       []string               `json:"activities"`      // if app has activity. this contains definition of actions that will triggerr activity
+	BroacastListener []string               `json:"actionListener"`  // defined actions which action listener will listen to
+	InstallLocation  string                 `json:"location"`        // which location the package will be installed
+	Source           string                 `json:"-"`               // the source location
+	Nodejs           bool                   `json:"nodejs"`          // true if this package includes node js
+	PackagerVersion  string                 `json:"packagerVersion"` // version of packager of this package
+	Ext              map[string]interface{} `json:"ext"`             // extra values
 	//Services         map[string]string `json:"services"`       // if app has a service. this contains definition of commands available to service
 }
 
@@ -92,9 +93,9 @@ func (c *PackageConfig) GetIssue() (string, string) {
 	if c.Name == "" {
 		return "name", "Provide a proper name for package."
 	}
-	if !c.Nodejs && c.Program == "" {
-		return "program", "Provide a valid file name for main program entry."
-	}
+	// if !c.Nodejs && c.Program == "" {
+	// 	return "program", "Provide a valid file name for main program entry."
+	// }
 	if c.Build < 0 {
 		return "build", "Provide a valid build number. Value should be greater to 0"
 	}
@@ -114,6 +115,19 @@ func (c *PackageConfig) ChangeToSystemLocation() {
 // return true is this package contains services
 func (c *PackageConfig) HasServices() bool {
 	return c.ExportServices
+}
+
+// use to check if contains activity that has action of
+func (c *PackageConfig) HasActivity(actionId string) bool {
+	if c.Activities == nil || len(c.Activities) == 0 {
+		return false
+	}
+	for _, act := range c.Activities {
+		if act == actionId {
+			return true
+		}
+	}
+	return false
 }
 
 // load package info from zip
@@ -183,7 +197,7 @@ func (c *PackageConfig) GetLibraryDir() string {
 // return true if has main binary
 func (c *PackageConfig) HasMainProgram() bool {
 	if c.Program == "" {
-		return false 
+		return false
 	}
 	if _, err := os.Stat(c.GetMainProgram()); err == nil {
 		return true

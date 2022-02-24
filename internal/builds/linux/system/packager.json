@@ -13,7 +13,8 @@
         "../mainchain/ela.mainchain.box",
         "../eid/ela.eid.box",
         "../esc/ela.esc.box",
-        "../feeds/ela.feeds.box"
+        "../feeds/ela.feeds.box",
+        "../glide/glide.box"
     ],
     "customInstaller": "../packageinstaller/bin/packageinstaller",
     "lib": "",

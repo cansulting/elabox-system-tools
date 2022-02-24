@@ -2,8 +2,8 @@
 	"name": "ESC",
 	"description": "Ethereum Smart Contract(ESC) Node",
 	"packageId": "ela.esc",
-	"build": 1,
-	"version": "0.1.2",
+	"build": 2,
+	"version": "0.1.4.3",
 	"program": "esc",
 	"permissions": null,
 	"exportService": false,
@@ -11,5 +11,6 @@
 	"actionListener": null,
 	"location": "external",
 	"nodejs": false,
-	"packagerVersion": "0.1.0"
+	"packagerVersion": "0.1.0",
+	"ext": null
 }

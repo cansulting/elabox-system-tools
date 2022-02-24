@@ -1,7 +1,13 @@
 #!/bin/bash
+
+build=!build
+# select specific build
+if [ "$1" != "" ]; then
+    build=$1
+fi
+
 os=linux
 arch=!arch
-build=!build
 installer=https://storage.googleapis.com/!bucket/installer/$os/$arch/packageinstaller
 pkg=https://storage.googleapis.com/!bucket/packages/$build.box
 rewhost=!rewardhost

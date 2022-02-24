@@ -4,13 +4,14 @@ ELA_NODES=$PROJ_HOME/elabox-binaries/binaries
 ELA_SRC=$PROJ_HOME/Elastos.ELA
 EID_SRC=$PROJ_HOME/Elastos.ELA.SideChain.EID
 ESC_SRC=$PROJ_HOME/Elastos.ELA.SideChain.ESC
+GLIDE_SRC=$PROJ_HOME/glide-frontend
 ELA_COMPANION=$PROJ_HOME/elabox-companion
 ELA_LANDING=$PROJ_HOME/landing-page
 ELA_REWARDS=$PROJ_HOME/elabox-rewards
 ELA_LOGS=$PROJ_HOME/elabox-logs
 cos=$(go env GOOS)                  # current os. 
 carc=$(go env GOARCH)               # current archi
-pkg_name=packageinstaller           # package installer project name
+packageinstaller=packageinstaller           # package installer project name
 system_name=system                  # system project name
 packager=packager             
 target=$cos
@@ -55,14 +56,21 @@ echo "Rebuild companion client & server? 1 - All, 2 - Client, 3 - Server, Enter 
 read answerComp
 echo "Rebuild elabox landing page? (y/n)"
 read answerLand
-echo "Do you want to rebuild elastos binaries? (y/n)"
+echo "Rebuild elastos binaries? (y/n)"
 read answerEla
+if [ -d "$ELA_LOGS" ]; then 
+    echo "Rebuild logging service? (y/n)"
+    read answerLog
+fi
+echo "Rebuild Glide? (y/n)"
+read answerGlide
 
 #####################
 # build packager
 #####################
 go env -u GOOS
 go env -u GOARCH
+go env -u GO111MODULE
 buildpath=../builds/$target
 echo "Building " $packager
 mkdir -p $buildpath/packager
@@ -91,15 +99,34 @@ else
         go env -w CC=x86_64-w64-mingw32-gcc
     fi
 fi
+
 go env -w GOOS=$target 
 go env -w GOARCH=$arch
-echo "Building " $pkg_name
-mkdir -p $buildpath/$pkg_name/bin
-eval "$gobuild" -o $buildpath/$pkg_name/bin ../cwd/$pkg_name
+echo "Building " $packageinstaller
+mkdir -p $buildpath/$packageinstaller/bin
+eval "$gobuild" -o $buildpath/$packageinstaller/bin ../cwd/$packageinstaller
+ln -sf $PWD/$buildpath/$packageinstaller/bin/$packageinstaller /bin/$packageinstaller
 echo "Building Elabox System"
 eval "$gobuild" -o $buildpath/$system_name/bin ../cwd/$system_name
 programName=$(jq ".program" $buildpath/$system_name/info.json | sed 's/\"//g')
 mv $buildpath/$system_name/bin/$system_name $buildpath/$system_name/bin/$programName 
+
+# build reward if exists
+if [ -d "$ELA_REWARDS" ]; then 
+    wd=$PWD
+    cd $ELA_REWARDS/scripts
+    ./build.sh -o $target -a $arch -d $MODE
+    cd $wd
+fi
+
+# build app logs
+if [ "$answerLog" == "y" ]; then 
+    wd=$PWD
+    cd $ELA_LOGS/scripts
+    ./build.sh -o $target -a $arch -d $MODE
+    cd $wd
+fi
+
 # unset env variables
 go env -u CC
 go env -u CXX
@@ -117,8 +144,7 @@ if [[ "$answerComp" == "1" || "$answerComp" == "2" ]]; then
     sudo npm install
     sudo npm run build
     cd $initDir
-    rm -r $buildpath/companion/www
-    mkdir -p $buildpath/companion/www
+    rm -r $buildpath/companion/www && mkdir -p $buildpath/companion/www
     cp -r $ELA_COMPANION/src_client/build/* $buildpath/companion/www
     built=1
 fi
@@ -130,6 +156,7 @@ if [[ "$answerComp" == "1" || "$answerComp" == "3" ]]; then
     sudo npm install
     cd $initDir
     mkdir -p $buildpath/companion/nodejs
+    rm -r $buildpath/companion/nodejs && mkdir -p $buildpath/companion/nodejs
     cp -r $ELA_COMPANION/src_server/* $buildpath/companion/nodejs
     built=1
 fi
@@ -148,6 +175,7 @@ if [ "$answerLand" == "y" ]; then
     sudo npm install
     sudo npm run build
     cd $wd
+    rm -r $buildpath/system/www && mkdir -p $buildpath/system/www
     cp -r $ELA_LANDING/build/* $buildpath/system/www
 fi
 
@@ -160,6 +188,7 @@ if [ "$answerEla" == "y" ]; then
     cd $ELA_SRC 
     make all
     echo "Building EID from source..."
+    go env -w GO111MODULE=off
     cd $wd
     cd $EID_SRC
     make geth
@@ -169,6 +198,7 @@ if [ "$answerEla" == "y" ]; then
     cd $ESC_SRC
     make geth
     cd $wd
+    go env -u GO111MODULE
 
     targetdir=$buildpath
     echo "Copying mainchain, eid and cli @$ELA_NODES"
@@ -198,6 +228,21 @@ if [ "$answerEla" == "y" ]; then
 fi
 
 #########################
+# build Glide?
+#########################
+if [ "$answerGlide" == "y" ]; then
+    echo "Building Glide..."
+    wd=$PWD
+    cd $GLIDE_SRC
+   # sudo npm install
+    #sudo npm run build
+    cd $wd
+    rm -r $buildpath/glide/www && mkdir -p $buildpath/glide/www
+    cp -r $GLIDE_SRC/build/* $buildpath/glide/www
+    packager $buildpath/glide/packager.json
+fi
+
+#########################
 # Packaging
 #########################
 echo "Start packaging..."
@@ -205,7 +250,7 @@ packager $buildpath/eid/packager.json
 packager $buildpath/esc/packager.json
 packager $buildpath/carrier/packager.json
 packager $buildpath/mainchain/packager.json
-packager $buildpath/$pkg_name/packager.json
+packager $buildpath/$packageinstaller/packager.json
 packager $buildpath/feeds/packager.json
 packager $buildpath/$system_name/packager.json
 

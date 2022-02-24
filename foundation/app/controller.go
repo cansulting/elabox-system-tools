@@ -15,7 +15,6 @@ package app
 // To initialize call NewController, for debugging use NewControllerWithDebug
 // please see the documentation for more info.
 import (
-	"os"
 	"strconv"
 	"time"
 
@@ -24,11 +23,9 @@ import (
 	"github.com/cansulting/elabox-system-tools/foundation/app/rpc"
 	"github.com/cansulting/elabox-system-tools/foundation/constants"
 	"github.com/cansulting/elabox-system-tools/foundation/errors"
-	event "github.com/cansulting/elabox-system-tools/foundation/event"
 	"github.com/cansulting/elabox-system-tools/foundation/event/data"
 	protocolE "github.com/cansulting/elabox-system-tools/foundation/event/protocol"
 	"github.com/cansulting/elabox-system-tools/foundation/logger"
-	"github.com/cansulting/elabox-system-tools/foundation/perm"
 	"github.com/cansulting/elabox-system-tools/foundation/system"
 )
 
@@ -105,18 +102,14 @@ func (m *Controller) onStart() error {
 		Info().
 		Str("category", "appcontroller").
 		Msg("Starting App " + m.Config.PackageId + ". Ide = " + strconv.FormatBool(system.IDE))
-	// step: resolve dir for data
-	os.MkdirAll(m.Config.GetDataDir(), perm.PUBLIC_WRITE)
 
-	// step: init connector
-	connector := event.CreateClientConnector()
-	err := connector.Open(-1)
-	if err != nil {
-		return errors.SystemNew("Controller: Failed to start. Couldnt create client connector.", err)
-	}
 	// step: create RPC
 	if m.RPC == nil {
-		m.RPC = rpc.NewRPCHandler(connector)
+		rpc, err := rpc.NewRPCHandlerDefault()
+		if err != nil {
+			return errors.SystemNew("Controller: Failed to start. Couldnt create client connector.", err)
+		}
+		m.RPC = rpc
 		m.RPC.OnRecieved(constants.APP_TERMINATE, m.onTerminate)
 	}
 	// step: send running state
@@ -139,7 +132,7 @@ func (m *Controller) onStart() error {
 		}
 	}
 	// step: initialize activity
-	if m.Activity != nil {
+	if m.Activity != nil && pendingActions.Activity != nil {
 		logger.GetInstance().Debug().Str("category", "appcontroller").Msg("Activity start")
 		if err := m.Activity.OnStart(pendingActions.Activity); err != nil {
 			return errors.SystemNew("app.Controller couldnt start app activity", err)

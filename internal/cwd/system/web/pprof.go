@@ -8,18 +8,11 @@
 // you’ll have to release your application under similar terms as the LGPL.
 // Please check license description @ https://www.gnu.org/licenses/lgpl-3.0.txt
 
-package rpc
+// only display ppfrof on debug mode
 
-import (
-	"github.com/cansulting/elabox-system-tools/foundation/event/data"
-)
+//go:build DEBUG
+// +build DEBUG
 
-type RPCInterface interface {
-	// use to broadcast to the system
-	CallSystem(action data.Action) (*Response, error)
-	// use to broadcast to specific package
-	CallRPC(packageId string, action data.Action) (*Response, error)
-	Close() error
-	// set callback when recieved specific action/event
-	OnRecieved(action string, onServiceResponse ServiceDelegate)
-}
+package web
+
+import _ "net/http/pprof"

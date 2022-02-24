@@ -3,6 +3,9 @@ package main
 import (
 	"archive/zip"
 	"bytes"
+	"io"
+	"os"
+
 	"github.com/cansulting/elabox-system-tools/foundation/app/data"
 	"github.com/cansulting/elabox-system-tools/foundation/constants"
 	"github.com/cansulting/elabox-system-tools/foundation/errors"
@@ -13,8 +16,6 @@ import (
 	"github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/pkg"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/utils"
 	"github.com/cansulting/elabox-system-tools/registry/app"
-	"io"
-	"os"
 )
 
 /*
@@ -59,6 +60,8 @@ func (instance *installer) Start() error {
 			pkconst.Logger.Error().Err(err).Caller().Msg("installer failed to backup app dir " + packageInfo.GetInstallDir())
 		}
 	}
+	// step: resolve dir for data
+	os.MkdirAll(packageInfo.GetDataDir(), perm.PUBLIC_WRITE)
 	// preinstall
 	if err := instance.preinstall(); err != nil {
 		return err
