@@ -22,7 +22,7 @@ func isSystemRunning() bool {
 	return true
 }
 
-// restart the main system
+// start the main system
 func StartSystem() error {
 	pkc.Logger.Info().Msg("Starting up system...")
 	// step: execute system binary
@@ -51,5 +51,16 @@ func TerminateSystem(delaySec int) error {
 	if err := cmd.Run(); err != nil {
 		return err
 	}
+	return nil
+}
+
+// use to reboot the device
+func Reboot() error {
+	pkc.Logger.Info().Msg("Rebooting system...")
+	cmd := exec.Command("reboot")
+	if err := cmd.Start(); err != nil {
+		return err
+	}
+	cmd.Process.Release()
 	return nil
 }

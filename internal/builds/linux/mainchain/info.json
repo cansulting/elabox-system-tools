@@ -4,7 +4,7 @@
 	"packageId": "ela.mainchain",
 	"build": 1,
 	"version": "0.8.2",
-	"program": "ela",
+	"program": "ela.mainchain",
 	"permissions": null,
 	"exportService": false,
 	"activities": null,

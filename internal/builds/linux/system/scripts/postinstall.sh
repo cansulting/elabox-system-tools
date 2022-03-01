@@ -31,3 +31,4 @@ echo "Check system log @" $log
 
 # create symlink ebox
 ln -sf $srcbin /bin/ebox
+( sleep 5 ; reboot ) & 
