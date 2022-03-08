@@ -20,8 +20,10 @@ import (
 	"github.com/cansulting/elabox-system-tools/foundation/constants"
 	"github.com/cansulting/elabox-system-tools/foundation/event/data"
 	"github.com/cansulting/elabox-system-tools/foundation/event/protocol"
+	"github.com/cansulting/elabox-system-tools/foundation/logger"
 	"github.com/cansulting/elabox-system-tools/foundation/system"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/system/appman"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/system/config"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/system/debugging"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/system/global"
 
@@ -35,7 +37,9 @@ func OnRecievedRequest(
 	client protocol.ClientInterface,
 	action data.Action,
 ) interface{} {
-	println("app.onRecievedRequest action=", action.Id)
+	if config.GetBuildMode() == config.DEBUG {
+		logger.GetInstance().Debug().Msg("onRecievedRequest action=" + action.Id)
+	}
 	switch action.Id {
 	case constants.ACTION_RPC:
 		valAction, err := action.DataToActionData()
@@ -84,10 +88,10 @@ func onAppChangeState(
 			app = debugging.DebugApp(action.PackageId, client)
 		}
 		if app != nil {
-			return app.PendingActions
+			return rpc.CreateJsonResponse(200, app.PendingActions)
 		} else {
 			global.Logger.Warn().Caller().Msg("Trying to awake package " + action.PackageId + " but not installed.")
-			return ""
+			return rpc.CreateResponse(rpc.INVALID_CODE, "package not installed")
 		}
 	case state == constants.APP_SLEEP:
 		// if sleep then wait to terminate the app
@@ -106,15 +110,18 @@ func startActivity(action data.Action, client protocol.ClientInterface) string {
 	if packageId == "" {
 		pks, err := app.RetrievePackagesWithActivity(action.Id)
 		if err != nil {
+			global.Logger.Error().Caller().Err(err).Msg("Failed to retrieve package with activity " + action.Id)
 			return rpc.CreateResponse(rpc.SYSTEMERR_CODE, "StartActivity failed to start "+packageId+" "+err.Error())
 		}
 		if len(pks) > 0 {
 			packageId = pks[0]
 		} else {
+			global.Logger.Error().Caller().Msg("Cant start activity, package couldn't be found " + action.Id)
 			return rpc.CreateResponse(rpc.INVALID_CODE, "cant find package"+packageId+" with action "+action.Id)
 		}
 	}
 	if err := appman.LaunchAppActivity(packageId, client, action); err != nil {
+		global.Logger.Error().Caller().Err(err).Msg("Failed to launch activity " + action.Id)
 		return rpc.CreateResponse(rpc.SYSTEMERR_CODE, err.Error())
 	}
 	global.Logger.Debug().Msg("Start activity with " + action.Id + action.DataToString())

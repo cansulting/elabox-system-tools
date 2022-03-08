@@ -15,6 +15,7 @@ package rpc
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"strconv"
 	"strings"
 )
@@ -39,8 +40,9 @@ func CreateResponseQ(code int16, msg string, addQoute bool) string {
 	return base64.StdEncoding.EncodeToString([]byte("{\"code\":" + strconv.Itoa(int(code)) + ", \"message\": " + msg + "}"))
 }
 
-func CreateJsonResponse(code int16, msg string) string {
-	return CreateResponseQ(code, msg, false)
+func CreateJsonResponse(code int16, value interface{}) string {
+	content, _ := json.Marshal(value)
+	return CreateResponseQ(code, string(content), true)
 }
 
 // returns success json response

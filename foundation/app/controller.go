@@ -124,7 +124,11 @@ func (m *Controller) onStart() error {
 		return err
 	}
 	logger.GetInstance().Debug().Msg("Pending actions =" + res.ToString())
-	pendingActions := res.ToActionGroup()
+	pendingActions, err := res.ToActionGroup()
+	if err != nil {
+		logger.GetInstance().Error().Str("category", "appcontroller").Err(err).Msg("Failed to get pending actions")
+		return err
+	}
 	// step: initialize service
 	if m.AppService != nil {
 		logger.GetInstance().Debug().Str("category", "appcontroller").Msg("Starting service")
