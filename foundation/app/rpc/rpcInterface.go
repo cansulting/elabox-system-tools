@@ -19,6 +19,7 @@ type RPCInterface interface {
 	CallSystem(action data.Action) (*Response, error)
 	// use to broadcast to specific package
 	CallRPC(packageId string, action data.Action) (*Response, error)
+	StartActivity(action data.Action) (*Response, error)
 	Close() error
 	// set callback when recieved specific action/event
 	OnRecieved(action string, onServiceResponse ServiceDelegate)

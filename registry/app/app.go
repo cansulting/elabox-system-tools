@@ -25,7 +25,7 @@ import (
 
 // retrieve all packages
 func RetrieveAllPackages() ([]*data.PackageConfig, error) {
-	row, err := retrievePackagesRaw("", []string{"id, source, version, name, location, nodejs, program"})
+	row, err := retrievePackagesRaw("", []string{"id, source, version, name, location, nodejs, program, build"})
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +57,7 @@ func RegisterPackage(pkData *data.PackageConfig) error {
 	if err != nil {
 		return errors.SystemNew("records.AddPackage Failed to add "+pkData.PackageId, err)
 	}
-	if err := addActivities(pkData); err != nil {
+	if err := registerActivities(pkData); err != nil {
 		return errors.SystemNew("appman.RegisterPackageSrc failed", err)
 	}
 	return nil
@@ -77,7 +77,7 @@ func RegisterPackageSrc(srcDir string) (*data.PackageConfig, error) {
 }
 
 func RetrievePackage(id string) (*data.PackageConfig, error) {
-	pks, err := retrievePackagesRaw(id, []string{"id", "source", "version", "name", "location", "nodejs", "program"})
+	pks, err := retrievePackagesRaw(id, []string{"id", "source", "version", "name", "location", "nodejs", "program", "build"})
 	if err != nil {
 		return nil, errors.SystemNew("appman.RetrievePackage failed", err)
 	}

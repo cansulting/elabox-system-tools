@@ -35,6 +35,8 @@ func retrievePackagesFor(action string, table string) ([]string, error) {
 	return packages, nil
 }
 
+// retrieve all packages for specific activity
+// @return: []string the list of package ids
 func RetrievePackagesForActivity(action string) ([]string, error) {
 	return retrievePackagesFor(action, "activities")
 }
@@ -48,7 +50,8 @@ func removeActivities(pkId string) error {
 	return nil
 }
 
-func addActivities(pkg *data.PackageConfig) error {
+// register activities for specific package
+func registerActivities(pkg *data.PackageConfig) error {
 	if err := removeActivities(pkg.PackageId); err != nil {
 		return err
 	}

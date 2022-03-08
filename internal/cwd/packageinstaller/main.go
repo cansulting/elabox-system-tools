@@ -25,7 +25,7 @@ func main() {
 		panic(err)
 	}
 	if err := app.RunApp(constants.AppController); err != nil {
-		constants.Logger.Error().Err(err).Caller().Msg("Failed running app")
+		constants.Logger.Error().Err(err).Stack().Msg("Failed running app")
 		panic(err)
 	}
 }

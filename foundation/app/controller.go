@@ -101,7 +101,7 @@ func (m *Controller) onStart() error {
 	logger.GetInstance().
 		Info().
 		Str("category", "appcontroller").
-		Msg("Starting App " + m.Config.PackageId + ". Ide = " + strconv.FormatBool(system.IDE))
+		Msg("Starting App Ide = " + strconv.FormatBool(system.IDE))
 
 	// step: create RPC
 	if m.RPC == nil {
@@ -120,20 +120,21 @@ func (m *Controller) onStart() error {
 	res, err := m.RPC.CallSystem(
 		data.NewAction(constants.APP_CHANGE_STATE, m.Config.PackageId, awake))
 	if err != nil {
+		logger.GetInstance().Error().Str("category", "appcontroller").Err(err).Msg("Failed to send running state")
 		return err
 	}
-	println(m.Config.PackageId + "onstart pendingActions =" + res.ToString())
+	logger.GetInstance().Debug().Msg("Pending actions =" + res.ToString())
 	pendingActions := res.ToActionGroup()
 	// step: initialize service
 	if m.AppService != nil {
-		logger.GetInstance().Debug().Str("category", "appcontroller").Msg("Service start")
+		logger.GetInstance().Debug().Str("category", "appcontroller").Msg("Starting service")
 		if err := m.AppService.OnStart(); err != nil {
 			return errors.SystemNew("app.Controller couldnt start app service", err)
 		}
 	}
 	// step: initialize activity
 	if m.Activity != nil && pendingActions.Activity != nil {
-		logger.GetInstance().Debug().Str("category", "appcontroller").Msg("Activity start")
+		logger.GetInstance().Debug().Str("category", "appcontroller").Msg("Starting activity")
 		if err := m.Activity.OnStart(pendingActions.Activity); err != nil {
 			return errors.SystemNew("app.Controller couldnt start app activity", err)
 		}

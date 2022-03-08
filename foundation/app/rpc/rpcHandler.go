@@ -70,6 +70,10 @@ func (t *RPCHandler) CallBroadcast(action data.Action) (*Response, error) {
 	return t.CallSystem(data.NewAction(constants.SYSTEM_BROADCAST, "", action))
 }
 
+func (t *RPCHandler) StartActivity(action data.Action) (*Response, error) {
+	return t.CallSystem(data.NewAction(constants.ACTION_START_ACTIVITY, "", action))
+}
+
 // closes and uninitialize this handler
 func (t *RPCHandler) Close() error {
 	// t.connector.Broadcast(constants.SERVICE_UNBIND, nil)

@@ -22,12 +22,12 @@ func (a *activity) OnStart(action *data.Action) error {
 	a.running = true
 	// step: validate action
 	sourcePkg := action.DataToString()
+	global.Logger.Info().Msg("Installing package @" + sourcePkg)
 	pkgData, err := pkg.LoadFromSource(sourcePkg)
 	if err != nil {
 		a.finish(err.Error())
 		return nil
 	}
-	global.Logger.Info().Msg("Installing package @" + sourcePkg)
 	if action.Id == constants.ACTION_APP_INSTALL {
 		return a.startNormalInstall(pkgData)
 	}
