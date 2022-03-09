@@ -28,10 +28,14 @@ type installer struct {
 	packageInfo    *data.PackageConfig // package info for installer
 	packageContent *pkg.Data
 	subinstaller   []*installer // list of subpackages/subinstaller
-	onProgress     func(uint16)
-	progress       uint16
+	onProgress     func(int, string)
+	onError        func(string, int, string, error)
+	progress       int // current progress 0 - 100
 }
 
+// create new installer instance
+// @param content - package content
+// @param broadcast - true if will broadcast to system for progress and status updates
 func NewInstaller(content *pkg.Data, backup bool) *installer {
 	return &installer{
 		BackupEnabled:  backup,
@@ -86,6 +90,8 @@ func (instance *installer) Start() error {
 		// node js
 		{Keyword: "nodejs", InstallTo: packageInfo.GetInstallDir(), Perm: perm.PRIVATE},
 	}
+	fileCount := len(instance.packageContent.Files)
+	processed := 0
 	// step: iterate each file and save it
 	for _, file := range instance.packageContent.Files {
 		// step: open source file
@@ -134,6 +140,12 @@ func (instance *installer) Start() error {
 		if filterApplied == nil {
 			pkconst.Logger.Warn().Msg("keyword no filter. skipped " + targetPath)
 			continue
+		}
+		// step: compute progress
+		if instance.onProgress != nil {
+			processed++
+			// comppute progress
+			instance.setProgress(int(float32(processed) / float32(fileCount) * 100))
 		}
 	}
 	instance.initializeAppDirs()
@@ -271,22 +283,35 @@ func (instance *installer) _closeBackup() {
 	if instance.backup != nil {
 		err := instance.backup.Close()
 		if err != nil {
+			//instance.onError()
 			pkconst.Logger.Error().Err(err).Caller().Msg("Failed to close backup.")
 		}
 	}
 }
 
-func (instance *installer) SetProgressListener(listener func(uint16)) {
+func (instance *installer) SetProgressListener(listener func(int, string)) {
 	instance.onProgress = listener
 }
 
-func (instance *installer) setProgress(progress uint16, log string) {
+// sets the listener for error callback
+func (instance *installer) SetErrorListener(listener func(string, int, string, error)) {
+	instance.onError = listener
+}
+
+func (instance *installer) setProgress(progress int) {
 	instance.progress = progress
 	if instance.onProgress != nil {
-		instance.onProgress(progress)
+		instance.onProgress(progress, instance.packageInfo.PackageId)
 	}
 }
 
-func (instance *installer) GetProgress() uint16 {
-	return instance.progress
+func (instance *installer) _onError(code int, reason string, err error) {
+	pkconst.Logger.Error().Err(err).Caller().Msg(reason)
+	if instance.onError != nil {
+		instance.onError(instance.packageInfo.PackageId, code, reason, err)
+	}
 }
+
+// func (instance *installer) GetProgress() uint16 {
+// 	return instance.progress
+// }
