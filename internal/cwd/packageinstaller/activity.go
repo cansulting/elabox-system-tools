@@ -6,6 +6,7 @@ import (
 	"github.com/cansulting/elabox-system-tools/foundation/constants"
 	"github.com/cansulting/elabox-system-tools/foundation/errors"
 	"github.com/cansulting/elabox-system-tools/foundation/event/data"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/broadcast"
 	global "github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/constants"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/pkg"
 )
@@ -28,16 +29,19 @@ func (a *activity) OnStart(action *data.Action) error {
 		a.finish(err.Error())
 		return nil
 	}
-	if action.Id == constants.ACTION_APP_INSTALL {
+	if action.Id == constants.ACTION_APP_INSTALL ||
+		!pkgData.HasCustomInstaller() {
 		return a.startNormalInstall(pkgData)
 	}
-	return a.startSystemInstall(sourcePkg, pkgData)
+	return a.runCustomInstaller(sourcePkg, pkgData)
 }
 
 func (a *activity) startNormalInstall(pkgd *pkg.Data) error {
 	// step: start installing
 	backup := pkgd.Config.IsSystemPackage()
 	install := NewInstaller(pkgd, backup)
+	install.SetProgressListener(a.onInstallProgress)
+	install.SetErrorListener(a.onInstallError)
 	if err := install.Start(); err != nil {
 		a.finish("Unable to install file " + err.Error())
 		return nil
@@ -52,19 +56,16 @@ func (a *activity) startNormalInstall(pkgd *pkg.Data) error {
 }
 
 // system install
-func (a *activity) startSystemInstall(pkgSource string, pkgd *pkg.Data) error {
-	if pkgd.HasCustomInstaller() {
-		// start custom installer
-		if err := pkgd.RunCustomInstaller(pkgSource, false, "-s", "-l", "-i"); err != nil {
-			return errors.SystemNew("Failed installing system package.", err)
-		}
-		a.running = false
-		time.Sleep(time.Millisecond * 200)
-		// system terminate
-		global.AppController.RPC.CallSystem(data.NewActionById(constants.SYSTEM_TERMINATE_NOW))
-		return nil
+func (a *activity) runCustomInstaller(pkgSource string, pkgd *pkg.Data) error {
+	// start custom installer
+	if err := pkgd.RunCustomInstaller(pkgSource, false, "-s", "-l", "-i"); err != nil {
+		return errors.SystemNew("Failed installing system package.", err)
 	}
-	return a.startNormalInstall(pkgd)
+	a.running = false
+	time.Sleep(time.Millisecond * 200)
+	// system terminate
+	global.AppController.RPC.CallSystem(data.NewActionById(constants.SYSTEM_TERMINATE_NOW))
+	return nil
 }
 
 func (a *activity) OnEnd() error {
@@ -78,4 +79,14 @@ func (a *activity) finish(err string) {
 		global.Logger.Info().Msg("Install success")
 	}
 	a.running = false
+}
+
+// callback from installer on progress
+func (a *activity) onInstallProgress(progress int, pkg string) {
+	broadcast.UpdateProgress(pkg, progress)
+}
+
+// callback from installer on error
+func (a *activity) onInstallError(pkg string, code int, reason string, err error) {
+	broadcast.Error(pkg, code, reason)
 }
