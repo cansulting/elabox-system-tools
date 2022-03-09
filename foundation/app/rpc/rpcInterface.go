@@ -15,6 +15,7 @@ import (
 )
 
 type RPCInterface interface {
+	CallBroadcast(action data.Action) (*Response, error)
 	// use to broadcast to the system
 	CallSystem(action data.Action) (*Response, error)
 	// use to broadcast to specific package

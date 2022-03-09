@@ -32,11 +32,12 @@ import (
 ///////////////////////// FUNCTIONS ////////////////////////////////////
 
 func RunApp(app *Controller) error {
+	logger.GetInstance().Info().Str("category", "appcontroller").Msg(app.Config.PackageId + " is now running")
+
 	// start the app
 	if err := app.onStart(); err != nil {
 		return err
 	}
-	logger.GetInstance().Info().Str("category", "appcontroller").Msg(app.Config.PackageId + "is now running")
 
 	for app.IsRunning() {
 		time.Sleep(time.Second * 1)

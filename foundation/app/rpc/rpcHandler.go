@@ -67,7 +67,7 @@ func (t *RPCHandler) CallSystem(action data.Action) (*Response, error) {
 
 // use to broadcast to the system with specific action data
 func (t *RPCHandler) CallBroadcast(action data.Action) (*Response, error) {
-	return t.CallSystem(data.NewAction(constants.SYSTEM_BROADCAST, "", action))
+	return t.CallSystem(data.NewAction(constants.ACTION_BROADCAST, "", action))
 }
 
 func (t *RPCHandler) StartActivity(action data.Action) (*Response, error) {

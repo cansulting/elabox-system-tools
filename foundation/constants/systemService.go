@@ -23,7 +23,7 @@ const ACTION_SYSTEM_STATUS = "ela.system.STATUS"
 app/service/action will broadcast an action to all listening app via service center.
 Check Service Center for references.
 */
-const SYSTEM_BROADCAST = "ela.system.BROADCAST"
+const ACTION_BROADCAST = "ela.system.BROADCAST"
 
 /*
 app/service/action will start an activity.
