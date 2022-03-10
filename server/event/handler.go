@@ -33,7 +33,7 @@ func (s *SocketIOServer) HandleSystemService(handler func(protocol.ClientInterfa
 			}
 		// client wants to subscribe to specific action
 		case constants.ACTION_SUBSCRIBE:
-			return s.SubscribeToService(client, action.DataToString())
+			return s.SubscribeToPackage(client, action.PackageId)
 		}
 
 		if handler != nil {
@@ -45,7 +45,7 @@ func (s *SocketIOServer) HandleSystemService(handler func(protocol.ClientInterfa
 }
 
 // callback when a client want to subscribe to specific action
-func (s *SocketIOServer) SubscribeToService(client protocol.ClientInterface, service string) string {
+func (s *SocketIOServer) SubscribeToPackage(client protocol.ClientInterface, service string) string {
 	if service == "" {
 		service = constants.SYSTEM_SERVICE_ID
 	}

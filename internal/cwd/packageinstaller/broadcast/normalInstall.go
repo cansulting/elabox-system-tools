@@ -1,3 +1,5 @@
+// this file handles broadcast for normal installation
+
 package broadcast
 
 import (
@@ -24,8 +26,8 @@ func UpdateProgress(pkgId string, progress int) {
 // broadcast state changed
 // @param pkgId - the package id currently installing
 // @param state - the state of the installation
-func StatusUpdate(pkgId string, status string) {
-	value := `{"package":"` + pkgId + `,"status:"` + status + `}`
+func UpdateSystem(pkgId string, status InstallState) {
+	value := `{"package":"` + pkgId + `,"status:"` + string(status) + `}`
 	_, err := constants.AppController.RPC.CallBroadcast(data.NewAction(
 		constants.INSTALLER_STATE_CHANGED,
 		constants.PKG_ID,

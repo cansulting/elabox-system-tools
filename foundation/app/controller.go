@@ -24,7 +24,6 @@ import (
 	"github.com/cansulting/elabox-system-tools/foundation/constants"
 	"github.com/cansulting/elabox-system-tools/foundation/errors"
 	"github.com/cansulting/elabox-system-tools/foundation/event/data"
-	protocolE "github.com/cansulting/elabox-system-tools/foundation/event/protocol"
 	"github.com/cansulting/elabox-system-tools/foundation/logger"
 	"github.com/cansulting/elabox-system-tools/foundation/system"
 )
@@ -77,7 +76,7 @@ func NewController(
 type Controller struct {
 	AppService protocol.ServiceInterface // current service for this app
 	Activity   protocol.ActivityInterface
-	RPC        rpc.RPCInterface //
+	RPC        *rpc.RPCHandler //
 	Config     *appd.PackageConfig
 	forceEnd   bool
 	Debugging  bool // true if the app currently debugging
@@ -111,8 +110,8 @@ func (m *Controller) onStart() error {
 			return errors.SystemNew("Controller: Failed to start. Couldnt create client connector.", err)
 		}
 		m.RPC = rpc
-		m.RPC.OnRecieved(constants.APP_TERMINATE, m.onTerminate)
 	}
+	m.initRPCRequests()
 	// step: send running state
 	awake := constants.APP_AWAKE
 	if m.Debugging {
@@ -138,10 +137,15 @@ func (m *Controller) onStart() error {
 		}
 	}
 	// step: initialize activity
-	if m.Activity != nil && pendingActions.Activity != nil {
+	if m.Activity != nil {
 		logger.GetInstance().Debug().Str("category", "appcontroller").Msg("Starting activity")
-		if err := m.Activity.OnStart(pendingActions.Activity); err != nil {
+		if err := m.Activity.OnStart(); err != nil {
 			return errors.SystemNew("app.Controller couldnt start app activity", err)
+		}
+		if pendingActions.Activity != nil {
+			if err := m.Activity.OnPendingAction(pendingActions.Activity); err != nil {
+				return errors.SystemNew("failed to processed pending action", err)
+			}
 		}
 	}
 	return nil
@@ -201,10 +205,4 @@ func (c *Controller) SetActivityResult(val interface{}) {
 	if res != nil {
 		logger.GetInstance().Debug().Str("category", "appcontroller").Msg("Activity result response success " + res.ToString())
 	}
-}
-
-// callback from system. this app will be terminated
-func (c *Controller) onTerminate(client protocolE.ClientInterface, data data.Action) string {
-	c.End()
-	return ""
 }

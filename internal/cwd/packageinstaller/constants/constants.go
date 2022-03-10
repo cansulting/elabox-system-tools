@@ -9,11 +9,6 @@ import (
 
 const PKG_ID = "ela.installer"
 
-// broadcast actions
-const INSTALLER_PROGRESS = PKG_ID + ".broadcast.PROGRESS"
-const INSTALLER_STATE_CHANGED = PKG_ID + ".broadcast.STATE_CHANGED"
-const INSTALLER_ERROR = PKG_ID + ".broadcast.ERROR"
-
 const TERMINATE_TIMEOUT = 5 // seconds to wait for system to terminate
 var AppController *app.Controller
 

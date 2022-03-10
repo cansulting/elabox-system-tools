@@ -26,13 +26,13 @@ Check Service Center for references.
 const ACTION_BROADCAST = "ela.system.BROADCAST"
 
 /*
-app/service/action will start an activity.
+app/service will start an activity.
 */
 const ACTION_START_ACTIVITY = "ela.system.START_ACTIVITY"
 const ACTION_START_SERVICE = "ela.system.START_SERVICE" // called to start service
 const ACTION_STOP_STOP = "ela.system.STOP_SERVICE"      // called to stop service
 
-// use to communicate between dapps via RPC. the target RPC needs to provide actions
+// use to communicate between dapps via RPC. the target RPC needs to return action as a result of the request.
 // via calling RPCHandler.onRecieved()
 const ACTION_RPC = "ela.system.RPC"
 
@@ -52,10 +52,10 @@ Check Service Center for references.
 */
 const SERVICE_CHANGE_STATE = "ela.system.SERVICE_STATE"
 
-/*
-App state changed. Check ApplicationState enum for possible values
-*/
+// App state changed. Check ApplicationState enum for possible values
 const APP_CHANGE_STATE = "ela.system.action.APP_STATE"
+
+// action related to pending data
 const SERVICE_PENDING_ACTIONS = "ela.system.PENDING_ACTIONS"
 
 // sends terminate action to app

@@ -189,15 +189,15 @@ func sendPackageRPC(pkid string, action data.Action) string {
 	}
 	// step: call rpc
 	if app.Client == nil {
-		global.Logger.Error().Caller().Msg("Package is not loaded yet " + pkid)
+		global.Logger.Error().Caller().Msg("App is not running " + pkid)
 		return rpc.CreateResponse(rpc.INVALID_CODE, "Package "+pkid+" is not loaded yet.")
 	}
 	res, err := app.RPC.CallAct(action)
 	if err != nil {
-		global.Logger.Error().Err(err).Caller().Msg("Failed to call RPC for pacckage " + pkid)
+		global.Logger.Error().Err(err).Caller().Msg("Failed to call RPC for package " + pkid)
 		return rpc.CreateResponse(rpc.INVALID_CODE, err.Error())
 	}
-	// step: clean. remove \"
+	// step: clean response. remove \"
 	if len(res) > 0 {
 		res = res[1 : len(res)-1]
 	}
