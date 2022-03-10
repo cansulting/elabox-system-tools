@@ -8,6 +8,8 @@
 // you’ll have to release your application under similar terms as the LGPL.
 // Please check license description @ https://www.gnu.org/licenses/lgpl-3.0.txt
 
+// this struct is used 
+
 package rpc
 
 import (
