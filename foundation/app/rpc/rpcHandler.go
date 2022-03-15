@@ -56,7 +56,7 @@ func (t *RPCHandler) OnRecieved(action string, onServiceResponse ServiceDelegate
 // function that registers broadcast reciever on specific package
 func (t *RPCHandler) OnRecievedFromPackage(packageId string, action string, onServiceResponse ServiceDelegate) error {
 	t.connector.Subscribe(action, onServiceResponse)
-	_, err := t.CallSystem(data.NewAction(constants.ACTION_BROADCAST, packageId, nil))
+	_, err := t.CallSystem(data.NewAction(constants.ACTION_SUBSCRIBE, packageId, nil))
 	return err
 }
 

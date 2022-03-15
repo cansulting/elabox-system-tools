@@ -105,9 +105,8 @@ func (a *Action) DataToMap() (map[string]interface{}, error) {
 	str := a.DataToString()
 	if str != "" {
 		tmp := make(map[string]interface{})
-		if err := json.Unmarshal([]byte(str), &tmp); err != nil {
-			return tmp, err
-		}
+		err := json.Unmarshal([]byte(str), &tmp)
+		return tmp, err
 	}
 	return nil, nil
 }
