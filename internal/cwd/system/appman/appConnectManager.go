@@ -117,9 +117,9 @@ func LaunchAppActivity(
 	if appc == nil {
 		return errors.New("package " + packageId + " is not installed")
 	}
-	// if !appc.Config.HasActivity(pendingActivity.Id) {
-	// 	return errors.New("package " + packageId + " doesnt have a registered activity")
-	// }
+	if !appc.Config.HasActivity(pendingActivity.Id) {
+		return errors.New("package " + packageId + " doesnt have a registered activity")
+	}
 	_, err := SendAppPendingAction(appc, pendingActivity, data.Action{})
 	return err
 }
