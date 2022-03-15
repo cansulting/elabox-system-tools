@@ -14,12 +14,14 @@
 package event
 
 import (
-	"github.com/cansulting/elabox-system-tools/foundation/constants"
-	"github.com/cansulting/elabox-system-tools/foundation/event/data"
-	"github.com/cansulting/elabox-system-tools/foundation/event/protocol"
+	"errors"
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/cansulting/elabox-system-tools/foundation/constants"
+	"github.com/cansulting/elabox-system-tools/foundation/event/data"
+	"github.com/cansulting/elabox-system-tools/foundation/event/protocol"
 
 	socketio "github.com/graarh/golang-socketio"
 	"github.com/graarh/golang-socketio/transport"
@@ -81,6 +83,9 @@ func (s *SocketIOServer) SubscribeClient(socket protocol.ClientInterface, room s
 
 // implementation for broadcasting to specific client
 func (s *SocketIOServer) BroadcastTo(client protocol.ClientInterface, method string, data interface{}) (string, error) {
+	if client == nil {
+		return "", errors.New("client is nil")
+	}
 	clientCast := client.(*socketio.Channel)
 	return clientCast.Ack(method, data, time.Second*constants.TIMEOUT)
 }
