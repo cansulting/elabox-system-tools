@@ -75,6 +75,7 @@ func (t *RPCHandler) CallSystem(action data.Action) (*Response, error) {
 }
 
 // use to broadcast to the system with specific action data
+// @action: action data eg. {id: "com.myapp.broadcast.TEST", "packageId": "com.myapp", "data": "my data"}}
 func (t *RPCHandler) CallBroadcast(action data.Action) (*Response, error) {
 	return t.CallSystem(data.NewAction(constants.ACTION_BROADCAST, "", action))
 }
