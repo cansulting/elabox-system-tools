@@ -1,3 +1,5 @@
+// this file manages the package content
+
 package pkg
 
 import (
@@ -13,16 +15,17 @@ import (
 	"github.com/cansulting/elabox-system-tools/foundation/errors"
 	"github.com/cansulting/elabox-system-tools/foundation/perm"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/global"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/broadcast"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/constants"
-	"github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/landing"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/utils"
 )
 
 const sh = "/bin/bash"
 
+// package contents
 type Data struct {
 	Config         *data.PackageConfig
-	Files          []*zip.File
+	Files          []*zip.File // files inside this package
 	customInstaler *zip.File
 	preInstall     string // temp path of preinstall script
 	postInstall    string // temp path of post install script
@@ -130,9 +133,9 @@ func (instance *Data) Write(values []byte) (int, error) {
 	decoder := json.NewDecoder(bytes.NewReader(values))
 	var log map[string]interface{}
 	if err := decoder.Decode(&log); err != nil {
-		landing.BroadcastLog(msg)
+		broadcast.SystemLog(msg)
 	} else {
-		landing.BroadcastLog(log["message"].(string))
+		broadcast.SystemLog(log["message"].(string))
 	}
 
 	return len(values), nil

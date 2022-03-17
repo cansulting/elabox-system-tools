@@ -32,7 +32,11 @@ func (s *sampleact) IsRunning() bool {
 	return true
 }
 
-func (s *sampleact) OnStart(action *data.Action) error {
+func (instance *sampleact) OnStart() error {
+	return nil
+}
+
+func (s *sampleact) OnPendingAction(action *data.Action) error {
 	// system update
 	if s.isSystem {
 		controller.RPC.CallSystem(data.NewAction(constants.ACTION_APP_SYSTEM_INSTALL, "", SAMPLE_DATA))

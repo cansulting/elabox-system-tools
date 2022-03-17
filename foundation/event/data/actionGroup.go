@@ -27,6 +27,29 @@ func NewActionGroup() *ActionGroup {
 	//group.Broadcasts = make([]Action, 0, 4)
 	return group
 }
+func NewActionGroupFromMap(data map[string]interface{}) *ActionGroup {
+	group := &ActionGroup{}
+	//group.Activities = make([]Action, 0, 3)
+	//group.Broadcasts = make([]Action, 0, 4)
+	if val, ok := data["activity"]; ok {
+		activity := val.(map[string]interface{})
+		actionId := ""
+		packageId := ""
+		var acData interface{}
+		if val, ok := activity["id"]; ok {
+			actionId = val.(string)
+		}
+		if val, ok := activity["packageId"]; ok {
+			packageId = val.(string)
+		}
+		if val, ok := activity["data"]; ok {
+			acData = val
+		}
+		tmp := NewAction(actionId, packageId, acData)
+		group.Activity = &tmp
+	}
+	return group
+}
 
 func (app *ActionGroup) AddPendingActivity(action *Action) {
 	app.Activity = action

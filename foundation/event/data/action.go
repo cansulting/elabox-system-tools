@@ -96,8 +96,7 @@ func (a *Action) DataToString() string {
 	return ""
 }
 
-
-func (a *Action) DataToMap(dst map[string]interface{}) (map[string]interface{}, error) {
+func (a *Action) DataToMap() (map[string]interface{}, error) {
 
 	switch a.Data.(type) {
 	case map[string]interface{}:
@@ -105,12 +104,9 @@ func (a *Action) DataToMap(dst map[string]interface{}) (map[string]interface{}, 
 	}
 	str := a.DataToString()
 	if str != "" {
-		if dst == nil {
-			dst = make(map[string]interface{})
-		}
-		if err := json.Unmarshal([]byte(str), &dst); err != nil {
-			return dst, err
-		}
+		tmp := make(map[string]interface{})
+		err := json.Unmarshal([]byte(str), &tmp)
+		return tmp, err
 	}
 	return nil, nil
 }

@@ -23,16 +23,19 @@ func (s *SocketIOServer) HandleSystemService(handler func(protocol.ClientInterfa
 	s.Subscribe(constants.SYSTEM_SERVICE_ID, func(client protocol.ClientInterface, action data.Action) interface{} {
 		switch action.Id {
 		// client wants to broadcast an action
-		case constants.SYSTEM_BROADCAST:
+		case constants.ACTION_BROADCAST:
 			dataAc, err := action.DataToActionData()
 			if err != nil {
 				return err.Error()
 			}
-			return s.BroadcastAction(dataAc)
+			if err := s.BroadcastAction(dataAc); err != nil {
+				return err.Error()
+			}
 		// client wants to subscribe to specific action
 		case constants.ACTION_SUBSCRIBE:
-			return s.SubscribeToService(client, action.DataToString())
+			return s.SubscribeToPackage(client, action.PackageId)
 		}
+
 		if handler != nil {
 			return handler(client, action)
 		}
@@ -42,7 +45,7 @@ func (s *SocketIOServer) HandleSystemService(handler func(protocol.ClientInterfa
 }
 
 // callback when a client want to subscribe to specific action
-func (s *SocketIOServer) SubscribeToService(client protocol.ClientInterface, service string) string {
+func (s *SocketIOServer) SubscribeToPackage(client protocol.ClientInterface, service string) string {
 	if service == "" {
 		service = constants.SYSTEM_SERVICE_ID
 	}
@@ -54,7 +57,7 @@ func (s *SocketIOServer) SubscribeToService(client protocol.ClientInterface, ser
 }
 
 // use to broadcast to action
-func (s *SocketIOServer) BroadcastAction(action data.Action) string {
+func (s *SocketIOServer) BroadcastAction(action data.Action) error {
 	/*
 		pks, err = RetrievePackagesWithBroadcast(action.Id)
 		if err != nil {
@@ -67,10 +70,5 @@ func (s *SocketIOServer) BroadcastAction(action data.Action) string {
 	if action.PackageId != "" {
 		broadcastTo = action.PackageId
 	}
-	err := s.Broadcast(broadcastTo, action.Id, action)
-	if err != nil {
-		return err.Error()
-	} else {
-		return "success"
-	}
+	return s.Broadcast(broadcastTo, action.Id, action)
 }

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/cansulting/elabox-system-tools/foundation/logger"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/broadcast"
 	pkconst "github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/constants"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/landing"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/pkg"
@@ -24,7 +25,7 @@ type loggerHook struct {
 }
 
 func (i loggerHook) Run(e *zerolog.Event, level zerolog.Level, msg string) {
-	landing.BroadcastLog(msg)
+	broadcast.SystemLog(msg)
 }
 
 func startCommandline() {
