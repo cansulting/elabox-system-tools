@@ -1,6 +1,6 @@
 {
 	"name": "Ela System",
-	"description": "Ela System powered by Elastos. Added Glide app. ESC is now accessible via port 20637. EID and ESC sync bug fixes. Several security updates. Keystore uploading. And other tons of updates.",
+	"description": "Ela System powered by Elastos. Node bug fixes and security updates.",
 	"packageId": "ela.system",
 	"build": 6,
 	"version": "0.4.2",

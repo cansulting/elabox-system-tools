@@ -31,6 +31,7 @@ func (s *SocketIOServer) HandleSystemService(handler func(protocol.ClientInterfa
 			if err := s.BroadcastAction(dataAc); err != nil {
 				return err.Error()
 			}
+			return "broadcasted"
 		// client wants to subscribe to specific action
 		case constants.ACTION_SUBSCRIBE:
 			return s.SubscribeToPackage(client, action.PackageId)

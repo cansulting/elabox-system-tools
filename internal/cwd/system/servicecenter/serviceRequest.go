@@ -62,12 +62,6 @@ func OnRecievedRequest(
 		return onAppChangeState(client, action)
 	case constants.SYSTEM_ACTIVITY_RESULT:
 		return onReturnActivityResult(action)
-	case constants.ACTION_BROADCAST:
-		broadcastAc, err := action.DataToActionData()
-		if err != nil {
-			return rpc.CreateResponse(rpc.SYSTEMERR_CODE, err.Error())
-		}
-		return onBroadcast(broadcastAc)
 	case constants.SYSTEM_UPDATE_MODE:
 		return activateUpdateMode(client, action)
 	case constants.SYSTEM_TERMINATE:
@@ -144,14 +138,6 @@ func startService(action data.Action) string {
 		return rpc.CreateResponse(rpc.INVALID_CODE, err.Error())
 	}
 	return rpc.CreateSuccessResponse("started")
-}
-
-// to be called when an app requested to broadcast a data
-func onBroadcast(action data.Action) string {
-	if err := global.Server.EventServer.BroadcastAction(action); err != nil {
-		return rpc.CreateResponse(rpc.SYSTEMERR_CODE, err.Error())
-	}
-	return rpc.CreateSuccessResponse("broadcasted")
 }
 
 // when activity returns a result
