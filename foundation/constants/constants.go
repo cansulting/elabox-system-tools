@@ -12,7 +12,7 @@ package constants
 
 // CONNECTION CONFIG
 const PORT = 80
-const TIMEOUT = 10        // transmit timeout
+const TIMEOUT = 20        // transmit timeout
 const RECONNECT = true    // true if enable reconnection when reconnecting to socket io
 const PACKAGE_EXT = "box" // extension of packaged file
 const CUSTOMINSLLER = "custominstaller"

@@ -115,12 +115,12 @@ func LaunchAppActivity(
 	pendingActivity data.Action) error {
 	appc := GetAppConnect(packageId, nil)
 	if appc == nil {
-		return errors.New("package " + packageId + " coculdnt be found")
+		return errors.New("package " + packageId + " is not installed")
 	}
 	if !appc.Config.HasActivity(pendingActivity.Id) {
-		return errors.New("package " + packageId + "doesnt have activity")
+		return errors.New("package " + packageId + " doesnt have a registered activity")
 	}
-	_, err := SendAppPendingAction(packageId, pendingActivity, data.Action{})
+	_, err := SendAppPendingAction(appc, pendingActivity, data.Action{})
 	return err
 }
 
@@ -139,13 +139,9 @@ func LaunchAppService(pkgid string) (*AppConnect, error) {
 
 // use to launch app
 func SendAppPendingAction(
-	packageId string,
+	app *AppConnect,
 	activityPending data.Action,
 	servicePending data.Action) (*AppConnect, error) {
-	app := GetAppConnect(packageId, nil)
-	if app == nil {
-		return nil, errors.New("Package " + packageId + " was not found.")
-	}
 
 	if activityPending.Id != "" {
 		app.PendingActions.AddPendingActivity(&activityPending)

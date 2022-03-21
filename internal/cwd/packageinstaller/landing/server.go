@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"os"
 
-	econstants "github.com/cansulting/elabox-system-tools/foundation/constants"
 	"github.com/cansulting/elabox-system-tools/foundation/errors"
 	"github.com/cansulting/elabox-system-tools/foundation/system"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/constants"
@@ -44,13 +43,6 @@ func Initialize(landingPagePath string) error {
 
 func GetServer() *server.Manager {
 	return serverhandler
-}
-
-// use to broadcast installation log to system
-func BroadcastLog(msg string) {
-	if serverhandler != nil && serverhandler.IsRunning() {
-		serverhandler.EventServer.Broadcast(econstants.SYSTEM_SERVICE_ID, "log", msg)
-	}
 }
 
 // use to shutdown the server

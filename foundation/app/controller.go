@@ -24,7 +24,6 @@ import (
 	"github.com/cansulting/elabox-system-tools/foundation/constants"
 	"github.com/cansulting/elabox-system-tools/foundation/errors"
 	"github.com/cansulting/elabox-system-tools/foundation/event/data"
-	protocolE "github.com/cansulting/elabox-system-tools/foundation/event/protocol"
 	"github.com/cansulting/elabox-system-tools/foundation/logger"
 	"github.com/cansulting/elabox-system-tools/foundation/system"
 )
@@ -32,11 +31,12 @@ import (
 ///////////////////////// FUNCTIONS ////////////////////////////////////
 
 func RunApp(app *Controller) error {
+	logger.GetInstance().Info().Str("category", "appcontroller").Msg(app.Config.PackageId + " is now running")
+
 	// start the app
 	if err := app.onStart(); err != nil {
 		return err
 	}
-	logger.GetInstance().Info().Str("category", "appcontroller").Msg(app.Config.PackageId + "is now running")
 
 	for app.IsRunning() {
 		time.Sleep(time.Second * 1)
@@ -76,7 +76,7 @@ func NewController(
 type Controller struct {
 	AppService protocol.ServiceInterface // current service for this app
 	Activity   protocol.ActivityInterface
-	RPC        rpc.RPCInterface //
+	RPC        *rpc.RPCHandler //
 	Config     *appd.PackageConfig
 	forceEnd   bool
 	Debugging  bool // true if the app currently debugging
@@ -101,7 +101,7 @@ func (m *Controller) onStart() error {
 	logger.GetInstance().
 		Info().
 		Str("category", "appcontroller").
-		Msg("Starting App " + m.Config.PackageId + ". Ide = " + strconv.FormatBool(system.IDE))
+		Msg("Starting App Ide = " + strconv.FormatBool(system.IDE))
 
 	// step: create RPC
 	if m.RPC == nil {
@@ -110,8 +110,8 @@ func (m *Controller) onStart() error {
 			return errors.SystemNew("Controller: Failed to start. Couldnt create client connector.", err)
 		}
 		m.RPC = rpc
-		m.RPC.OnRecieved(constants.APP_TERMINATE, m.onTerminate)
 	}
+	m.initRPCRequests()
 	// step: send running state
 	awake := constants.APP_AWAKE
 	if m.Debugging {
@@ -120,22 +120,32 @@ func (m *Controller) onStart() error {
 	res, err := m.RPC.CallSystem(
 		data.NewAction(constants.APP_CHANGE_STATE, m.Config.PackageId, awake))
 	if err != nil {
+		logger.GetInstance().Error().Str("category", "appcontroller").Err(err).Msg("Failed to send running state")
 		return err
 	}
-	println(m.Config.PackageId + "onstart pendingActions =" + res.ToString())
-	pendingActions := res.ToActionGroup()
+	logger.GetInstance().Debug().Msg("Pending actions =" + res.ToString())
+	pendingActions, err := res.ToActionGroup()
+	if err != nil {
+		logger.GetInstance().Error().Str("category", "appcontroller").Err(err).Msg("Failed to get pending actions")
+		return err
+	}
 	// step: initialize service
 	if m.AppService != nil {
-		logger.GetInstance().Debug().Str("category", "appcontroller").Msg("Service start")
+		logger.GetInstance().Debug().Str("category", "appcontroller").Msg("Starting service")
 		if err := m.AppService.OnStart(); err != nil {
 			return errors.SystemNew("app.Controller couldnt start app service", err)
 		}
 	}
 	// step: initialize activity
-	if m.Activity != nil && pendingActions.Activity != nil {
-		logger.GetInstance().Debug().Str("category", "appcontroller").Msg("Activity start")
-		if err := m.Activity.OnStart(pendingActions.Activity); err != nil {
+	if m.Activity != nil {
+		logger.GetInstance().Debug().Str("category", "appcontroller").Msg("Starting activity")
+		if err := m.Activity.OnStart(); err != nil {
 			return errors.SystemNew("app.Controller couldnt start app activity", err)
+		}
+		if pendingActions.Activity != nil {
+			if err := m.Activity.OnPendingAction(pendingActions.Activity); err != nil {
+				return errors.SystemNew("failed to processed pending action", err)
+			}
 		}
 	}
 	return nil
@@ -195,10 +205,4 @@ func (c *Controller) SetActivityResult(val interface{}) {
 	if res != nil {
 		logger.GetInstance().Debug().Str("category", "appcontroller").Msg("Activity result response success " + res.ToString())
 	}
-}
-
-// callback from system. this app will be terminated
-func (c *Controller) onTerminate(client protocolE.ClientInterface, data data.Action) string {
-	c.End()
-	return ""
 }

@@ -20,8 +20,10 @@ import (
 	"github.com/cansulting/elabox-system-tools/foundation/constants"
 	"github.com/cansulting/elabox-system-tools/foundation/event/data"
 	"github.com/cansulting/elabox-system-tools/foundation/event/protocol"
+	"github.com/cansulting/elabox-system-tools/foundation/logger"
 	"github.com/cansulting/elabox-system-tools/foundation/system"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/system/appman"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/system/config"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/system/debugging"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/system/global"
 
@@ -35,7 +37,9 @@ func OnRecievedRequest(
 	client protocol.ClientInterface,
 	action data.Action,
 ) interface{} {
-	println("app.onRecievedRequest action=", action.Id)
+	if config.GetBuildMode() == config.DEBUG {
+		logger.GetInstance().Debug().Msg("onRecievedRequest action=" + action.Id)
+	}
 	switch action.Id {
 	case constants.ACTION_RPC:
 		valAction, err := action.DataToActionData()
@@ -84,10 +88,10 @@ func onAppChangeState(
 			app = debugging.DebugApp(action.PackageId, client)
 		}
 		if app != nil {
-			return app.PendingActions
+			return rpc.CreateJsonResponse(200, app.PendingActions)
 		} else {
 			global.Logger.Warn().Caller().Msg("Trying to awake package " + action.PackageId + " but not installed.")
-			return ""
+			return rpc.CreateResponse(rpc.INVALID_CODE, "package not installed")
 		}
 	case state == constants.APP_SLEEP:
 		// if sleep then wait to terminate the app
@@ -106,15 +110,18 @@ func startActivity(action data.Action, client protocol.ClientInterface) string {
 	if packageId == "" {
 		pks, err := app.RetrievePackagesWithActivity(action.Id)
 		if err != nil {
+			global.Logger.Error().Caller().Err(err).Msg("Failed to retrieve package with activity " + action.Id)
 			return rpc.CreateResponse(rpc.SYSTEMERR_CODE, "StartActivity failed to start "+packageId+" "+err.Error())
 		}
 		if len(pks) > 0 {
 			packageId = pks[0]
 		} else {
+			global.Logger.Error().Caller().Msg("Cant start activity, package couldn't be found " + action.Id)
 			return rpc.CreateResponse(rpc.INVALID_CODE, "cant find package"+packageId+" with action "+action.Id)
 		}
 	}
 	if err := appman.LaunchAppActivity(packageId, client, action); err != nil {
+		global.Logger.Error().Caller().Err(err).Msg("Failed to launch activity " + action.Id)
 		return rpc.CreateResponse(rpc.SYSTEMERR_CODE, err.Error())
 	}
 	global.Logger.Debug().Msg("Start activity with " + action.Id + action.DataToString())
@@ -168,15 +175,15 @@ func sendPackageRPC(pkid string, action data.Action) string {
 	}
 	// step: call rpc
 	if app.Client == nil {
-		global.Logger.Error().Caller().Msg("Package is not loaded yet " + pkid)
+		global.Logger.Error().Caller().Msg("App is not running " + pkid)
 		return rpc.CreateResponse(rpc.INVALID_CODE, "Package "+pkid+" is not loaded yet.")
 	}
 	res, err := app.RPC.CallAct(action)
 	if err != nil {
-		global.Logger.Error().Err(err).Caller().Msg("Failed to call RPC for pacckage " + pkid)
+		global.Logger.Error().Err(err).Caller().Msg("Failed to call RPC for package " + pkid)
 		return rpc.CreateResponse(rpc.INVALID_CODE, err.Error())
 	}
-	// step: clean. remove \"
+	// step: clean response. remove \"
 	if len(res) > 0 {
 		res = res[1 : len(res)-1]
 	}
@@ -186,7 +193,10 @@ func sendPackageRPC(pkid string, action data.Action) string {
 // client requested to activate update mode
 func activateUpdateMode(client protocol.ClientInterface, action data.Action) string {
 	pk := action.DataToString()
-	global.Server.EventServer.BroadcastAction(data.NewActionById(constants.BCAST_TERMINATE_N_UPDATE))
+	if err := global.Server.EventServer.BroadcastAction(data.NewActionById(constants.BCAST_TERMINATE_N_UPDATE)); err != nil {
+		global.Logger.Error().Caller().Err(err).Msg("Failed to broadcast" + constants.BCAST_TERMINATE_N_UPDATE)
+		return rpc.CreateResponse(rpc.SYSTEMERR_CODE, err.Error())
+	}
 	startActivity(data.NewAction(constants.ACTION_APP_SYSTEM_INSTALL, "", pk), nil)
 	return rpc.CreateSuccessResponse("Activated")
 }

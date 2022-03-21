@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/cansulting/elabox-system-tools/foundation/logger"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/broadcast"
 	pkconst "github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/constants"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/landing"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/pkg"
@@ -24,7 +25,7 @@ type loggerHook struct {
 }
 
 func (i loggerHook) Run(e *zerolog.Event, level zerolog.Level, msg string) {
-	landing.BroadcastLog(msg)
+	broadcast.SystemLog(msg)
 }
 
 func startCommandline() {
@@ -46,8 +47,6 @@ func startCommandline() {
 }
 
 func processInstallCommand(targetPk string, restart bool, systemUpdate bool, logging bool, customInstaller bool) {
-	// true if restarts system
-	restartSystem := restart || systemUpdate
 	// step: load package
 	content, err := pkg.LoadFromSource(targetPk)
 	if err != nil {
@@ -113,10 +112,17 @@ func processInstallCommand(targetPk string, restart bool, systemUpdate bool, log
 	}
 	pkconst.Logger.Info().Msg("Installed success.")
 	// step: restart system
-	if restartSystem {
-		if err := utils.StartSystem(); err != nil {
-			pkconst.Logger.Fatal().Err(err)
-			return
+	if systemUpdate {
+		if restart {
+			if err := utils.Reboot(); err != nil {
+				pkconst.Logger.Fatal().Err(err)
+				return
+			}
+		} else {
+			if err := utils.StartSystem(); err != nil {
+				pkconst.Logger.Fatal().Err(err)
+				return
+			}
 		}
 		time.Sleep(time.Millisecond * 200)
 		os.Exit(0)

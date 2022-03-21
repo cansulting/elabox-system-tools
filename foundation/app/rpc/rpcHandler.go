@@ -8,6 +8,8 @@
 // you’ll have to release your application under similar terms as the LGPL.
 // Please check license description @ https://www.gnu.org/licenses/lgpl-3.0.txt
 
+// this struct is used
+
 package rpc
 
 import (
@@ -44,11 +46,18 @@ func NewRPCHandlerDefault() (*RPCHandler, error) {
 	return rpc, nil
 }
 
-// use to listen to specific action from server, service delegate will be called upon response
+// use to listen to specific action from system, service delegate will be called upon response
 // this is also use to define RPC functions
 func (t *RPCHandler) OnRecieved(action string, onServiceResponse ServiceDelegate) {
 	// TODOserviceCommand := t.PackageId + ".service." + action
 	t.connector.Subscribe(action, onServiceResponse)
+}
+
+// function that registers broadcast reciever on specific package
+func (t *RPCHandler) OnRecievedFromPackage(packageId string, action string, onServiceResponse ServiceDelegate) error {
+	t.connector.Subscribe(action, onServiceResponse)
+	_, err := t.CallSystem(data.NewAction(constants.ACTION_SUBSCRIBE, packageId, nil))
+	return err
 }
 
 // use to send RPC to specific package
@@ -66,8 +75,13 @@ func (t *RPCHandler) CallSystem(action data.Action) (*Response, error) {
 }
 
 // use to broadcast to the system with specific action data
+// @action: action data eg. {id: "com.myapp.broadcast.TEST", "packageId": "com.myapp", "data": "my data"}}
 func (t *RPCHandler) CallBroadcast(action data.Action) (*Response, error) {
-	return t.CallSystem(data.NewAction(constants.SYSTEM_BROADCAST, "", action))
+	return t.CallSystem(data.NewAction(constants.ACTION_BROADCAST, "", action))
+}
+
+func (t *RPCHandler) StartActivity(action data.Action) (*Response, error) {
+	return t.CallSystem(data.NewAction(constants.ACTION_START_ACTIVITY, "", action))
 }
 
 // closes and uninitialize this handler

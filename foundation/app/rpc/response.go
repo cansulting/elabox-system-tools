@@ -51,10 +51,16 @@ func (r *Response) ParseJson(obj interface{}) error {
 	return errors.New("cannot parse empty value")
 }
 
-func (r *Response) ToActionGroup() *data.ActionGroup {
+func (r *Response) ToActionGroup() (*data.ActionGroup, error) {
 	actiong := data.NewActionGroup()
-	r.ParseJson(&actiong)
-	return actiong
+	msg, err := r.ToSimpleResponse()
+	if err != nil {
+		return nil, err
+	}
+	if err := json.Unmarshal([]byte(msg.Message), &actiong); err != nil {
+		return nil, nil
+	}
+	return actiong, nil
 }
 
 func (r *Response) ToString() string {

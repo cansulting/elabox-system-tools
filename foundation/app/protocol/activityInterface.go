@@ -14,7 +14,11 @@ import "github.com/cansulting/elabox-system-tools/foundation/event/data"
 
 // interface for activity. Use this whenever implementing an activity
 type ActivityInterface interface {
-	OnStart(action *data.Action) error
+	// called when activity is started
+	OnStart() error
+	// callback when recieved a pending action somewhere
+	OnPendingAction(action *data.Action) error
 	IsRunning() bool
+	// called when activity is stopped
 	OnEnd() error
 }
