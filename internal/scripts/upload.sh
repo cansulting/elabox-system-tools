@@ -4,7 +4,6 @@ arch=$(go env GOARCH)
 build=
 bucket=elabox-debug
 #debug host default
-rewardhost=208.87.134.80:1235 
 echo "OS="$os
 echo "Arch="$arch
 echo "Upload for version 1 - Staging, 2 - Release, None = Debug"
@@ -17,11 +16,9 @@ if [ "$answer" == "2" ]; then
         exit
     fi
     bucket=elabox
-    rewardhost=208.87.134.80:1236
 # STAGING
 elif [ "$answer" == "1" ]; then
     bucket=elabox-staging
-    rewardhost=208.87.134.80:1234
 fi
 
 # read build number form system's info.json
@@ -45,7 +42,6 @@ cp -R $shi $shbk
 sed -i "s|\!bucket|$bucket|" $shbk
 sed -i "s|\!build|$build|" $shbk
 sed -i "s|\!arch|$arch|" $shbk
-sed -i "s|\!rewardhost|$rewardhost|" $shbk
 
 gsutil rm $gsinstaller
 gsutil cp $installer $gsinstaller
