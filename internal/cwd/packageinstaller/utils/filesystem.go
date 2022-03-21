@@ -30,8 +30,8 @@ func CopyToTarget(target string, reader io.ReadCloser, perm os.FileMode) error {
 	if err != nil {
 		return err
 	}
+	defer newFile.Close()
 	// step: write to file
-	io.Copy(newFile, reader)
-	newFile.Close()
-	return nil
+	_, err = io.Copy(newFile, reader)
+	return err
 }
