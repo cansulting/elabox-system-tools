@@ -32,7 +32,10 @@ func main() {
 		return
 	}
 	global.Logger.Info().Msg("System start running...")
-	servicecenter.Initialize(commandline)
+	if err := servicecenter.Initialize(commandline); err != nil {
+		global.Logger.Panic().Err(err).Caller().Msg("Failed initializing service center. " + err.Error())
+		return
+	}
 	global.Server.EventServer.SetStatus(system.BOOTING, nil)
 	defer servicecenter.Close()
 	if err := appman.Initialize(commandline); err != nil {
