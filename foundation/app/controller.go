@@ -35,6 +35,7 @@ func RunApp(app *Controller) error {
 
 	// start the app
 	if err := app.onStart(); err != nil {
+		logger.GetInstance().Info().Str("category", "appcontroller").Msg("Terminating app")
 		return err
 	}
 
@@ -120,7 +121,7 @@ func (m *Controller) onStart() error {
 	res, err := m.RPC.CallSystem(
 		data.NewAction(constants.APP_CHANGE_STATE, m.Config.PackageId, awake))
 	if err != nil {
-		logger.GetInstance().Error().Str("category", "appcontroller").Err(err).Msg("Failed to send running state")
+		logger.GetInstance().Error().Str("category", "appcontroller").Err(err).Msg("Failed to send awake state")
 		return err
 	}
 	logger.GetInstance().Debug().Msg("Pending actions =" + res.ToString())
