@@ -136,6 +136,12 @@ if [ ! -d "Elastos.ELA.SideChain.ESC" ]; then
     echo "Y" | sudo apt-get install autoconf libudev
     git clone https://github.com/elastos/Elastos.ELA.SideChain.ESC.git
 fi
+if [ ! -d "elabox-foundation.lib" ]; then
+    cd $wd
+    git clone https://github.com/elastos/elabox-foundation.lib.git
+    git switch development
+    npm link
+fi
 
 ######################################
 ## GLIDE APP
