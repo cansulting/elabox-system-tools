@@ -50,6 +50,8 @@ func GetAppConnect(packageId string, client protocol.ClientInterface) *AppConnec
 	if pk == nil {
 		return nil
 	}
+	acts, _ := registry.RetrieveActivities(packageId)
+	pk.Activities = acts
 	return AddAppConnect(pk, client)
 }
 

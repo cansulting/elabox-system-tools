@@ -41,6 +41,24 @@ func RetrievePackagesForActivity(action string) ([]string, error) {
 	return retrievePackagesFor(action, "activities")
 }
 
+func RetrieveActivities(pkid string) ([]string, error) {
+	query := `select action from activities where packageId = ?`
+	row, err := util.SelectQuery(query, pkid)
+	if err != nil {
+		logger.GetInstance().Error().Err(err).Caller().Msg("Failed to retrieve activities for " + pkid)
+		return nil, errors.SystemNew("records.RetrieveAction failed to retrieve packages for "+pkid, err)
+	}
+	packages := make([]string, 0, 5)
+	length := 0
+	defer row.Close()
+	for row.Next() {
+		packages = append(packages, "")
+		row.Scan(&packages[length])
+		length++
+	}
+	return packages, nil
+}
+
 func removeActivities(pkId string) error {
 	query := "delete from activities where packageId = ?"
 	//args = append(args, pkg.PackageId, activity)
