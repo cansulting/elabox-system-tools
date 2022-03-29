@@ -194,6 +194,14 @@ func (c *PackageConfig) GetLibraryDir() string {
 	return path.GetLibPath() + "/" + c.PackageId
 }
 
+func (c *PackageConfig) GetWWWDir() string {
+	if c.InstallLocation == SYSTEM || !path.HasExternal() {
+		return path.GetSystemWWW()
+	} else {
+		return path.GetExternalWWW()
+	}
+}
+
 // return true if has main binary
 func (c *PackageConfig) HasMainProgram() bool {
 	if c.Program == "" {

@@ -24,7 +24,7 @@ func UninstallPackage(packageId string, deleteData bool) error {
 	// is file not exist. skip
 	if _, err := os.Stat(location); err != nil {
 		//log.Println("")
-		return nil
+		//return nil
 	}
 	// step: remove app directory
 	if err := os.RemoveAll(location); err != nil {
@@ -35,6 +35,13 @@ func UninstallPackage(packageId string, deleteData bool) error {
 		if err := os.RemoveAll(pk.GetDataDir()); err != nil {
 			logger.GetInstance().Error().Err(err).Caller().Msg("Remove pacakage data failed")
 			return nil
+		}
+	}
+	// step: remove www dir
+	www := pk.GetWWWDir()
+	if _, err := os.Stat(www); err == nil {
+		if err := os.RemoveAll(pk.GetWWWDir()); err != nil {
+			return errors.SystemNew("failed to delete www dir for "+packageId, err)
 		}
 	}
 	return nil

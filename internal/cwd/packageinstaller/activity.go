@@ -26,6 +26,7 @@ import (
 	"github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/broadcast"
 	global "github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/constants"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/pkg"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/utils"
 )
 
 type activity struct {
@@ -46,23 +47,31 @@ func (a *activity) OnStart() error {
 // callback when recieved a pending action from system
 func (a *activity) OnPendingAction(action *data.Action) error {
 	// step: validate action
-	sourcePkg := action.DataToString()
-	a.currentPkg = sourcePkg
-	broadcast.UpdateSystem(a.currentPkg, broadcast.INITIALIZING)
-	global.Logger.Info().Msg("Installing package @" + sourcePkg)
-	pkgData, err := pkg.LoadFromSource(sourcePkg)
-	if err != nil {
-		a.finish(err.Error())
-		return nil
+	switch action.Id {
+	case constants.ACTION_APP_INSTALL:
+		sourcePkg := action.DataToString()
+		a.currentPkg = sourcePkg
+		broadcast.UpdateSystem(a.currentPkg, broadcast.INITIALIZING)
+		pkgData, err := pkg.LoadFromSource(sourcePkg)
+		if err != nil {
+			a.finish(err.Error())
+			return nil
+		}
+		if !pkgData.HasCustomInstaller() {
+			return a.startNormalInstall(pkgData)
+		}
+		return a.runCustomInstaller(sourcePkg, pkgData)
+	default:
+		if action.PackageId == "" {
+			return errors.SystemNew("failed to uninstall, no package id was provided as parameter", nil)
+		}
+		global.Logger.Info().Msg("start uninstall package " + action.PackageId)
+		return utils.UninstallPackage(action.PackageId, global.DELETE_DATA_ONUNINSTALL)
 	}
-	if action.Id == constants.ACTION_APP_INSTALL ||
-		!pkgData.HasCustomInstaller() {
-		return a.startNormalInstall(pkgData)
-	}
-	return a.runCustomInstaller(sourcePkg, pkgData)
 }
 
 func (a *activity) startNormalInstall(pkgd *pkg.Data) error {
+	global.Logger.Info().Msg("Installing package @" + pkgd.Config.PackageId)
 	// step: start installing
 	backup := pkgd.Config.IsSystemPackage()
 	install := NewInstaller(pkgd, backup)

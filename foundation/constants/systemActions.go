@@ -19,4 +19,5 @@ const ACTION_APP_LAUNCH = "ela.action.APP_LAUNCH"             // called when app
 const ACTION_OPEN_CONTENT = "ela.action.CONTENT_OPEN"         // called when needs to open a content
 const ACTION_GET_PENDING = "ela.action.GET_PENDING"           // called to retrieve pending actions for specific package
 const ACTION_APP_INSTALL = "ela.action.INSTALL"               // called to launch app installer
+const ACTION_APP_UNINSTALL = "ela.action.UNINSTALL"           // call to uninstall app via ela.installer
 const ACTION_APP_SYSTEM_INSTALL = "ela.action.SYSTEM_INSTALL" // called to initiate system installation
