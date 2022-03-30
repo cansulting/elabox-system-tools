@@ -67,6 +67,13 @@ func AddAppConnect(pk *appd.PackageConfig, client protocol.ClientInterface) *App
 	return app
 }
 
+// add app connect for debugging
+func AddDebugAppConnect(pk *appd.PackageConfig, client protocol.ClientInterface) *AppConnect {
+	appcon := AddAppConnect(pk, client)
+	appcon.launched = true
+	return appcon
+}
+
 // get package from running list
 func LookupAppConnect(packageId string) *AppConnect {
 	pk, ok := running[packageId]
@@ -120,7 +127,7 @@ func LaunchAppActivity(
 		return errors.New("package " + packageId + " is not installed")
 	}
 	if !appc.Config.HasActivity(pendingActivity.Id) {
-		return errors.New("package " + packageId + " doesnt have a registered activity")
+		return errors.New("package " + packageId + " doesnt have a registered activity for action " + pendingActivity.Id)
 	}
 	_, err := SendAppPendingAction(appc, pendingActivity, data.Action{})
 	return err

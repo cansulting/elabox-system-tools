@@ -18,6 +18,8 @@ import (
 	"log"
 	"reflect"
 
+	"github.com/cansulting/elabox-system-tools/foundation/app/data"
+	"github.com/cansulting/elabox-system-tools/foundation/constants"
 	"github.com/cansulting/elabox-system-tools/foundation/errors"
 
 	"github.com/mitchellh/mapstructure"
@@ -107,6 +109,36 @@ func (a *Action) DataToMap() (map[string]interface{}, error) {
 		tmp := make(map[string]interface{})
 		err := json.Unmarshal([]byte(str), &tmp)
 		return tmp, err
+	}
+	return nil, nil
+}
+
+func (a *Action) DataToObj(obj interface{}) error {
+	str := a.DataToString()
+	if str != "" {
+		return json.Unmarshal([]byte(str), obj)
+	}
+	return errors.SystemNew("data is empty", nil)
+}
+
+func (a *Action) DataToAppState() (*data.AppState, error) {
+	if a.Data != nil {
+		switch a.Data.(type) {
+		case string:
+			appState := data.AppState{}
+			if err := a.DataToObj(&appState); err != nil {
+				return nil, err
+			}
+			return &appState, nil
+		case map[string]interface{}:
+			datm := a.Data.(map[string]interface{})
+			state := datm["state"].(float64)
+			appState := data.AppState{
+				State: constants.AppRunningState(state),
+				Data: datm["data"],
+			}
+			return &appState, nil
+		}
 	}
 	return nil, nil
 }

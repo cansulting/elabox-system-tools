@@ -77,15 +77,23 @@ func OnRecievedRequest(
 func onAppChangeState(
 	client protocol.ClientInterface,
 	action data.Action) interface{} {
-	state := constants.AppRunningState(action.DataToInt())
+	appstate, err := action.DataToAppState()
+	if err != nil {
+		return rpc.CreateResponse(rpc.INVALID_CODE, "unable to read app change state value for "+action.PackageId)
+	}
 
 	switch {
-	case state == constants.APP_AWAKE || state == constants.APP_AWAKE_DEBUG:
+	case appstate.State == constants.APP_AWAKE || appstate.State == constants.APP_AWAKE_DEBUG:
 		var app *appman.AppConnect
-		if state == constants.APP_AWAKE {
+		if appstate.State == constants.APP_AWAKE {
 			app = appman.GetAppConnect(action.PackageId, client)
 		} else {
-			app = debugging.DebugApp(action.PackageId, client)
+			app_cwd := appstate.Data.(string)
+			app, err = debugging.DebugApp(action.PackageId, app_cwd, client)
+			if err != nil {
+				logger.GetInstance().Error().Err(err).Caller().Msg("failed debugging app " + action.PackageId)
+				return rpc.CreateResponse(rpc.INVALID_CODE, "failed debugging app "+action.PackageId)
+			}
 		}
 		if app != nil {
 			return rpc.CreateJsonResponse(200, app.PendingActions)
@@ -93,7 +101,7 @@ func onAppChangeState(
 			global.Logger.Warn().Caller().Msg("Trying to awake package " + action.PackageId + " but not installed.")
 			return rpc.CreateResponse(rpc.INVALID_CODE, "package not installed")
 		}
-	case state == constants.APP_SLEEP:
+	case appstate.State == constants.APP_SLEEP:
 		// if sleep then wait to terminate the app
 		appman.RemoveAppConnect(action.PackageId, false)
 	}

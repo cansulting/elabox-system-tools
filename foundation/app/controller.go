@@ -104,22 +104,19 @@ func (m *Controller) onStart() error {
 		Str("category", "appcontroller").
 		Msg("Starting App Ide = " + strconv.FormatBool(system.IDE))
 
-	// step: create RPC
-	if m.RPC == nil {
-		rpc, err := rpc.NewRPCHandlerDefault()
-		if err != nil {
-			return errors.SystemNew("Controller: Failed to start. Couldnt create client connector.", err)
-		}
-		m.RPC = rpc
-	}
 	m.initRPCRequests()
 	// step: send running state
-	awake := constants.APP_AWAKE
+	appState := appd.AppState{State: constants.APP_AWAKE}
 	if m.Debugging {
-		awake = constants.APP_AWAKE_DEBUG
+		appState.State = constants.APP_AWAKE_DEBUG
+		wd, err := os.Getwd()
+		if err != nil {
+			logger.GetInstance().Error().Err(err).Caller().Msg("failed to retrieve debug working dir")
+		}
+		appState.Data = wd
 	}
 	res, err := m.RPC.CallSystem(
-		data.NewAction(constants.APP_CHANGE_STATE, m.Config.PackageId, awake))
+		data.NewAction(constants.APP_CHANGE_STATE, m.Config.PackageId, appState))
 	if err != nil {
 		logger.GetInstance().Error().Str("category", "appcontroller").Err(err).Msg("Failed to send awake state")
 		return err
