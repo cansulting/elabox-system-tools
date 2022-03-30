@@ -76,6 +76,20 @@ func RegisterPackageSrc(srcDir string) (*data.PackageConfig, error) {
 	return config, nil
 }
 
+// remove package data from db
+func UnregisterPackage(pkId string) error {
+	logger.GetInstance().Info().Str("category", "registry").Msg("Unregistering package " + pkId)
+	query := `delete from packages where id = ?`
+	err := util.ExecuteQuery(query, pkId)
+	if err != nil {
+		return errors.SystemNew("records.UnregisterPackage Failed to remove "+pkId, err)
+	}
+	if err := removeActivities(pkId); err != nil {
+		return errors.SystemNew("appman.UnregisterPackage failed removing activities", err)
+	}
+	return nil
+}
+
 func RetrievePackage(id string) (*data.PackageConfig, error) {
 	pks, err := retrievePackagesRaw(id, []string{"id", "source", "version", "name", "location", "nodejs", "program", "build"})
 	if err != nil {

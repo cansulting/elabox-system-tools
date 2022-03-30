@@ -15,6 +15,7 @@ package app
 // To initialize call NewController, for debugging use NewControllerWithDebug
 // please see the documentation for more info.
 import (
+	"os"
 	"strconv"
 	"time"
 
@@ -66,11 +67,17 @@ func NewController(
 	if logger.GetInstance() == nil {
 		logger.Init(config.PackageId)
 	}
+	// step: create RPC
+	rpc, err := rpc.NewRPCHandlerDefault()
+	if err != nil {
+		return nil, errors.SystemNew("Controller: Failed to start. Couldnt create client connector.", err)
+	}
 	return &Controller{
 		Debugging:  system.IDE,
 		AppService: service,
 		Activity:   activity,
 		Config:     config,
+		RPC:        rpc,
 	}, nil
 }
 
@@ -158,7 +165,7 @@ func (m *Controller) onEnd() error {
 			data.NewAction(
 				constants.APP_CHANGE_STATE,
 				m.Config.PackageId,
-				constants.APP_SLEEP))
+				appd.AppState{State: constants.APP_SLEEP}))
 		if err != nil {
 			logger.GetInstance().Error().Err(err).Caller().Str("category", "appcontroller").Msg("Controller.onEnd Change state failed.")
 		}

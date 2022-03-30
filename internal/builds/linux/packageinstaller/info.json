@@ -9,7 +9,8 @@
 	"exportService": false,
 	"activities": [
 		"ela.action.INSTALL",
-		"ela.action.SYSTEM_INSTALL"
+		"ela.action.SYSTEM_INSTALL",
+		"ela.action.UNINSTALL"
 	],
 	"actionListener": [],
 	"location": "system",

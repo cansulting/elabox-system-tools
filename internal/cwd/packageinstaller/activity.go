@@ -50,23 +50,24 @@ func (a *activity) OnPendingAction(action *data.Action) error {
 	switch action.Id {
 	case constants.ACTION_APP_INSTALL:
 		sourcePkg := action.DataToString()
-		a.currentPkg = sourcePkg
-		broadcast.UpdateSystem(a.currentPkg, broadcast.INITIALIZING)
+		broadcast.UpdateSystem(sourcePkg, broadcast.INITIALIZING)
 		pkgData, err := pkg.LoadFromSource(sourcePkg)
 		if err != nil {
 			a.finish(err.Error())
 			return nil
 		}
+		a.currentPkg = pkgData.Config.PackageId
 		if !pkgData.HasCustomInstaller() {
 			return a.startNormalInstall(pkgData)
 		}
 		return a.runCustomInstaller(sourcePkg, pkgData)
 	default:
-		if action.PackageId == "" {
+		pkid := action.DataToString()
+		if pkid == "" {
 			return errors.SystemNew("failed to uninstall, no package id was provided as parameter", nil)
 		}
-		global.Logger.Info().Msg("start uninstall package " + action.PackageId)
-		return utils.UninstallPackage(action.PackageId, global.DELETE_DATA_ONUNINSTALL)
+		global.Logger.Info().Msg("start uninstall package " + pkid)
+		return utils.UninstallPackage(pkid, global.DELETE_DATA_ONUNINSTALL, true)
 	}
 }
 
@@ -114,7 +115,7 @@ func (a *activity) finish(err string) {
 		broadcast.Error(a.currentPkg, 0, err)
 	} else {
 		global.Logger.Info().Msg("Install success")
-		broadcast.UpdateSystem(a.currentPkg, broadcast.SUCCESS)
+		broadcast.UpdateSystem(a.currentPkg, broadcast.INSTALLED)
 	}
 	// comment this line. system will terminate this activity automatically
 	//a.running = false

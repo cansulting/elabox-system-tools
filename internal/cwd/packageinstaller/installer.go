@@ -71,7 +71,7 @@ func (instance *installer) Start() error {
 		return err
 	}
 	// step: delete the package first
-	if err := utils.UninstallPackage(packageInfo.PackageId, false); err != nil {
+	if err := utils.UninstallPackage(packageInfo.PackageId, false, false); err != nil {
 		return err
 	}
 	pkconst.Logger.Info().Msg("start installing " + packageInfo.PackageId)
