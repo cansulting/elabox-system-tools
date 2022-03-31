@@ -43,6 +43,7 @@ func (instance *Controller) onPendingActions(client protocol.ClientInterface, ac
 	if actionG.Activity != nil {
 		// forward to activity
 		if err := instance.Activity.OnPendingAction(actionG.Activity); err != nil {
+			logger.GetInstance().Error().Err(err).Caller().Msg("failed processing pending action")
 			return rpc.CreateResponse(rpc.SYSTEMERR_CODE, err.Error())
 		}
 	}
