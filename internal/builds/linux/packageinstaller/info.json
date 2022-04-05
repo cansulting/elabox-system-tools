@@ -1,5 +1,5 @@
 {
-	"name": "Package Manager",
+	"name": "Package Installer",
 	"description": "Package Installer",
 	"packageId": "ela.installer",
 	"build": 2,

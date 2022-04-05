@@ -67,7 +67,7 @@ func (a *activity) OnPendingAction(action *data.Action) error {
 			return errors.SystemNew("failed to uninstall, no package id was provided as parameter", nil)
 		}
 		global.Logger.Info().Msg("start uninstall package " + pkid)
-		return utils.UninstallPackage(pkid, global.DELETE_DATA_ONUNINSTALL, true)
+		return utils.UninstallPackage(pkid, global.DELETE_DATA_ONUNINSTALL, true, true)
 	}
 }
 
@@ -75,7 +75,7 @@ func (a *activity) startNormalInstall(pkgd *pkg.Data) error {
 	global.Logger.Info().Msg("Installing package @" + pkgd.Config.PackageId)
 	// step: start installing
 	backup := pkgd.Config.IsSystemPackage()
-	install := NewInstaller(pkgd, backup)
+	install := NewInstaller(pkgd, backup, true)
 	install.SetProgressListener(a.onInstallProgress)
 	install.SetErrorListener(a.onInstallError)
 	broadcast.UpdateSystem(pkgd.Config.PackageId, broadcast.INPROGRESS)

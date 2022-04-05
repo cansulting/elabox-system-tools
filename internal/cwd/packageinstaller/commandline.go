@@ -132,7 +132,7 @@ func processInstallCommand(targetPk string, restart bool, systemUpdate bool, log
 func normalInstall(content *pkg.Data) {
 	// step: wait and make sure system was terminated. for system updates
 	time.Sleep(time.Second)
-	newInstall := NewInstaller(content, true)
+	newInstall := NewInstaller(content, true, false)
 	// step: start install
 	if err := newInstall.Start(); err != nil {
 		pkconst.Logger.Error().Err(err).Stack().Msg("Failed installation.")

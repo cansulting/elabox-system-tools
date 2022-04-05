@@ -10,7 +10,11 @@ import (
 )
 
 // delete package based package id
-func UninstallPackage(packageId string, deleteData bool, unregister bool) error {
+func UninstallPackage(
+	packageId string,
+	deleteData bool,
+	unregister bool,
+	broadcastUpdate bool) error {
 	logger.GetInstance().Debug().Msg("Deleting old package " + packageId)
 	// step: retrieve package location
 	pk, err := app.RetrievePackage(packageId)
@@ -40,9 +44,9 @@ func UninstallPackage(packageId string, deleteData bool, unregister bool) error 
 		}
 	}
 	// step: remove www dir
-	www := pk.GetWWWDir()
+	www := pk.GetWWWDir() + "/" + packageId
 	if _, err := os.Stat(www); err == nil {
-		if err := os.RemoveAll(pk.GetWWWDir()); err != nil {
+		if err := os.RemoveAll(www); err != nil {
 			return errors.SystemNew("failed to delete www dir for "+packageId, err)
 		}
 	}
@@ -52,6 +56,9 @@ func UninstallPackage(packageId string, deleteData bool, unregister bool) error 
 			return errors.SystemNew("failed to unregister package "+packageId, err)
 		}
 	}
-	broadcast.UpdateSystem(packageId, broadcast.UNINSTALLED)
+	if broadcastUpdate {
+		// step: broadcast update
+		broadcast.UpdateSystem(packageId, broadcast.UNINSTALLED)
+	}
 	return nil
 }
