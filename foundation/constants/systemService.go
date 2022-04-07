@@ -61,8 +61,8 @@ const SERVICE_PENDING_ACTIONS = "ela.system.PENDING_ACTIONS"
 // sends terminate action to app
 const APP_TERMINATE = "ela.system.APP_TERMINATE"
 
-const ACTION_APP_RESTART = "ela.system.ACTION_APP_RESTART"
-const ACTION_APP_CLEAR_DATA = "ela.system.ACTION_APP_CLEAR_DATA"
+const ACTION_APP_RESTART = "ela.system.APP_RESTART"
+const ACTION_APP_CLEAR_DATA = "ela.system.APP_CLEAR_DATA"
 
 type AppRunningState int
 
