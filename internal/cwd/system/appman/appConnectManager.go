@@ -22,6 +22,7 @@ import (
 	"github.com/cansulting/elabox-system-tools/foundation/constants"
 	"github.com/cansulting/elabox-system-tools/foundation/event/data"
 	"github.com/cansulting/elabox-system-tools/foundation/event/protocol"
+	"github.com/cansulting/elabox-system-tools/foundation/logger"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/system/global"
 	registry "github.com/cansulting/elabox-system-tools/registry/app"
 )
@@ -46,12 +47,14 @@ func GetAppConnect(packageId string, client protocol.ClientInterface) *AppConnec
 		return app
 	}
 	// retrieve if already exist
-	pk, _ := registry.RetrievePackage(packageId)
+	pk, err := registry.RetrievePackage(packageId)
+	if err != nil {
+		logger.GetInstance().Err(err).Caller().Msg("Failed to retrieve package " + packageId)
+		return nil
+	}
 	if pk == nil {
 		return nil
 	}
-	acts, _ := registry.RetrieveActivities(packageId)
-	pk.Activities = acts
 	return AddAppConnect(pk, client)
 }
 
@@ -94,12 +97,11 @@ func RemoveAppConnect(packageId string, terminate bool) {
 	app := LookupAppConnect(packageId)
 	if app != nil {
 		if terminate {
-			if err := app.Terminate(); err != nil {
-				global.Logger.Error().Err(err).Stack().Msg("Failed terminate " + app.PackageId + ". Trying force terminate.")
-				if err := app.ForceTerminate(); err != nil {
-					global.Logger.Error().Err(err).Caller().Msg("appConnectManager.TerminateAllApp failed force terminate ")
+			go func() {
+				if err := app.Terminate(); err != nil {
+					global.Logger.Error().Err(err).Stack().Msg("Failed terminate " + app.PackageId + ". ")
 				}
-			}
+			}()
 		}
 		// close service
 		// if app.Service != nil {
@@ -170,7 +172,7 @@ func InitializeStartups() {
 		global.Logger.Error().Err(err).Caller().Msg("Failed retrieving startup packages.")
 	}
 	for _, pkg := range pkgs {
-		if _, err := LaunchAppService(pkg.PackageId); err != nil {
+		if _, err := LaunchAppService(pkg); err != nil {
 			global.Logger.Error().Err(err).Caller().Msg("Failed launching app.")
 		}
 	}

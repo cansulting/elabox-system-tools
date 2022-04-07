@@ -31,19 +31,20 @@ const NODE_JS_DIR = "nodejs" // sub directory of binary dir, this is where node 
 // This structure represents package  json file along with the binary.
 // this contains information about the application behaviour, permission and services.
 type PackageConfig struct {
-	Name        string `json:"name"`        // package name
-	Description string `json:"description"` // description of package
-	PackageId   string `json:"packageId"`   // identifies the package/application. this should be unique. format = company.package
-	Build       int16  `json:"build"`       // this should be incremental starting from 1
-	Version     string `json:"version"`     // major.minor.patch
-	Program     string `json:"program"`     // the main program file to execute
+	Name        string   `json:"name"`        // package name
+	Description string   `json:"description"` // description of package
+	PackageId   string   `json:"packageId"`   // identifies the package/application. this should be unique. format = company.package
+	Build       int16    `json:"build"`       // this should be incremental starting from 1
+	Version     string   `json:"version"`     // major.minor.patch
+	Program     string   `json:"program"`     // the main program file to execute
+	ProgramArgs []string `json:"programArgs"` // arguments to pass to program
 	// request permission for specific action/feature
 	// if the specific action was called and was not defined. the process will be void
 	Permissions      []string               `json:"permissions"`
 	ExportServices   bool                   `json:"exportService"`   // true if the package contains services
 	Activities       []string               `json:"activities"`      // if app has activity. this contains definition of actions that will triggerr activity
 	BroacastListener []string               `json:"actionListener"`  // defined actions which action listener will listen to
-	InstallLocation  string                 `json:"location"`        // which location the package will be installed
+	InstallLocation  string                 `json:"location"`        // either system or external
 	Source           string                 `json:"-"`               // the source location
 	Nodejs           bool                   `json:"nodejs"`          // true if this package includes node js
 	PackagerVersion  string                 `json:"packagerVersion"` // version of packager of this package
@@ -54,6 +55,16 @@ type PackageConfig struct {
 // default values for package
 func DefaultPackage() *PackageConfig {
 	return &PackageConfig{InstallLocation: EXTERNAL /*, Restart: false*/}
+}
+
+// load config given the source location( system or external)
+func (c *PackageConfig) LoadFromLocation(pkid string, location string) error {
+	src := path.GetSystemAppDir()
+	if location != SYSTEM {
+		src = path.GetExternalAppDir()
+	}
+	src += "/" + pkid + "/" + constants.APP_CONFIG_NAME
+	return c.LoadFromSrc(src)
 }
 
 // local package data given the source location

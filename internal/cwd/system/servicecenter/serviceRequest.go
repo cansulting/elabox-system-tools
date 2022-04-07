@@ -62,6 +62,12 @@ func OnRecievedRequest(
 		return onAppChangeState(client, action)
 	case constants.SYSTEM_ACTIVITY_RESULT:
 		return onReturnActivityResult(action)
+	case constants.APP_TERMINATE:
+		return onAppTerminate(client, action)
+	case constants.ACTION_APP_RESTART:
+		return onAppRestart(client, action)
+	case constants.ACTION_APP_CLEAR_DATA:
+		return onAppClearData(client, action)
 	case constants.SYSTEM_UPDATE_MODE:
 		return activateUpdateMode(client, action)
 	case constants.SYSTEM_TERMINATE:
@@ -73,7 +79,61 @@ func OnRecievedRequest(
 	}
 }
 
-// client app changed its state
+// use to restart the app
+func onAppRestart(
+	client protocol.ClientInterface,
+	action data.Action) interface{} {
+	appid := action.PackageId
+	if appid == "" {
+		return rpc.CreateResponse(rpc.INVALID_CODE, "package id shouldnt be empty")
+	}
+	app := appman.GetAppConnect(appid, client)
+	if app == nil {
+		return rpc.CreateResponse(rpc.INVALID_CODE, appid+" app not found")
+	}
+	if err := app.Restart(); err != nil {
+		global.Logger.Error().Err(err).Caller().Msg("failed to restart app " + appid)
+		return rpc.CreateResponse(rpc.SYSTEMERR_CODE, "failed to restart app "+appid)
+	}
+	return rpc.CreateSuccessResponse("restarted")
+}
+
+func onAppClearData(
+	client protocol.ClientInterface,
+	action data.Action) interface{} {
+	appid := action.PackageId
+	if appid == "" {
+		return rpc.CreateResponse(rpc.INVALID_CODE, "package id shouldnt be empty")
+	}
+	app := appman.GetAppConnect(appid, client)
+	if app == nil {
+		return rpc.CreateResponse(rpc.INVALID_CODE, appid+" app not found")
+	}
+	if err := app.ClearData(); err != nil {
+		global.Logger.Error().Err(err).Caller().Msg("failed to clear data for app " + appid)
+		return rpc.CreateResponse(rpc.SYSTEMERR_CODE, "failed to clear data for app "+appid)
+	}
+	return rpc.CreateSuccessResponse("cleared")
+}
+
+func onAppTerminate(
+	client protocol.ClientInterface,
+	action data.Action) interface{} {
+	appid := action.PackageId
+	if appid == "" {
+		return rpc.CreateResponse(rpc.INVALID_CODE, "package id shouldnt be empty")
+	}
+	app := appman.GetAppConnect(appid, client)
+	if app == nil {
+		return rpc.CreateResponse(rpc.INVALID_CODE, appid+" app not found")
+	}
+	if err := app.Terminate(); err != nil {
+		global.Logger.Error().Err(err).Caller().Msg("failed to terminate app " + appid)
+		return rpc.CreateResponse(rpc.SYSTEMERR_CODE, "failed to terminate app "+appid)
+	}
+	return rpc.CreateSuccessResponse("terminated")
+}
+
 func onAppChangeState(
 	client protocol.ClientInterface,
 	action data.Action) interface{} {

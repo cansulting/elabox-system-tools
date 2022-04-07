@@ -17,11 +17,14 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
+	"time"
 
 	"github.com/cansulting/elabox-system-tools/foundation/app/data"
 	"github.com/cansulting/elabox-system-tools/foundation/constants"
 	eventd "github.com/cansulting/elabox-system-tools/foundation/event/data"
 	"github.com/cansulting/elabox-system-tools/foundation/event/protocol"
+	"github.com/cansulting/elabox-system-tools/foundation/perm"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/system/global"
 )
 
@@ -106,7 +109,11 @@ func (app *AppConnect) Launch() error {
 	// binary runnning
 	if app.Config.HasMainProgram() && app.process == nil {
 		global.Logger.Info().Msg("Launching " + app.PackageId + " app")
-		cmd := exec.Command(app.Location)
+		args := app.Config.ProgramArgs
+		if args == nil {
+			args = []string{}
+		}
+		cmd := exec.Command(app.Location, args...)
 		cmd.Dir = filepath.Dir(app.Location)
 
 		go asyncRun(app, cmd)
@@ -119,8 +126,8 @@ func (app *AppConnect) IsClientConnected() bool {
 	return app.Client != nil && app.Client.IsAlive()
 }
 
-func (app *AppConnect) ForceTerminate() error {
-	global.Logger.Info().Caller().Msg("Force Terminating app " + app.Config.PackageId)
+func (app *AppConnect) forceTerminate() error {
+	global.Logger.Info().Caller().Msg("app will now terminate " + app.Config.PackageId)
 	app.launched = false
 	if app.nodejs != nil {
 		if err := app.nodejs.Stop(); err != nil {
@@ -136,9 +143,34 @@ func (app *AppConnect) ForceTerminate() error {
 	return nil
 }
 
+func (app *AppConnect) ClearData() error {
+	dir := app.Config.GetDataDir()
+	if _, err := os.Stat(dir); err == nil {
+		if err := os.RemoveAll(dir); err != nil {
+			return err
+		}
+		if err := os.MkdirAll(dir, perm.PUBLIC_WRITE); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (app *AppConnect) Restart() error {
+	if app.IsRunning() {
+		if err := app.Terminate(); err != nil {
+			return err
+		}
+	}
+	return app.Launch()
+}
+
 // this terminate the app naturally
 func (app *AppConnect) Terminate() error {
-	global.Logger.Info().Msg("Terminating " + app.Config.PackageId)
+	if !app.IsRunning() {
+		return nil
+	}
+	global.Logger.Info().Msg("Waiting for app " + app.Config.PackageId + " to terminate in " + strconv.Itoa(global.APP_TERMINATE_COUNTDOWN) + " seconds")
 	if app.nodejs != nil {
 		if err := app.nodejs.Stop(); err != nil {
 			global.Logger.Error().Err(err).Caller().Msg("AppConnect nodejs " + app.PackageId + "failed to terminate.")
@@ -147,9 +179,17 @@ func (app *AppConnect) Terminate() error {
 	if !app.IsClientConnected() {
 		return nil
 	}
-	_, err := app.RPCCall(constants.APP_TERMINATE, nil)
-	if err != nil {
-		return err
+	go func() {
+		_, err := app.RPCCall(constants.APP_TERMINATE, nil)
+		if err != nil {
+			global.Logger.Error().Err(err).Caller().Msg("AppConnect " + app.PackageId + " failed sending terminate RPC.")
+			app.forceTerminate()
+		}
+	}()
+
+	time.Sleep(time.Second * time.Duration(global.APP_TERMINATE_COUNTDOWN))
+	if app.IsRunning() {
+		return app.forceTerminate()
 	}
 	return nil
 }

@@ -91,15 +91,21 @@ func UnregisterPackage(pkId string) error {
 }
 
 func RetrievePackage(id string) (*data.PackageConfig, error) {
-	pks, err := retrievePackagesRaw(id, []string{"id", "source", "version", "name", "location", "nodejs", "program", "build"})
+	// pks, err := retrievePackagesRaw(id, []string{"id", "source", "version", "name", "location", "nodejs", "program", "build"})
+	// if err != nil {
+	// 	return nil, errors.SystemNew("appman.RetrievePackage failed", err)
+	// }
+	// results := convertRawToPackageConfig(pks)
+	// if len(results) > 0 {
+	// 	return results[0], nil
+	// }
+	loc, err := retrievePackageInstallLocation(id)
 	if err != nil {
-		return nil, errors.SystemNew("appman.RetrievePackage failed", err)
+		return nil, errors.SystemNew("unable to locate package "+id, err)
 	}
-	results := convertRawToPackageConfig(pks)
-	if len(results) > 0 {
-		return results[0], nil
-	}
-	return nil, nil
+	config := data.DefaultPackage()
+	err = config.LoadFromLocation(id, loc)
+	return config, err
 }
 
 func RetrievePackagesWithActivity(action string) ([]string, error) {
@@ -107,18 +113,18 @@ func RetrievePackagesWithActivity(action string) ([]string, error) {
 }
 
 // retrieve all packages that needs to execute upon startup
-func RetrieveStartupPackages() ([]*data.PackageConfig, error) {
+func RetrieveStartupPackages() ([]string, error) {
 	row, err := retrievePackagesWhere(
-		[]string{"id, source, name, location, nodejs, exportService, program"},
+		[]string{"id"},
 		"nodejs=true or exportService=true")
 	if err != nil {
 		return nil, err
 	}
 	defer row.Close()
-	results := make([]*data.PackageConfig, 0, 10)
+	results := make([]string, 0, 10)
 	for row.Next() {
-		pk := data.DefaultPackage()
-		row.Scan(&pk.PackageId, &pk.Source, &pk.Name, &pk.InstallLocation, &pk.Nodejs, &pk.ExportServices, &pk.Program)
+		pk := ""
+		row.Scan(&pk)
 		results = append(results, pk)
 	}
 	return results, nil
