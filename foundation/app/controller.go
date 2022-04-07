@@ -36,7 +36,7 @@ func RunApp(app *Controller) error {
 
 	// start the app
 	if err := app.onStart(); err != nil {
-		logger.GetInstance().Info().Str("category", "appcontroller").Msg("Terminating app")
+		logger.GetInstance().Error().Str("category", "appcontroller").Err(err).Msg("Failed to start app")
 		return err
 	}
 
