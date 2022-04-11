@@ -90,6 +90,8 @@ func UnregisterPackage(pkId string) error {
 	return nil
 }
 
+// use to retrieve package
+// @returns package config, nil if not found
 func RetrievePackage(id string) (*data.PackageConfig, error) {
 	// pks, err := retrievePackagesRaw(id, []string{"id", "source", "version", "name", "location", "nodejs", "program", "build"})
 	// if err != nil {
@@ -99,6 +101,12 @@ func RetrievePackage(id string) (*data.PackageConfig, error) {
 	// if len(results) > 0 {
 	// 	return results[0], nil
 	// }
+	if installed, err := IsPackageInstalled(id); err != nil || !installed {
+		if err != nil {
+			return nil, err
+		}
+		return nil, nil
+	}
 	loc, err := retrievePackageInstallLocation(id)
 	if err != nil {
 		return nil, errors.SystemNew("unable to locate package "+id, err)
@@ -128,4 +136,9 @@ func RetrieveStartupPackages() ([]string, error) {
 		results = append(results, pk)
 	}
 	return results, nil
+}
+
+func IsPackageInstalled(id string) (bool, error) {
+	count, err := util.Count("packages", "id=?", id)
+	return count > 0, err
 }
