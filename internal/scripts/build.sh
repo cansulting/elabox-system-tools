@@ -213,12 +213,13 @@ if [ "$answerEla" == "y" ]; then
     mkdir -p $eidbin
     cp ${EID_SRC}/build/bin/geth $eidbin
     chmod +x $eidbin/geth
+    mv $escbin/geth $eidbin/ela.eid
     # esc
     escbin=$buildpath/esc/bin
     mkdir -p $escbin
     cp ${ESC_SRC}/build/bin/geth $escbin
     chmod +x $escbin/geth
-    mv $escbin/geth $escbin/esc
+    mv $escbin/geth $escbin/ela.esc
     # carrier
     carrierlib=$buildpath/carrier/bin
     mkdir -p $carrierlib

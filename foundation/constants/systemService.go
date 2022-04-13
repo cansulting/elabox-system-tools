@@ -64,6 +64,10 @@ const APP_TERMINATE = "ela.system.APP_TERMINATE"
 const ACTION_APP_RESTART = "ela.system.APP_RESTART"
 const ACTION_APP_CLEAR_DATA = "ela.system.APP_CLEAR_DATA"
 
+// initialize package. called after a package was installed
+const ACTION_APP_INSTALLED = "ela.system.APP_INSTALLED"
+const ACTION_APP_UNINSTALLED = "ela.system.APP_UNINSTALLED"
+
 type AppRunningState int
 
 const (

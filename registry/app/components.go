@@ -75,7 +75,7 @@ func registerActivities(pkg *data.PackageConfig) error {
 	}
 	query := ""
 	//args := make([]interface{}, 0, 6)
-	for _, activity := range pkg.Activities {
+	for _, activity := range pkg.ActivityGroup.Activities {
 		query = query + "insert into activities(packageId, action) values(?,?);"
 		//args = append(args, pkg.PackageId, activity)
 		if err := util.ExecuteQuery(query, pkg.PackageId, activity); err != nil {

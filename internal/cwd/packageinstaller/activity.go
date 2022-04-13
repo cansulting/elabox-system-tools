@@ -61,12 +61,14 @@ func (a *activity) OnPendingAction(action *data.Action) error {
 			return a.startNormalInstall(pkgData)
 		}
 		return a.runCustomInstaller(sourcePkg, pkgData)
+	// uninstall package
 	default:
 		pkid := action.DataToString()
 		if pkid == "" {
 			return errors.SystemNew("failed to uninstall, no package id was provided as parameter", nil)
 		}
 		global.Logger.Info().Msg("start uninstall package " + pkid)
+		a.terminatePackage(pkid)
 		return utils.UninstallPackage(pkid, global.DELETE_DATA_ONUNINSTALL, true, true)
 	}
 }
@@ -116,9 +118,16 @@ func (a *activity) finish(err string) {
 	} else {
 		global.Logger.Info().Msg("Install success")
 		broadcast.UpdateSystem(a.currentPkg, broadcast.INSTALLED)
+		broadcast.OnPackageInstalled(a.currentPkg)
 	}
 	// comment this line. system will terminate this activity automatically
 	//a.running = false
+}
+
+func (a *activity) terminatePackage(pki string) {
+	if _, err := global.AppController.RPC.CallSystem(data.NewAction(constants.APP_TERMINATE, pki, nil)); err != nil {
+		global.Logger.Error().Err(err).Msg("failed to terminate package " + pki)
+	}
 }
 
 // callback from installer on progress

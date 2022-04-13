@@ -14,6 +14,7 @@
 package appman
 
 import (
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -43,6 +44,8 @@ type AppConnect struct {
 	launched       bool                     // true if this app was launched
 	RPC            *RPCBridge
 	nodejs         *Nodejs
+	server         *http.Server
+	initialized    bool
 }
 
 // create new app connect
@@ -65,9 +68,31 @@ func newAppConnect(
 		nodejs:         node,
 		process:        nil,
 		Client:         client,
+		initialized:    false,
 	}
 	res.RPC = NewRPCBridge(pk.PackageId, res, global.Server.EventServer)
 	return res
+}
+
+// initialize web serving and services related to this app
+func (app *AppConnect) init() error {
+	if app.initialized {
+		return nil
+	}
+	app.initialized = true
+	// www serving
+	if app.Config.ActivityGroup.CustomPort > 0 {
+		if err := app.startServeWww(); err != nil {
+			return err
+		}
+	}
+	// start services
+	if app.Config.ExportServices || app.Config.Nodejs {
+		ac := eventd.NewActionById(constants.ACTION_START_SERVICE)
+		app.PendingActions.AddPendingService(&ac)
+		return app.Launch()
+	}
+	return nil
 }
 
 // use to check if this app is currently running
@@ -118,6 +143,7 @@ func (app *AppConnect) Launch() error {
 
 		go asyncRun(app, cmd)
 	}
+
 	app.launched = true
 	return nil
 }
@@ -187,10 +213,16 @@ func (app *AppConnect) Terminate() error {
 		}
 	}()
 
+	// stopping www
+	if app.Config.ActivityGroup.CustomPort > 0 {
+		app.stopServeWww()
+	}
+
 	time.Sleep(time.Second * time.Duration(global.APP_TERMINATE_COUNTDOWN))
 	if app.IsRunning() {
 		return app.forceTerminate()
 	}
+
 	return nil
 }
 
@@ -215,4 +247,43 @@ func asyncRun(app *AppConnect, cmd *exec.Cmd) {
 func (n *AppConnect) Write(data []byte) (int, error) {
 	print(string(data))
 	return len(data), nil
+}
+
+// start serving the www for app with custom port
+func (n *AppConnect) startServeWww() error {
+
+	// starts listening to port
+	go func(port int, pkg string, wwwPath string) {
+		global.Logger.Debug().Str("category", "web").Msg("Starting www custom port " + strconv.Itoa(port) + " for package " + pkg + ".")
+		serverMux := http.NewServeMux()
+		n.server = &http.Server{Addr: ":" + strconv.Itoa(port), Handler: serverMux}
+		// create file server for package
+		//serverMux.Handle("/", http.FileServer(http.Dir(wwwPath)))
+		path := ""
+		serverMux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+			path = wwwPath + r.URL.Path
+			if _, err := os.Stat(path); err == nil {
+				http.ServeFile(w, r, path)
+				return
+			}
+			http.ServeFile(w, r, wwwPath+"/index.html")
+		})
+		if err := n.server.ListenAndServe(); err != nil {
+			global.Logger.Warn().Err(err).Str("category", "web").Caller().Msg("Failed to start listening to port for " + pkg + ".")
+		}
+	}(n.Config.ActivityGroup.CustomPort, n.Config.PackageId, n.Config.GetWWWDir()+"/"+n.Config.PackageId)
+	return nil
+}
+
+// stop serving to specific port
+func (n *AppConnect) stopServeWww() error {
+	if n.server == nil {
+		return nil
+	}
+	global.Logger.Debug().Str("category", "web").Msg("Stopping www custom port " + strconv.Itoa(n.Config.ActivityGroup.CustomPort) + " for package " + n.Config.PackageId + ".")
+	if err := n.server.Close(); err != nil {
+		return err
+	}
+	n.server = nil
+	return nil
 }

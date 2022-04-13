@@ -28,21 +28,28 @@ const SYSTEM = "system"      // identifies the package is installed on system lo
 const EXTERNAL = "external"  // identifies the package is installed on external location
 const NODE_JS_DIR = "nodejs" // sub directory of binary dir, this is where node js scripts reside
 
+type ActivityGroupConfig struct {
+	CustomLink string   `json:"customLink"`
+	CustomPort int      `json:"customPort"`
+	Activities []string `json:"activities"` // if app has activity. this contains definition of actions that will triggerr activity
+}
+
 // This structure represents package  json file along with the binary.
 // this contains information about the application behaviour, permission and services.
 type PackageConfig struct {
-	Name        string   `json:"name"`        // package name
-	Description string   `json:"description"` // description of package
-	PackageId   string   `json:"packageId"`   // identifies the package/application. this should be unique. format = company.package
-	Build       int16    `json:"build"`       // this should be incremental starting from 1
-	Version     string   `json:"version"`     // major.minor.patch
-	Program     string   `json:"program"`     // the main program file to execute
-	ProgramArgs []string `json:"programArgs"` // arguments to pass to program
+	Name          string              `json:"name"`                    // package name
+	Description   string              `json:"description"`             // description of package
+	PackageId     string              `json:"packageId"`               // identifies the package/application. this should be unique. format = company.package
+	Build         int16               `json:"build"`                   // this should be incremental starting from 1
+	Version       string              `json:"version"`                 // major.minor.patch
+	Program       string              `json:"program"`                 // the main program file to execute
+	ProgramArgs   []string            `json:"programArgs"`             // arguments to pass to program
+	ActivityGroup ActivityGroupConfig `json:"activityGroup,omitempty"` // www configuration
 	// request permission for specific action/feature
 	// if the specific action was called and was not defined. the process will be void
-	Permissions      []string               `json:"permissions"`
-	ExportServices   bool                   `json:"exportService"`   // true if the package contains services
-	Activities       []string               `json:"activities"`      // if app has activity. this contains definition of actions that will triggerr activity
+	Permissions    []string `json:"permissions"`
+	ExportServices bool     `json:"exportService"` // true if the package contains services
+
 	BroacastListener []string               `json:"actionListener"`  // defined actions which action listener will listen to
 	InstallLocation  string                 `json:"location"`        // either system or external
 	Source           string                 `json:"-"`               // the source location
@@ -130,10 +137,10 @@ func (c *PackageConfig) HasServices() bool {
 
 // use to check if contains activity that has action of
 func (c *PackageConfig) HasActivity(actionId string) bool {
-	if c.Activities == nil || len(c.Activities) == 0 {
+	if c.ActivityGroup.Activities == nil || len(c.ActivityGroup.Activities) == 0 {
 		return false
 	}
-	for _, act := range c.Activities {
+	for _, act := range c.ActivityGroup.Activities {
 		if act == actionId {
 			return true
 		}

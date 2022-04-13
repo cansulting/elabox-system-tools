@@ -24,14 +24,21 @@ import (
 */
 
 // retrieve all packages
-func RetrieveAllPackages() ([]*data.PackageConfig, error) {
-	row, err := retrievePackagesRaw("", []string{"id, source, version, name, location, nodejs, program, build"})
+func RetrieveAllPackages() ([]string, error) {
+	row, err := retrievePackagesRaw("", []string{"id"})
 	if err != nil {
 		return nil, err
 	}
 	defer row.Close()
-	results := convertRawToPackageConfig(row)
+	results := make([]string, 0, 10)
+	for row.Next() {
+		pk := ""
+		row.Scan(&pk)
+		results = append(results, pk)
+	}
+	// results := convertRawToPackageConfig(row)
 	return results, nil
+
 }
 
 // add package data to db

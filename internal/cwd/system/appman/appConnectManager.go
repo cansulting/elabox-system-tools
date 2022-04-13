@@ -19,11 +19,11 @@ import (
 	"errors"
 
 	appd "github.com/cansulting/elabox-system-tools/foundation/app/data"
-	"github.com/cansulting/elabox-system-tools/foundation/constants"
 	"github.com/cansulting/elabox-system-tools/foundation/event/data"
 	"github.com/cansulting/elabox-system-tools/foundation/event/protocol"
 	"github.com/cansulting/elabox-system-tools/foundation/logger"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/system/global"
+	"github.com/cansulting/elabox-system-tools/registry/app"
 	registry "github.com/cansulting/elabox-system-tools/registry/app"
 )
 
@@ -135,19 +135,6 @@ func LaunchAppActivity(
 	return err
 }
 
-func LaunchAppService(pkgid string) (*AppConnect, error) {
-	app := GetAppConnect(pkgid, nil)
-	if app == nil {
-		return nil, errors.New("Package " + pkgid + " was not found.")
-	}
-	if app.launched {
-		return app, nil
-	}
-	ac := data.NewActionById(constants.ACTION_START_SERVICE)
-	app.PendingActions.AddPendingService(&ac)
-	return app, app.Launch()
-}
-
 // use to launch app
 func SendAppPendingAction(
 	app *AppConnect,
@@ -165,15 +152,50 @@ func SendAppPendingAction(
 }
 
 // run all start up apps
-func InitializeStartups() {
+func InitializeAllPackages() {
 	global.Logger.Info().Msg("Services are starting up...")
-	pkgs, err := registry.RetrieveStartupPackages()
+	// pkgs, err := registry.RetrieveStartupPackages()
+	// if err != nil {
+	// 	global.Logger.Error().Err(err).Caller().Msg("Failed retrieving startup packages.")
+	// }
+	// for _, pkg := range pkgs {
+	// 	InitializePackage(pkg)
+	// }
+	pkgs, err := registry.RetrieveAllPackages()
 	if err != nil {
 		global.Logger.Error().Err(err).Caller().Msg("Failed retrieving startup packages.")
+		return
 	}
 	for _, pkg := range pkgs {
-		if _, err := LaunchAppService(pkg); err != nil {
-			global.Logger.Error().Err(err).Caller().Msg("Failed launching app.")
+		config, err := app.RetrievePackage(pkg)
+		if err != nil {
+			global.Logger.Error().Err(err).Caller().Msg("Failed retrieving package " + pkg)
+			continue
+		}
+		// should we initialize the package?
+		if !config.ExportServices &&
+			!config.Nodejs &&
+			config.ActivityGroup.CustomPort == 0 {
+			continue
+		}
+		if err := InitializePackage(pkg); err != nil {
+			global.Logger.Error().Err(err).Caller().Msg("Failed initializing package " + pkg)
 		}
 	}
+}
+
+// initialize specific package
+func InitializePackage(pki string) error {
+	app := GetAppConnect(pki, nil)
+	if app == nil {
+		return errors.New("Package " + pki + " was not found.")
+	}
+	if app.launched {
+		return nil
+	}
+	if err := app.init(); err != nil {
+		global.Logger.Error().Err(err).Caller().Msg("Failed launching app.")
+		return err
+	}
+	return nil
 }

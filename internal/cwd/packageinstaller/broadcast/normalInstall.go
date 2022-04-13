@@ -5,6 +5,7 @@ package broadcast
 import (
 	"strconv"
 
+	appc "github.com/cansulting/elabox-system-tools/foundation/constants"
 	"github.com/cansulting/elabox-system-tools/foundation/event/data"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/constants"
 )
@@ -35,6 +36,17 @@ func UpdateSystem(pkgId string, status InstallState) {
 	if err != nil {
 		constants.Logger.Error().Err(err).Msg("failed to broadcast status update")
 	}
+}
+
+// notify system that the installation is complete for specific package
+func OnPackageInstalled(pki string) error {
+	_, err := constants.AppController.RPC.CallSystem(data.NewAction(
+		appc.ACTION_APP_INSTALLED, pki, nil,
+	))
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // broadcast error

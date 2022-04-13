@@ -68,6 +68,8 @@ func OnRecievedRequest(
 		return onAppRestart(client, action)
 	case constants.ACTION_APP_CLEAR_DATA:
 		return onAppClearData(client, action)
+	case constants.ACTION_APP_INSTALLED:
+		return initPackage(action)
 	case constants.SYSTEM_UPDATE_MODE:
 		return activateUpdateMode(client, action)
 	case constants.SYSTEM_TERMINATE:
@@ -201,7 +203,7 @@ func startService(action data.Action) string {
 	if pkgid == "" {
 		return rpc.CreateResponse(rpc.INVALID_CODE, "package id shouldnt be empty")
 	}
-	_, err := appman.LaunchAppService(pkgid)
+	err := appman.InitializePackage(pkgid)
 	if err != nil {
 		return rpc.CreateResponse(rpc.INVALID_CODE, err.Error())
 	}
@@ -284,4 +286,15 @@ func terminate(seconds uint) string {
 		os.Exit(0)
 	}()
 	return rpc.CreateSuccessResponse("Terminated")
+}
+
+// initialize and start newly instlled package
+func initPackage(action data.Action) string {
+	global.Logger.Debug().Msg("Initializing package " + action.PackageId)
+	pki := action.PackageId
+	if err := appman.InitializePackage(pki); err != nil {
+		global.Logger.Error().Err(err).Msg("Failed to initialize package " + pki)
+		return rpc.CreateResponse(rpc.SYSTEMERR_CODE, err.Error())
+	}
+	return rpc.CreateSuccessResponse("Initialized")
 }
