@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"io"
 	"os"
+	"strconv"
 
 	"github.com/cansulting/elabox-system-tools/foundation/app/data"
 	"github.com/cansulting/elabox-system-tools/foundation/constants"
@@ -238,6 +239,12 @@ func (t *installer) Finalize() error {
 	if t.packageContent.HasPostInstallScript() {
 		if err := t.packageContent.StartPostInstall(); err != nil {
 			return err
+		}
+	}
+	// activate port
+	if t.packageInfo.ActivityGroup.CustomPort > 0 {
+		if err := utils.AllowPort(t.packageInfo.ActivityGroup.CustomPort); err != nil {
+			return errors.SystemNew("failed to allow port "+strconv.Itoa(t.packageInfo.ActivityGroup.CustomPort)+" for "+t.packageInfo.PackageId, err)
 		}
 	}
 	t.packageContent.Clean()
