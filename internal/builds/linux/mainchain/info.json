@@ -5,9 +5,17 @@
 	"build": 1,
 	"version": "0.8.2",
 	"program": "ela.mainchain",
+	"programArgs": [
+		"--datadir",
+		"/home/elabox/data/ela.mainchain/elastos"
+	],
+	"activityGroup": {
+		"customLink": "",
+		"customPort": 0,
+		"activities": null
+	},
 	"permissions": null,
-	"exportService": false,
-	"activities": null,
+	"exportService": true,
 	"actionListener": null,
 	"location": "external",
 	"nodejs": false,

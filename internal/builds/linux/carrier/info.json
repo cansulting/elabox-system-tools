@@ -5,9 +5,17 @@
 	"build": 1,
 	"version": "0.3.0",
 	"program": "ela-bootstrapd",
+	"programArgs": [
+		"--config=bootstrapd.conf",
+		"--foreground"
+	],
+	"activityGroup": {
+		"customLink": "",
+		"customPort": 0,
+		"activities": null
+	},
 	"permissions": null,
-	"exportService": false,
-	"activities": null,
+	"exportService": true,
 	"actionListener": null,
 	"location": "external",
 	"nodejs": false,
