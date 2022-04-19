@@ -50,12 +50,13 @@ type PackageConfig struct {
 	Permissions    []string `json:"permissions"`
 	ExportServices bool     `json:"exportService"` // true if the package contains services
 
-	BroacastListener []string               `json:"actionListener"`  // defined actions which action listener will listen to
-	InstallLocation  string                 `json:"location"`        // either system or external
-	Source           string                 `json:"-"`               // the source location
-	Nodejs           bool                   `json:"nodejs"`          // true if this package includes node js
-	PackagerVersion  string                 `json:"packagerVersion"` // version of packager of this package
-	Ext              map[string]interface{} `json:"ext"`             // extra values
+	BroacastListener []string               `json:"actionListener,omitempty"`  // defined actions which action listener will listen to
+	InstallLocation  string                 `json:"location,omitempty"`        // either system or external
+	Source           string                 `json:"-"`                         // the source location
+	Nodejs           bool                   `json:"nodejs"`                    // true if this package includes node js
+	PackagerVersion  string                 `json:"packagerVersion,omitempty"` // version of packager of this package
+	Ext              map[string]interface{} `json:"ext,omitempty"`             // extra values
+	MinRuntime       string                 `json:"minRuntime,omitempty"`      // minimum system runtime version this package will run on
 	//Services         map[string]string `json:"services"`       // if app has a service. this contains definition of commands available to service
 }
 

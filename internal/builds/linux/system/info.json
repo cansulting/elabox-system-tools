@@ -3,11 +3,16 @@
 	"description": "Ela System powered by Elastos. Node bug fixes and security updates.",
 	"packageId": "ela.system",
 	"build": 7,
-	"version": "0.5.0",
+	"version": "0.6.0",
 	"program": "ela.system",
+	"programArgs": null,
+	"activityGroup": {
+		"customLink": "",
+		"customPort": 0,
+		"activities": null
+	},
 	"permissions": null,
 	"exportService": false,
-	"activities": null,
 	"actionListener": null,
 	"location": "system",
 	"nodejs": false,
