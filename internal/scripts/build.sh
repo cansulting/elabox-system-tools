@@ -9,6 +9,7 @@ ELA_COMPANION=$PROJ_HOME/elabox-companion
 ELA_LANDING=$PROJ_HOME/landing-page
 ELA_REWARDS=$PROJ_HOME/elabox-rewards
 ELA_LOGS=$PROJ_HOME/elabox-logs
+ELA_STORE=$PROJ_HOME/elabox-dapp-store
 cos=$(go env GOOS)                  # current os. 
 carc=$(go env GOARCH)               # current archi
 packageinstaller=packageinstaller           # package installer project name
@@ -64,6 +65,8 @@ if [ -d "$ELA_LOGS" ]; then
 fi
 echo "Rebuild Glide? (y/n)"
 read answerGlide
+echo "Rebuild elastos dapp store? (y/n)"
+read answerDstore
 
 #####################
 # build packager
@@ -241,6 +244,16 @@ if [ "$answerGlide" == "y" ]; then
     rm -r $buildpath/glide/www && mkdir -p $buildpath/glide/www
     cp -r $GLIDE_SRC/build/* $buildpath/glide/www
     packager $buildpath/glide/packager.json
+fi
+
+#########################
+# build dapp store?
+#########################
+if [ "$answerDstore" == "y" ]; then
+    wd=$PWD
+    cd $ELA_STORE/scripts
+    ./build.sh -o $target -a $arch -d $MODE
+    cd $wd
 fi
 
 #########################

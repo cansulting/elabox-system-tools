@@ -6,7 +6,7 @@
 	"version": "0.1.0",
 	"program": "feedsd",
 	"programArgs": [
-		--config=./feedsd.conf
+		"--config=./feedsd.conf"
 	],
 	"activityGroup": {
 		"customLink": ":10018",
@@ -15,9 +15,7 @@
 	},
 	"permissions": null,
 	"exportService": true,
-	"actionListener": null,
 	"location": "external",
 	"nodejs": false,
-	"packagerVersion": "0.1.0",
-	"ext": null
+	"packagerVersion": "0.1.0"
 }

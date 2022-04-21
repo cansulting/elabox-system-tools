@@ -142,6 +142,12 @@ if [ ! -d "elabox-foundation.lib" ]; then
     git switch development
     npm link
 fi
+if [ ! -d "elabox-dapp-store" ]; then
+    cd $wd
+    git clone https://github.com/cansulting/elabox-dapp-store.git
+    git switch development
+fi
+
 
 ######################################
 ## GLIDE APP

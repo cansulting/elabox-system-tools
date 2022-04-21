@@ -34,9 +34,7 @@
 	},
 	"permissions": null,
 	"exportService": false,
-	"actionListener": null,
 	"location": "external",
 	"nodejs": false,
-	"packagerVersion": "0.1.0",
-	"ext": null
+	"packagerVersion": "0.1.0"
 }
