@@ -55,8 +55,11 @@ func TerminateSystem(delaySec int) error {
 }
 
 // use to reboot the device
-func Reboot() error {
+func Reboot(delay int) error {
 	pkc.Logger.Info().Msg("Rebooting system...")
+	if delay > 0 {
+		time.Sleep(time.Second * time.Duration(delay))
+	}
 	cmd := exec.Command("reboot")
 	if err := cmd.Start(); err != nil {
 		return err
