@@ -114,7 +114,7 @@ func processInstallCommand(targetPk string, restart bool, systemUpdate bool, log
 	// step: restart system
 	if systemUpdate {
 		if restart {
-			if err := utils.Reboot(); err != nil {
+			if err := utils.Reboot(5); err != nil {
 				pkconst.Logger.Fatal().Err(err)
 				return
 			}
