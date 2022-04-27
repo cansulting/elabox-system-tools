@@ -35,17 +35,18 @@ import (
 type AppConnect struct {
 	Location string
 	//Config         data.PackageConfig
-	PendingActions *eventd.ActionGroup
-	StartedBy      string                   // which package who started this app
-	Client         protocol.ClientInterface // socket who handles this app
-	PackageId      string                   // package id of this app
-	Config         *data.PackageConfig      // current package info
-	process        *os.Process              // main program process
-	launched       bool                     // true if this app was launched
-	RPC            *RPCBridge
-	nodejs         *Nodejs
-	server         *http.Server
-	initialized    bool
+	PendingActions     *eventd.ActionGroup
+	StartedBy          string                   // which package who started this app
+	Client             protocol.ClientInterface // socket who handles this app
+	PackageId          string                   // package id of this app
+	Config             *data.PackageConfig      // current package info
+	process            *os.Process              // main program process
+	launched           bool                     // true if this app was launched
+	RPC                *RPCBridge
+	nodejs             *Nodejs
+	server             *http.Server
+	initialized        bool
+	terminatedIntently bool // true if this app was terminated intentionally
 }
 
 // create new app connect
@@ -122,6 +123,7 @@ func (app *AppConnect) Launch() error {
 	if app.launched {
 		return app.sendPendingActions()
 	}
+	app.terminatedIntently = false
 	// node running
 	if app.nodejs != nil && !app.nodejs.IsRunning() {
 		global.Logger.Info().Msg("Launching " + app.PackageId + " nodejs")
@@ -155,6 +157,7 @@ func (app *AppConnect) IsClientConnected() bool {
 func (app *AppConnect) forceTerminate() error {
 	global.Logger.Info().Caller().Msg("app will now terminate " + app.Config.PackageId)
 	app.launched = false
+	app.terminatedIntently = true
 	if app.nodejs != nil {
 		if err := app.nodejs.Stop(); err != nil {
 			global.Logger.Error().Err(err).Caller().Msg("AppConnect nodejs " + app.PackageId + "failed to terminate.")
@@ -238,7 +241,9 @@ func asyncRun(app *AppConnect, cmd *exec.Cmd) {
 	}
 	app.process = cmd.Process
 	if err := cmd.Wait(); err != nil {
-		global.Logger.Error().Err(err).Msg("ERROR launching " + app.PackageId)
+		if !app.terminatedIntently {
+			global.Logger.Error().Err(err).Msg("ERROR launching " + app.PackageId)
+		}
 	}
 	app.process = nil
 }
