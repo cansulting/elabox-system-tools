@@ -232,7 +232,7 @@ func (app *AppConnect) Terminate() error {
 func asyncRun(app *AppConnect, cmd *exec.Cmd) {
 	defer delete(running, app.PackageId)
 	//var buffer bytes.Buffer
-	cmd.Stdout = app
+	//cmd.Stdout = app
 	cmd.Stderr = app
 	err := cmd.Start()
 	if err != nil {
