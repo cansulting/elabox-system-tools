@@ -247,7 +247,8 @@ func (t *installer) Finalize() error {
 			return errors.SystemNew("failed to allow port "+strconv.Itoa(t.packageInfo.ActivityGroup.CustomPort)+" for "+t.packageInfo.PackageId, err)
 		}
 	}
-	return t.packageContent.Clean()
+	t.packageContent.Clean()
+	return nil
 }
 
 // use to revert changes based from backup

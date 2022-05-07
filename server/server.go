@@ -80,7 +80,7 @@ func (m *Manager) ListenAndServe() error {
 	if err == nil {
 		go func() {
 			err := m.httpS.Serve(ln)
-			if err != nil {
+			if err != nil && m.running {
 				logger.GetInstance().Error().Err(err).Str("category", "networking").Caller().Msg("Server serve failed..")
 			}
 			m.running = false
