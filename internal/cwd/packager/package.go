@@ -148,7 +148,7 @@ func (c *Package) Compile(destdir string) error {
 	if c.Www != "" {
 		log.Println("Compile() adding wwww")
 		if err := addDir(global.PKEY_WWW, c.Www, zipwriter); err != nil {
-			return errors.SystemNew("Compile() failed adding node js direcory @ "+c.Www, err)
+			return errors.SystemNew("Compile() failed adding www direcory @ "+c.Www, err)
 		}
 	}
 	// add node js app
@@ -198,6 +198,10 @@ func addFile(name string, src string, w *zip.Writer) error {
 	f, err := w.Create(name)
 	if err != nil {
 		return err
+	}
+	if _, err := os.Stat(src); err != nil {
+		log.Println(src + " skipped. File not found")
+		return nil
 	}
 	bytes, err := os.ReadFile(src)
 	if err != nil {
