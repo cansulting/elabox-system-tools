@@ -14,8 +14,8 @@
         "../eid/ela.eid.box",
         "../esc/ela.esc.box",
         "../feeds/ela.feeds.box",
-        "../glide/glide.box",
-        "../../../../../elabox-dapp-store/build/ela.store/ela.store.box"
+        "../../../../../elabox-dapp-store/build/ela.store/ela.store.box",
+        "../../../../../elabox-setup-wizard/build/ela.setup.box"
     ],
     "customInstaller": "../packageinstaller/bin/packageinstaller",
     "lib": "",

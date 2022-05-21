@@ -11,9 +11,10 @@
 package event
 
 import (
+	"log"
+
 	"github.com/cansulting/elabox-system-tools/foundation/constants"
 	"github.com/cansulting/elabox-system-tools/foundation/system"
-	"log"
 
 	socketio "github.com/graarh/golang-socketio"
 )
@@ -26,19 +27,19 @@ type statusData struct {
 func (s *SocketIOServer) initStatus() {
 	// for status handling
 	s.socket.On("elastatus", func(socket *socketio.Channel) string {
-		return s.GetStatus()
+		return string(s.GetStatus())
 	})
 }
 
 // use to get status of system
-func (s *SocketIOServer) GetStatus() string {
+func (s *SocketIOServer) GetStatus() system.Status {
 	return system.GetStatus()
 }
 
 // use to set the current status of system
 func (s *SocketIOServer) SetStatus(status system.Status, data interface{}) error {
 	log.Println("Server.SetStatus", status)
-	system.SetStatus(string(status))
+	system.SetStatus(status)
 	if err := s.Broadcast(
 		constants.SYSTEM_SERVICE_ID,
 		constants.BCAST_SYSTEM_STATUS_CHANGED,

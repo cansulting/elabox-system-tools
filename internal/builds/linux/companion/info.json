@@ -3,7 +3,7 @@
 	"description": "Companion App",
 	"packageId": "ela.companion",
 	"build": 3,
-	"version": "0.2.0",
+	"version": "0.2.1",
 	"program": "",
 	"programArgs": null,
 	"activityGroup": {

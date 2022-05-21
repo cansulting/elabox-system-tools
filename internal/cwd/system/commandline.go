@@ -82,5 +82,5 @@ func connectToSystem() protocol.ConnectorClient {
 }
 
 func getStatus() string {
-	return system.GetStatus()
+	return string(system.GetStatus())
 }
