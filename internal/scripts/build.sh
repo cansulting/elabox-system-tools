@@ -150,7 +150,9 @@ if [[ "$answerComp" == "1" || "$answerComp" == "2" ]]; then
     sudo npm install
     sudo npm run build
     cd $initDir
-    rm -r $buildpath/companion/www && mkdir -p $buildpath/companion/www
+    if [[ -d "$buildpath/companion/www" ]]; then
+        rm -r $buildpath/companion/www && mkdir -p $buildpath/companion/www
+    fi
     cp -r $ELA_COMPANION/src_client/build/* $buildpath/companion/www
     built=1
 fi
