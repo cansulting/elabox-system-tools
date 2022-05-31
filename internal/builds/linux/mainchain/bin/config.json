@@ -8,6 +8,8 @@
     "HttpRestPort": 20334,
     "HttpRestStart": true,
     "EnableRPC": true,
+    "HttpWsPort": 20335,          
+    "HttpWsStart": true, 
     "RpcConfiguration": {
       "User": "User",
       "Pass": "Password",
