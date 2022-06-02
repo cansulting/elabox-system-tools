@@ -117,6 +117,13 @@ eval "$gobuild" -o $buildpath/$system_name/bin ../cwd/$system_name
 programName=$(jq ".program" $buildpath/$system_name/info.json | sed 's/\"//g')
 mv $buildpath/$system_name/bin/$system_name $buildpath/$system_name/bin/$programName 
 
+# build account manager
+echo "Building Account Manager"
+mkdir -p $buildpath/account_manager/bin
+eval "$gobuild" -o $buildpath/account_manager/bin ../cwd/account_manager
+programName=$(jq ".program" $buildpath/account_manager/info.json | sed 's/\"//g')
+mv $buildpath/account_manager/bin/account_manager $buildpath/account_manager/bin/$programName 
+
 # build reward if exists
 if [ -d "$ELA_REWARDS" ]; then 
     wd=$PWD
@@ -280,6 +287,7 @@ packager $buildpath/esc/packager.json
 packager $buildpath/carrier/packager.json
 packager $buildpath/mainchain/packager.json
 packager $buildpath/$packageinstaller/packager.json
+packager $buildpath/account_manager/packager.json
 packager $buildpath/feeds/packager.json
 packager $buildpath/$system_name/packager.json
 
