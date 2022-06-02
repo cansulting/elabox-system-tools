@@ -23,7 +23,8 @@ import (
 const SUCCESS_CODE = 200
 const SYSTEMERR_CODE = 400 // theres something wrong with the system
 const INVALID_CODE = 401
-const NOT_IMPLEMENTED = 300 // code was not implemented
+const NOT_IMPLEMENTED = 300            // code was not implemented
+const INVALID_PARAMETER_PROVIDED = 402 // parameters was invalid
 
 // return json string for response
 func CreateResponse(code int16, msg string) string {

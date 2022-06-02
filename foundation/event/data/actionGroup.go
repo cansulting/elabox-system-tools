@@ -16,8 +16,8 @@ import (
 )
 
 type ActionGroup struct {
-	Activity *Action `json:"activity"`
-	Service  *Action `json:"service"`
+	Activity *Action `json:"activity,omitempty"`
+	Service  *Action `json:"service,omitempty"`
 	//Broadcasts []Action
 }
 
