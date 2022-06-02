@@ -38,7 +38,7 @@ func OnRecievedRequest(
 	action data.Action,
 ) interface{} {
 	if config.GetBuildMode() == config.DEBUG {
-		logger.GetInstance().Debug().Msg("onRecievedRequest action=" + action.Id)
+		logger.GetInstance().Debug().Msg("onRecievedRequest " + action.ToString())
 	}
 	switch action.Id {
 	case constants.ACTION_RPC:
@@ -125,7 +125,7 @@ func onAppTerminate(
 	if appid == "" {
 		return rpc.CreateResponse(rpc.INVALID_CODE, "package id shouldnt be empty")
 	}
-	app := appman.GetAppConnect(appid, client)
+	app := appman.GetAppConnect(appid, nil)
 	if app == nil {
 		return rpc.CreateResponse(rpc.INVALID_CODE, appid+" app not found")
 	}
@@ -191,7 +191,7 @@ func startActivity(action data.Action, client protocol.ClientInterface) string {
 		}
 	}
 	if err := appman.LaunchAppActivity(packageId, client, action); err != nil {
-		global.Logger.Error().Caller().Err(err).Msg("Failed to launch activity " + action.Id)
+		global.Logger.Error().Caller().Err(err).Msg("Failed to launch activity " + packageId + " with action " + action.Id)
 		return rpc.CreateResponse(rpc.SYSTEMERR_CODE, err.Error())
 	}
 	global.Logger.Debug().Msg("Start activity with " + action.Id + action.DataToString())
@@ -252,7 +252,7 @@ func sendPackageRPC(pkid string, action data.Action) string {
 	}
 	res, err := app.RPC.CallAct(action)
 	if err != nil {
-		global.Logger.Error().Err(err).Caller().Msg("Failed to call RPC for package " + pkid)
+		global.Logger.Error().Err(err).Caller().Msg("Failed to call RPC for package " + pkid + " with action " + action.Id)
 		return rpc.CreateResponse(rpc.INVALID_CODE, err.Error())
 	}
 	// step: clean response. remove \"

@@ -9,7 +9,7 @@
 		"--datadir",
 		"/home/elabox/data/ela.eid/blocks",
 		"--syncmode",
-		"\"full\"",
+		"full",
 		"--rpc",
 		"--rpcport",
 		"20636",

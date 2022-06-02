@@ -4,12 +4,9 @@ user=elabox
 passwd=elabox
 
 # terminate running process
-# echo "Killing running nodes..."
-# if [ "$(pgrep ela)" != "" ]; then
-#    sudo kill $(pgrep ela)
-# fi
-sudo pkill geth
-sudo pkill esc
+sudo pkill ela.mainchain
+sudo pkill ela.eid
+sudo pkill ela.esc
 sudo pkill ela-bootstrapd
 sudo pkill feedsd
 
@@ -23,9 +20,6 @@ echo 'Y' | sudo apt update
 ############################
 exists=$(grep -c "^$user:" /etc/passwd)
 if [ "$exists" == 0 ]; then
-    echo "Set USB as home? If 'y' please insert USB to your elabox. (y/n)"
-    read answer
-
     echo "Setting up user..."
     echo 'exit' | sudo useradd -p $(openssl passwd -1 $passwd) -m $user
     sudo usermod -aG sudo $user
@@ -64,20 +58,6 @@ if [ "$exists" == 0 ]; then
     # DID node port
     sudo ufw allow 20608
     echo 'y' | sudo ufw enable
-    
-    
-    ############################
-    ## Setup elabox directory from USB
-    ############################
-    if [ "$answer" == "y" ]; then
-        echo 'y' |  mkfs.ext4 /dev/sda
-        sudo mount /dev/sda $homedir
-        # check the unique identifier of /dev/sda
-        USD_UUID=$(sudo blkid | grep /dev/sda | cut -d '"' -f 2)
-        # update the /etc/fstab file to auto-mount the disk on startup
-        echo "UUID=${USD_UUID} $homedir ext4 defaults 0 0" | tee -a /etc/fstab > /dev/null
-        chown -R elabox:elabox $homedir
-    fi
 fi
 
 # ESC NODE RPC PORT
@@ -121,22 +101,4 @@ if [ $(isinstalled avahi-daemon) -eq 0 ]; then
     # hostnamectl to check
     /etc/init.d/avahi-daemon restart
     systemctl restart systemd-logind.service
-fi
-
-############################
-## Setup memory paging 
-############################
-if [ ! -d "/var/cache/swap" ]; then 
-    echo "Setting up cache swap files..."
-    sudo mkdir -v /var/cache/swap
-    cd /var/cache/swap
-    sudo dd if=/dev/zero of=swapfile bs=1K count=4M
-    sudo chmod 600 swapfile
-    sudo mkswap swapfile
-    sudo swapon swapfile
-    echo "/var/cache/swap/swapfile none swap sw 0 0" | sudo tee -a /etc/fstab
-    top -bn1 | grep -i swap
-elif ! grep -q '/var/cache/swap/swapfile none swap sw 0 0' /etc/fstab ; then
-    # bug fix for build #2. swapfile was not registered to fstab
-    echo "/var/cache/swap/swapfile none swap sw 0 0" | sudo tee -a /etc/fstab
 fi

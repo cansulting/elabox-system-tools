@@ -17,17 +17,17 @@ import "os"
 type Status string
 
 const (
-	STOPPED     = "inactive"
-	RUNNING     = "active"
-	BOOTING     = "booting"
-	INIT_UPDATE = "init_update"
-	UPDATING    = "updating"
+	STOPPED     Status = "inactive"
+	RUNNING     Status = "active"
+	BOOTING     Status = "booting"
+	INIT_UPDATE Status = "init_update"
+	UPDATING    Status = "updating"
 )
 
-func GetStatus() string {
-	return os.Getenv("elastatus")
+func GetStatus() Status {
+	return Status(os.Getenv("elastatus"))
 }
 
-func SetStatus(status string) {
-	os.Setenv("elastatus", status)
+func SetStatus(status Status) {
+	os.Setenv("elastatus", string(status))
 }

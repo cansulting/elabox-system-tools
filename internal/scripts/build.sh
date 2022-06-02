@@ -6,10 +6,11 @@ EID_SRC=$PROJ_HOME/Elastos.ELA.SideChain.EID
 ESC_SRC=$PROJ_HOME/Elastos.ELA.SideChain.ESC
 GLIDE_SRC=$PROJ_HOME/glide-frontend
 ELA_COMPANION=$PROJ_HOME/elabox-companion
-ELA_LANDING=$PROJ_HOME/landing-page
+ELA_LANDING=$PROJ_HOME/elabox-companion-landing
 ELA_REWARDS=$PROJ_HOME/elabox-rewards
 ELA_LOGS=$PROJ_HOME/elabox-logs
 ELA_STORE=$PROJ_HOME/elabox-dapp-store
+ELA_SETUP=$PROJ_HOME/elabox-setup-wizard
 cos=$(go env GOOS)                  # current os. 
 carc=$(go env GOARCH)               # current archi
 packageinstaller=packageinstaller           # package installer project name
@@ -67,6 +68,8 @@ echo "Rebuild Glide? (y/n)"
 read answerGlide
 echo "Rebuild elastos dapp store? (y/n)"
 read answerDstore
+echo "Rebuild Setup Wizard? (y/n)"
+read answerSetup
 
 #####################
 # build packager
@@ -147,7 +150,9 @@ if [[ "$answerComp" == "1" || "$answerComp" == "2" ]]; then
     sudo npm install
     sudo npm run build
     cd $initDir
-    rm -r $buildpath/companion/www && mkdir -p $buildpath/companion/www
+    if [[ -d "$buildpath/companion/www" ]]; then
+        rm -r $buildpath/companion/www && mkdir -p $buildpath/companion/www
+    fi
     cp -r $ELA_COMPANION/src_client/build/* $buildpath/companion/www
     built=1
 fi
@@ -252,6 +257,16 @@ fi
 if [ "$answerDstore" == "y" ]; then
     wd=$PWD
     cd $ELA_STORE/scripts
+    ./build.sh -o $target -a $arch -d $MODE
+    cd $wd
+fi
+
+#########################
+# build setup wizard?
+#########################
+if [ "$answerSetup" == "y" ]; then
+    wd=$PWD
+    cd $ELA_SETUP/scripts
     ./build.sh -o $target -a $arch -d $MODE
     cd $wd
 fi

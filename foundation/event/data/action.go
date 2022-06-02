@@ -15,6 +15,7 @@ package data
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"reflect"
 
@@ -30,9 +31,9 @@ type Action struct {
 	Id string `json:"id"`
 	// optional. which specific package will handle this action.
 	// if nothing was specified then look for any valid package that can carry out the action
-	PackageId string `json:"packageId"`
+	PackageId string `json:"packageId,omitempty"`
 	// optional. data which will be use to execute the action
-	Data interface{} `json:"data"`
+	Data interface{} `json:"data,omitempty"`
 	//valueAction *Action     `json:"-"`
 }
 
@@ -135,7 +136,7 @@ func (a *Action) DataToAppState() (*data.AppState, error) {
 			state := datm["state"].(float64)
 			appState := data.AppState{
 				State: constants.AppRunningState(state),
-				Data: datm["data"],
+				Data:  datm["data"],
 			}
 			return &appState, nil
 		}
@@ -164,4 +165,20 @@ func (a *Action) ToJson() string {
 		return ""
 	}
 	return string(res)
+}
+
+func (a *Action) ToString() string {
+	data := ""
+	if a.Data != nil {
+		switch a.Data.(type) {
+		case string:
+			data = a.Data.(string)
+		case map[string]interface{}:
+			content, _ := json.Marshal(a.Data)
+			data = string(content)
+		case float64:
+			data = fmt.Sprintf("%f", a.Data)
+		}
+	}
+	return "id=" + a.Id + " package=" + a.PackageId + " data=" + data
 }

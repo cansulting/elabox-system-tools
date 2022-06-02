@@ -56,11 +56,18 @@ func (a *activity) OnPendingAction(action *data.Action) error {
 			a.finish(err.Error())
 			return nil
 		}
-		a.currentPkg = pkgData.Config.PackageId
-		if !pkgData.HasCustomInstaller() {
-			return a.startNormalInstall(pkgData)
-		}
-		return a.runCustomInstaller(sourcePkg, pkgData)
+		go func() {
+			a.currentPkg = pkgData.Config.PackageId
+			if !pkgData.HasCustomInstaller() {
+				if err := a.startNormalInstall(pkgData); err != nil {
+					broadcast.Error(pkgData.Config.PackageId, global.INSTALL_ERROR, err.Error())
+				}
+			}
+			if err := a.runCustomInstaller(sourcePkg, pkgData); err != nil {
+				broadcast.Error(pkgData.Config.PackageId, global.INSTALL_ERROR, err.Error())
+			}
+		}()
+		return nil
 	// uninstall package
 	default:
 		pkid := action.DataToString()
@@ -68,8 +75,13 @@ func (a *activity) OnPendingAction(action *data.Action) error {
 			return errors.SystemNew("failed to uninstall, no package id was provided as parameter", nil)
 		}
 		global.Logger.Info().Msg("start uninstall package " + pkid)
-		a.terminatePackage(pkid)
-		return utils.UninstallPackage(pkid, global.DELETE_DATA_ONUNINSTALL, true, true)
+		go func() {
+			a.terminatePackage(pkid)
+			if err := utils.UninstallPackage(pkid, global.DELETE_DATA_ONUNINSTALL, true, true); err != nil {
+				broadcast.Error(pkid, global.UNINSTALL_ERROR, err.Error())
+			}
+		}()
+		return nil
 	}
 }
 
@@ -100,7 +112,7 @@ func (a *activity) runCustomInstaller(pkgSource string, pkgd *pkg.Data) error {
 	if err := pkgd.RunCustomInstaller(pkgSource, false, "-s", "-l", "-i"); err != nil {
 		return errors.SystemNew("Failed installing system package.", err)
 	}
-	a.running = false
+	//a.running = false
 	time.Sleep(time.Millisecond * 200)
 	// system terminate
 	global.AppController.RPC.CallSystem(data.NewActionById(constants.SYSTEM_TERMINATE_NOW))

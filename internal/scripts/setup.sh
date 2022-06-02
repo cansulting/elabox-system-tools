@@ -1,4 +1,6 @@
 #!/bin/bash
+# script use to setup the project
+
 echo "Setting development pipeline for goolang"
 echo "Optional commandline params -o(target) -a(arch))"
 cos=linux                 
@@ -93,10 +95,10 @@ if [ ! -d "elabox-companion" ]; then
     cd "./elabox-companion"
     git switch Development
 fi 
-if [ ! -d "landing-page" ]; then
+if [ ! -d "elabox-companion-landing" ]; then
     cd $wd
-    git clone https://github.com/bonhokage06/landing-page.git
-    cd "./landing-page"
+    git clone https://github.com/cansulting/elabox-companion-landing.git
+    cd "./elabox-companion-landing"
     git switch main
 fi
 if [ ! -d "elabox-logs" ]; then
@@ -139,15 +141,22 @@ fi
 if [ ! -d "elabox-foundation.lib" ]; then
     cd $wd
     git clone https://github.com/elastos/elabox-foundation.lib.git
+    cd elabox-dapp-store
     git switch development
     npm link
 fi
 if [ ! -d "elabox-dapp-store" ]; then
     cd $wd
     git clone https://github.com/cansulting/elabox-dapp-store.git
+    cd "../elabox-dapp-store"
     git switch development
 fi
-
+if [ ! -d "elabox-setup-wizard"]; then 
+    cd $wd
+    git clone https://github.com/cansulting/elabox-setup-wizard.git
+    cd "../elabox-setup-wizard"
+    git switch development
+fi
 
 ######################################
 ## GLIDE APP
