@@ -215,9 +215,9 @@ func (c *PackageConfig) GetLibraryDir() string {
 
 func (c *PackageConfig) GetWWWDir() string {
 	if c.InstallLocation == SYSTEM || !path.HasExternal() {
-		return path.GetSystemWWW()
+		return path.GetSystemWWW() + "/" + c.PackageId
 	} else {
-		return path.GetExternalWWW()
+		return path.GetExternalWWW() + "/" + c.PackageId
 	}
 }
 
