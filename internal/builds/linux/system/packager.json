@@ -11,6 +11,7 @@
         "../account_manager/ela.account.box",
         "../companion/ela.companion.box",
         "../carrier/ela.carrier.box", 
+        "../mainchain/ela.mainchain.box",
         "../../../../../elabox-dapp-store/build/ela.store/ela.store.box",
         "../../../../../elabox-setup-wizard/build/ela.setup.box"
     ],
