@@ -44,7 +44,7 @@ func UninstallPackage(
 		}
 	}
 	// step: remove www dir
-	www := pk.GetWWWDir() + "/" + packageId
+	www := pk.GetWWWDir()
 	if _, err := os.Stat(www); err == nil {
 		if err := os.RemoveAll(www); err != nil {
 			return errors.SystemNew("failed to delete www dir for "+packageId, err)

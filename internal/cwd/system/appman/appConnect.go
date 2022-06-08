@@ -256,9 +256,11 @@ func (n *AppConnect) Write(data []byte) (int, error) {
 
 // start serving the www for app with custom port
 func (n *AppConnect) startServeWww() error {
-
+	port := n.Config.ActivityGroup.CustomPort
+	pkg := n.Config.PackageId
+	wwwPath := n.Config.GetWWWDir()
 	// starts listening to port
-	go func(port int, pkg string, wwwPath string) {
+	go func() {
 		global.Logger.Debug().Str("category", "web").Msg("Starting www custom port " + strconv.Itoa(port) + " for package " + pkg + ".")
 		serverMux := http.NewServeMux()
 		n.server = &http.Server{Addr: ":" + strconv.Itoa(port), Handler: serverMux}
@@ -276,7 +278,7 @@ func (n *AppConnect) startServeWww() error {
 		if err := n.server.ListenAndServe(); err != nil {
 			global.Logger.Warn().Err(err).Str("category", "web").Caller().Msg("Failed to start listening to port for " + pkg + ".")
 		}
-	}(n.Config.ActivityGroup.CustomPort, n.Config.PackageId, n.Config.GetWWWDir()+"/"+n.Config.PackageId)
+	}()
 	return nil
 }
 
