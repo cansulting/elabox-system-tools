@@ -14,7 +14,6 @@ sudo pkill feedsd
 echo "Setting up nodejs"
 echo '$user' | curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash -
 echo 'Y' | sudo apt update 
-sudo dpkg --configure -a'
 
 ############################
 ## Setup packages
