@@ -1,4 +1,5 @@
 #!/bin/bash
+# upload the system package to storage server
 os=$(go env GOOS)   
 arch=$(go env GOARCH)
 build=
