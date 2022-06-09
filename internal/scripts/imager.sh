@@ -16,6 +16,7 @@ if [[ $storage -eq "" ]]; then
     storage=sdb
 fi
 
+echo "Please wait, this takes time..."
 sudo dd if=/dev/$storage bs=4M conv=sparse of=_$output
 eval "$shrinkp" _$output $output
 sudo rm _$output
