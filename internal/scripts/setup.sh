@@ -59,7 +59,7 @@ fi
 echo "Do you want to setup environment for package uploading? (y/n)"
 read answer
 if [[ "$answer" == "y" ]]; then
-    sudo apt install python
+    sudo apt install python zip
     cw=$PWD
     cd ~
     echo "Setting up GCP storage for packages"
@@ -140,7 +140,7 @@ if [ ! -d "Elastos.ELA.SideChain.ESC" ]; then
 fi
 if [ ! -d "elabox-foundation.lib" ]; then
     cd $wd
-    git clone https://github.com/elastos/elabox-foundation.lib.git
+    git clone https://github.com/cansulting/elabox-foundation.lib.git
     cd elabox-dapp-store
     git switch development
     npm link
