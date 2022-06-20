@@ -34,7 +34,7 @@ echo "Upload build? (y/n)"
 read upload
 
 echo "Please wait, this takes time..."
-sudo dd if=/dev/$storage bs=4M conv=sparse of=_$output
+sudo dd if=/dev/$storage bs=4M conv=sparse of=_$output status=progress
 eval "$shrinkp" _$output $output
 sudo rm _$output
 echo "Image created, @$output..."
