@@ -5,8 +5,10 @@ shrinkp=/usr/local/bin/pishrink.sh
 output=elabox.img
 outputz=elabox.zip
 bucket=elabox-debug
+env=debug
 os=$(go env GOOS)   
 arch=$(go env GOARCH)
+version=0
 
 if [[ ! -f "$shrinkp" ]]; then
     wget https://raw.githubusercontent.com/Drewsif/PiShrink/master/pishrink.sh
@@ -18,11 +20,17 @@ echo "ENV select 1 - Staging, 2 - Release, None = Debug"
 read env
 if [[ "$env" -eq "1" ]]; then 
     bucket=elabox-staging
+    env=staging
 else 
     if [[ "$env" -eq "2" ]]; then
         bucket=elabox
+        env=release
     fi
 fi
+
+# read system version
+version=$(jq ".version" ../builds/linux/system/info.json | sed 's/\"//g')
+output=$env$version$output
 
 echo "Input source storage id for image, use lsblk to view list.(eg: sdb)"
 read storage
