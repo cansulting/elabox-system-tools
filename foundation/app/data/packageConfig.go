@@ -57,6 +57,7 @@ type PackageConfig struct {
 	PackagerVersion  string                 `json:"packagerVersion,omitempty"` // version of packager of this package
 	Ext              map[string]interface{} `json:"ext,omitempty"`             // extra values
 	MinRuntime       string                 `json:"minRuntime,omitempty"`      // minimum system runtime version this package will run on
+	ExposePorts      []int                  `json:"exposePorts,omitempty"`     // this package requires port to be expose to make package usable.
 	//Services         map[string]string `json:"services"`       // if app has a service. this contains definition of commands available to service
 }
 

@@ -2,10 +2,12 @@ package utils
 
 import (
 	"os"
+	"strconv"
 
 	"github.com/cansulting/elabox-system-tools/foundation/errors"
 	"github.com/cansulting/elabox-system-tools/foundation/logger"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/broadcast"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/constants"
 	"github.com/cansulting/elabox-system-tools/registry/app"
 )
 
@@ -48,6 +50,14 @@ func UninstallPackage(
 	if _, err := os.Stat(www); err == nil {
 		if err := os.RemoveAll(www); err != nil {
 			return errors.SystemNew("failed to delete www dir for "+packageId, err)
+		}
+	}
+	// step: deactivate ports
+	if len(pk.ExposePorts) > 0 {
+		for _, port := range pk.ExposePorts {
+			if err := DenyPort(port); err != nil {
+				constants.Logger.Error().Err(err).Caller().Msg("failed to deny port " + strconv.Itoa(port) + " for " + packageId)
+			}
 		}
 	}
 	if unregister {

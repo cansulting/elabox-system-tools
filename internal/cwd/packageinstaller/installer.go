@@ -241,10 +241,18 @@ func (t *installer) Finalize() error {
 			return err
 		}
 	}
-	// activate port
+	// activate port for activity custom port
 	if t.packageInfo.ActivityGroup.CustomPort > 0 {
 		if err := utils.AllowPort(t.packageInfo.ActivityGroup.CustomPort); err != nil {
-			return errors.SystemNew("failed to allow port "+strconv.Itoa(t.packageInfo.ActivityGroup.CustomPort)+" for "+t.packageInfo.PackageId, err)
+			pkconst.Logger.Error().Err(err).Caller().Msg("failed to allow port " + strconv.Itoa(t.packageInfo.ActivityGroup.CustomPort) + " for " + t.packageInfo.PackageId)
+		}
+	}
+	// activate ports
+	if len(t.packageInfo.ExposePorts) > 0 {
+		for _, port := range t.packageInfo.ExposePorts {
+			if err := utils.AllowPort(port); err != nil {
+				pkconst.Logger.Error().Err(err).Caller().Msg("failed to allow port " + strconv.Itoa(port) + " for " + t.packageInfo.PackageId)
+			}
 		}
 	}
 	t.packageContent.Clean()
