@@ -17,6 +17,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"strconv"
 	"time"
@@ -141,7 +142,13 @@ func (app *AppConnect) Launch() error {
 		if args == nil {
 			args = []string{}
 		}
-		cmd := exec.Command(app.Location, args...)
+		// is this a sh program?
+		program := app.Location
+		if ext := path.Ext(app.Config.Program); ext == ".sh" {
+			program = "/usr/bin/bash"
+			args = append(args, app.Location)
+		}
+		cmd := exec.Command(program, args...)
 		cmd.Dir = filepath.Dir(app.Location)
 
 		go asyncRun(app, cmd)
