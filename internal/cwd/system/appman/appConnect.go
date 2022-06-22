@@ -26,6 +26,7 @@ import (
 	eventd "github.com/cansulting/elabox-system-tools/foundation/event/data"
 	"github.com/cansulting/elabox-system-tools/foundation/event/protocol"
 	"github.com/cansulting/elabox-system-tools/foundation/perm"
+	"github.com/cansulting/elabox-system-tools/foundation/system"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/system/global"
 )
 
@@ -232,7 +233,9 @@ func (app *AppConnect) Terminate() error {
 func asyncRun(app *AppConnect, cmd *exec.Cmd) {
 	defer delete(running, app.PackageId)
 	//var buffer bytes.Buffer
-	//cmd.Stdout = app
+	if system.BuildMode != system.RELEASE {
+		cmd.Stdout = app
+	}
 	cmd.Stderr = app
 	err := cmd.Start()
 	if err != nil {
@@ -250,7 +253,7 @@ func asyncRun(app *AppConnect, cmd *exec.Cmd) {
 
 // callback when system has log
 func (n *AppConnect) Write(data []byte) (int, error) {
-	print(string(data))
+	global.Logger.Debug().Msg(string(data))
 	return len(data), nil
 }
 
