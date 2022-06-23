@@ -157,6 +157,12 @@ if [ ! -d "elabox-setup-wizard"]; then
     cd "../elabox-setup-wizard"
     git switch development
 fi
+if [ ! -d "elabox-binaries"]; then 
+    cd $wd
+    git clone https://github.com/cansulting/elabox-binaries.git
+    cd "../elabox-binaries"
+    git switch master
+fi
 
 ######################################
 ## GLIDE APP
