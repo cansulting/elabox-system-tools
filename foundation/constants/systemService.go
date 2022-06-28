@@ -62,6 +62,8 @@ const SERVICE_PENDING_ACTIONS = "ela.system.PENDING_ACTIONS"
 const APP_TERMINATE = "ela.system.APP_TERMINATE"
 
 const ACTION_APP_RESTART = "ela.system.APP_RESTART"
+const ACTION_APP_ON = "ela.system.APP_ON"
+const ACTION_APP_OFF = "ela.system.APP_OFF"
 const ACTION_APP_CLEAR_DATA = "ela.system.APP_CLEAR_DATA"
 
 // initialize package. called after a package was installed

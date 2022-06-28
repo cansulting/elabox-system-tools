@@ -66,6 +66,10 @@ func OnRecievedRequest(
 		return onAppTerminate(client, action)
 	case constants.ACTION_APP_RESTART:
 		return onAppRestart(client, action)
+	case constants.ACTION_APP_OFF:
+		return onAppOff(client, action)
+	case constants.ACTION_APP_ON:
+		return onAppOn(client, action)
 	case constants.ACTION_APP_CLEAR_DATA:
 		return onAppClearData(client, action)
 	case constants.ACTION_APP_INSTALLED:
@@ -98,6 +102,44 @@ func onAppRestart(
 		return rpc.CreateResponse(rpc.SYSTEMERR_CODE, "failed to restart app "+appid)
 	}
 	return rpc.CreateSuccessResponse("restarted")
+}
+
+// use to off the app
+func onAppOff(
+	client protocol.ClientInterface,
+	action data.Action) interface{} {
+	appid := action.PackageId
+	if appid == "" {
+		return rpc.CreateResponse(rpc.INVALID_CODE, "package id shouldnt be empty")
+	}
+	app := appman.GetAppConnect(appid, client)
+	if app == nil {
+		return rpc.CreateResponse(rpc.INVALID_CODE, appid+" app not found")
+	}
+	if err := app.On(); err != nil {
+		global.Logger.Error().Err(err).Caller().Msg("failed to off app " + appid)
+		return rpc.CreateResponse(rpc.SYSTEMERR_CODE, "failed to off app "+appid)
+	}
+	return rpc.CreateSuccessResponse("app is now off")
+}
+
+//use to on the app
+func onAppOn(
+	client protocol.ClientInterface,
+	action data.Action) interface{} {
+	appid := action.PackageId
+	if appid == "" {
+		return rpc.CreateResponse(rpc.INVALID_CODE, "package id shouldnt be empty")
+	}
+	app := appman.GetAppConnect(appid, client)
+	if app == nil {
+		return rpc.CreateResponse(rpc.INVALID_CODE, appid+" app not found")
+	}
+	if err := app.Off(); err != nil {
+		global.Logger.Error().Err(err).Caller().Msg("failed to on app " + appid)
+		return rpc.CreateResponse(rpc.SYSTEMERR_CODE, "failed to on app "+appid)
+	}
+	return rpc.CreateSuccessResponse("app is now on")
 }
 
 func onAppClearData(

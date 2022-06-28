@@ -26,6 +26,32 @@ func TestAppRestart(test *testing.T) {
 	test.Log(res)
 }
 
+func TestAppOff(test *testing.T) {
+	handler, err := rpc.NewRPCHandlerDefault()
+	if err != nil {
+		test.Error(err)
+		return
+	}
+	res, err := handler.CallSystem(data.NewAction(constants.ACTION_APP_OFF, TEST_APP, nil))
+	if err != nil {
+		test.Error(err)
+		return
+	}
+	test.Log(res)
+}
+func TestAppOn(test *testing.T) {
+	handler, err := rpc.NewRPCHandlerDefault()
+	if err != nil {
+		test.Error(err)
+		return
+	}
+	res, err := handler.CallSystem(data.NewAction(constants.ACTION_APP_ON, TEST_APP, nil))
+	if err != nil {
+		test.Error(err)
+		return
+	}
+	test.Log(res)
+}
 func TestAppClearData(test *testing.T) {
 	handler, err := rpc.NewRPCHandlerDefault()
 	if err != nil {

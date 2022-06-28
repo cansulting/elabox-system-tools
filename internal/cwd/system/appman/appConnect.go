@@ -202,6 +202,19 @@ func (app *AppConnect) Restart() error {
 	return app.Launch()
 }
 
+// off an app
+func (app *AppConnect) Off() error {
+	if app.IsRunning() {
+		if err := app.Terminate(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+func (app *AppConnect) On() error {
+	return app.Launch()
+}
+
 // this terminate the app naturally
 func (app *AppConnect) Terminate() error {
 	if !app.IsRunning() {
