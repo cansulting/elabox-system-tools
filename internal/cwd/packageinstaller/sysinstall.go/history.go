@@ -6,6 +6,8 @@ import (
 	"io"
 	"os"
 
+	spath "path"
+
 	"github.com/cansulting/elabox-system-tools/foundation/app/data"
 	"github.com/cansulting/elabox-system-tools/foundation/constants"
 	"github.com/cansulting/elabox-system-tools/foundation/path"
@@ -34,6 +36,13 @@ func HasOldPackage() bool {
 
 // use to create old package
 func CreateOldPackageInfo() error {
+	// not yet installed?
+	if _, err := os.Stat(CUR_PK); err != nil {
+		return nil
+	}
+	if err := os.MkdirAll(spath.Dir(OLD_PK), perm.PUBLIC_WRITE); err != nil {
+		return err
+	}
 	wfile, err := os.OpenFile(OLD_PK, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, perm.PUBLIC_VIEW)
 	if err != nil {
 		return err

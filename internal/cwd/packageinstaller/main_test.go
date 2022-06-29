@@ -64,7 +64,7 @@ func TestSystemUpdateCommandline(test *testing.T) {
 			return
 		}*/
 
-	processInstallCommand(pkpath, false, true, false, true)
+	processInstallCommand(pkpath, false, true, false)
 	//log.Println(string(bytes))
 }
 

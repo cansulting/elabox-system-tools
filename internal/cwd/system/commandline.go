@@ -24,7 +24,7 @@ import (
 	"github.com/cansulting/elabox-system-tools/foundation/event/data"
 	"github.com/cansulting/elabox-system-tools/foundation/event/protocol"
 	"github.com/cansulting/elabox-system-tools/foundation/system"
-	"github.com/cansulting/elabox-system-tools/internal/cwd/system/config"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/env"
 	"github.com/cansulting/elabox-system-tools/registry/app"
 )
 
@@ -35,18 +35,26 @@ func processCmdline() {
 	switch cmd {
 	case "terminate", "-t":
 		terminate(0)
-	case "status":
+	// use to status
+	case "status", "-s":
 		println(getStatus())
-	case "env":
-		print(config.GetEnv(args[2]))
+	// use to setting env
+	case "env", "-e":
+		largs := len(args)
+		if largs == 3 {
+			println(env.GetEnv(args[2]))
+		} else if largs == 4 {
+			env.SetEnv(args[2], args[3])
+		}
+	// use for version
 	case "version", "-v":
 		pkg, _ := app.RetrievePackage(constants.SYSTEM_SERVICE_ID)
-		println(config.GetBuildMode(), pkg)
-	case "help":
+		println(system.BuildMode, pkg)
+	default:
 		println("Commands:")
 		println("terminate/-t", "-", "Terminate the current running system and its all apps.")
-		println("status", "-", "Use to check the current status of system.")
-		println("env", "-", "Use to set or get environment variable")
+		println("status", "-s", "Use to check the current status of system.")
+		println("env", "-e", "Use to set or get environment variable. eg. to get = env <name>, to set = env <name> <value>")
 		println("version/-v", "-", "Check the current version.")
 	}
 }

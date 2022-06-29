@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/cansulting/elabox-system-tools/foundation/system"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/env"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/system/appman"
-	"github.com/cansulting/elabox-system-tools/internal/cwd/system/config"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/system/global"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/system/servicecenter"
 )
@@ -20,14 +20,12 @@ func main() {
 		processCmdline()
 		return
 	}
-	println("For commands type help")
-
 	// step: skip if system already running
 	if connectToSystem() != nil {
 		println("System already running.")
 		return
 	}
-	if err := config.Init(); err != nil {
+	if err := env.Init(); err != nil {
 		global.Logger.Panic().Err(err).Caller().Msg("Failed initializing config.")
 		return
 	}

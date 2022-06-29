@@ -46,6 +46,9 @@ const SYSTEM_ACTIVITY_RESULT = "ela.system.ACTIVITY_RESULT"
 const SYSTEM_TERMINATE = "ela.system.TERMINATE"
 const SYSTEM_TERMINATE_NOW = "ela.system.TERMINATE_NOW"
 
+// system configure success
+const SYSTEM_CONFIGURED = "ela.system.CONFIGURED"
+
 /*
 service state was changed. usually contains the state integer value.
 Check Service Center for references.

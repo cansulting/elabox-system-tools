@@ -23,7 +23,6 @@ import (
 	"github.com/cansulting/elabox-system-tools/foundation/logger"
 	"github.com/cansulting/elabox-system-tools/foundation/system"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/system/appman"
-	"github.com/cansulting/elabox-system-tools/internal/cwd/system/config"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/system/debugging"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/system/global"
 
@@ -37,7 +36,7 @@ func OnRecievedRequest(
 	client protocol.ClientInterface,
 	action data.Action,
 ) interface{} {
-	if config.GetBuildMode() == config.DEBUG {
+	if system.BuildMode == system.DEBUG {
 		logger.GetInstance().Debug().Msg("onRecievedRequest " + action.ToString())
 	}
 	switch action.Id {
@@ -76,6 +75,8 @@ func OnRecievedRequest(
 		return terminate(5)
 	case constants.SYSTEM_TERMINATE_NOW:
 		return terminate(0)
+	case constants.SYSTEM_CONFIGURED:
+		return configureSystem()
 	default:
 		return rpc.CreateResponse(rpc.NOT_IMPLEMENTED, "request for action "+action.Id+" was not implemented.")
 	}

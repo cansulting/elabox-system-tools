@@ -154,13 +154,6 @@ func SendAppPendingAction(
 // run all start up apps
 func InitializeAllPackages() {
 	global.Logger.Info().Msg("Services are starting up...")
-	// pkgs, err := registry.RetrieveStartupPackages()
-	// if err != nil {
-	// 	global.Logger.Error().Err(err).Caller().Msg("Failed retrieving startup packages.")
-	// }
-	// for _, pkg := range pkgs {
-	// 	InitializePackage(pkg)
-	// }
 	pkgs, err := registry.RetrieveAllPackages()
 	if err != nil {
 		global.Logger.Error().Err(err).Caller().Msg("Failed retrieving startup packages.")
@@ -182,6 +175,17 @@ func InitializeAllPackages() {
 			global.Logger.Error().Err(err).Caller().Msg("Failed initializing package " + pkg)
 		}
 	}
+}
+
+// run packages that are necessary to configure the elabox
+func initializeConfigPackages() error {
+	global.Logger.Info().Msg("Services for config state are starting up...")
+	for _, pkg := range global.CONFIG_PKGS {
+		if err := InitializePackage(pkg); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // initialize specific package

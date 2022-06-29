@@ -47,7 +47,7 @@ type AppConnect struct {
 	RPC                *RPCBridge
 	nodejs             *Nodejs
 	server             *http.Server
-	initialized        bool
+	initialized        bool // true if this specific app/package was already initialized
 	terminatedIntently bool // true if this app was terminated intentionally
 }
 

@@ -1,8 +1,7 @@
-package config
+package env
 
 import (
 	"encoding/json"
-	"log"
 	"os"
 
 	"github.com/cansulting/elabox-system-tools/foundation/constants"
@@ -28,11 +27,12 @@ func getSourceLoc() string {
 	return path.GetSystemAppDirData(constants.SYSTEM_SERVICE_ID) + "/" + FILENAME
 }
 
-func initialize() error {
+func initEnv() error {
 	if singleton == nil {
 		singleton = &Env{}
 		envsrc := getSourceLoc()
 		if _, err := os.Stat(envsrc); err == nil {
+			// load from file
 			bytes, err := os.ReadFile(envsrc)
 			if err != nil {
 				return errors.SystemNew("Failed loading environment file @ "+envsrc+" ", err)
@@ -40,6 +40,10 @@ func initialize() error {
 			if len(bytes) > 0 {
 				if err := json.Unmarshal(bytes, &singleton); err != nil {
 					return errors.SystemNew("Failed loading environment file @ "+envsrc+" ", err)
+				}
+				// env loaded
+				for key, val := range singleton.Vars {
+					os.Setenv(key, val)
 				}
 			}
 		}
@@ -51,26 +55,22 @@ func initialize() error {
 }
 
 func SetEnv(key string, value string) error {
-	if err := initialize(); err != nil {
-		return err
+	if singleton.Vars[key] != value {
+		singleton.Vars[key] = value
+		os.Setenv(key, value)
+		return saveEnv()
 	}
-	singleton.Vars[key] = value
-	os.Setenv(key, value)
-	return SaveEnv()
+	return nil
 }
 
 func GetEnv(key string) string {
-	if err := initialize(); err != nil {
-		log.Panic(err)
-		return ""
-	}
 	if key == "" {
 		return ""
 	}
 	return singleton.Vars[key]
 }
 
-func SaveEnv() error {
+func saveEnv() error {
 	marshaled, err := json.Marshal(singleton)
 	if err != nil {
 		return errors.SystemNew("Failed saving environment config file", err)
