@@ -154,7 +154,7 @@ if [[ "$answerComp" == "1" || "$answerComp" == "2" ]]; then
     echo "Start building client companion app, please wait this will take awhile..." 
     initDir=$PWD
     cd $ELA_COMPANION/src_client
-    sudo npm install
+    sudo yarn
     sudo npm run build
     cd $initDir
     if [[ -d "$buildpath/companion/www" ]]; then
