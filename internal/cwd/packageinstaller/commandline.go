@@ -4,6 +4,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/cansulting/elabox-system-tools/foundation/constants"
 	"github.com/cansulting/elabox-system-tools/foundation/logger"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/broadcast"
 	pkconst "github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/constants"
@@ -43,23 +44,33 @@ func startCommandline() {
 		return
 	}
 	pk := os.Args[1]
-	processInstallCommand(pk, IsArgExist("-r"), IsArgExist("-s"), IsArgExist("-l"), !IsArgExist("-i"))
+	processInstallCommand(pk, IsArgExist("-r"), IsArgExist("-l"), !IsArgExist("-i"))
 }
 
-func processInstallCommand(targetPk string, restart bool, systemUpdate bool, logging bool, customInstaller bool) {
+func processInstallCommand(targetPk string, restart bool, logging bool, runCustomInstaller bool) {
 	// step: load package
 	content, err := pkg.LoadFromSource(targetPk)
 	if err != nil {
 		pkconst.Logger.Fatal().Err(err).Caller().Msg("Failed running commandline")
 		return
 	}
+	systemUpdate := false
+	if content.Config.PackageId == constants.SYSTEM_SERVICE_ID {
+		systemUpdate = true
+	}
 	// step: request for server broadcast
 	if logging || systemUpdate {
 		logger.SetHook(loggerHook{})
 		pkconst.Logger = logger.GetInstance()
 	}
-	// step: we need clients to system update via ports
-	if systemUpdate {
+	// true if this is parent system update. parent system update means this will execute custom installer if there is
+	parentSystemUpdate := false
+	if systemUpdate && runCustomInstaller {
+		parentSystemUpdate = true
+	}
+
+	// step: we need clients to system update
+	if parentSystemUpdate {
 		// step: terminate system
 		// if err := utils.TerminateSystem(pkconst.TERMINATE_TIMEOUT); err != nil {
 		// 	pkconst.Logger.Debug().Err(err).Caller().Msg("failed terminating system")
@@ -68,17 +79,6 @@ func processInstallCommand(targetPk string, restart bool, systemUpdate bool, log
 		// step: check if theres a last failed installation
 		lastState := sysinstall.GetLastState()
 		if lastState == sysinstall.SUCCESS {
-			// upgrades
-			oldpk := sysinstall.GetInstalledPackage()
-			oldbuildnum := -1
-			newBuildNum := int(content.Config.Build)
-			if oldpk != nil {
-				oldbuildnum = int(oldpk.Build)
-			}
-			if err := sysupgrade.Start(oldbuildnum, newBuildNum); err != nil {
-				pkconst.Logger.Error().Err(err).Stack().Caller().Msg("Failed system upgrade.")
-				return
-			}
 			if err := sysinstall.MarkInprogress(); err != nil {
 				pkconst.Logger.Error().Err(err).Stack().Caller().Msg("Failed to mark installation as inprogress. install aborted.")
 				return
@@ -88,9 +88,12 @@ func processInstallCommand(targetPk string, restart bool, systemUpdate bool, log
 		}
 	} else {
 		logger.ConsoleOut = false
+		if systemUpdate {
+			sysupgrade.CheckAndUpgrade(int(content.Config.Build))
+		}
 	}
 	// step: use custom installer or not?
-	if !customInstaller || !content.HasCustomInstaller() {
+	if !runCustomInstaller || !content.HasCustomInstaller() {
 		normalInstall(content)
 	} else {
 		if err := content.RunCustomInstaller(targetPk, true, "-i"); err != nil {
@@ -99,7 +102,7 @@ func processInstallCommand(targetPk string, restart bool, systemUpdate bool, log
 		}
 	}
 	// step: and stop listeners
-	if systemUpdate {
+	if parentSystemUpdate {
 		// mark as success
 		if err := sysinstall.MarkSuccess(); err != nil {
 			pkconst.Logger.Error().Err(err).Caller().Msg("Failed installation.")
@@ -112,9 +115,9 @@ func processInstallCommand(targetPk string, restart bool, systemUpdate bool, log
 	}
 	pkconst.Logger.Info().Msg("Installed success.")
 	// step: restart system
-	if systemUpdate {
+	if parentSystemUpdate {
 		if restart {
-			if err := utils.Reboot(); err != nil {
+			if err := utils.Reboot(5); err != nil {
 				pkconst.Logger.Fatal().Err(err)
 				return
 			}
@@ -132,7 +135,7 @@ func processInstallCommand(targetPk string, restart bool, systemUpdate bool, log
 func normalInstall(content *pkg.Data) {
 	// step: wait and make sure system was terminated. for system updates
 	time.Sleep(time.Second)
-	newInstall := NewInstaller(content, true)
+	newInstall := NewInstaller(content, true, false)
 	// step: start install
 	if err := newInstall.Start(); err != nil {
 		pkconst.Logger.Error().Err(err).Stack().Msg("Failed installation.")

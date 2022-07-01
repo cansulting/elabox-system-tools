@@ -1,16 +1,19 @@
 {
 	"name": "Ela System",
-	"description": "Ela System powered by Elastos. Node bug fixes and security updates.",
+	"description": "Ela System powered by Elastos. Updated dashboard layout with uninstall and install feature. Security updates. Added Pasar dApp. And other stuffs.",
 	"packageId": "ela.system",
-	"build": 6,
-	"version": "0.4.2",
+	"build": 7,
+	"version": "0.6.7",
 	"program": "ela.system",
+	"programArgs": null,
+	"activityGroup": {
+		"customLink": "",
+		"customPort": 0,
+		"activities": null
+	},
 	"permissions": null,
 	"exportService": false,
-	"activities": null,
-	"actionListener": null,
 	"location": "system",
 	"nodejs": false,
-	"packagerVersion": "0.1.0",
-	"ext": null
+	"packagerVersion": "0.1.0"
 }

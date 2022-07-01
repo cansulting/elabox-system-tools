@@ -23,7 +23,6 @@ import (
 	"github.com/cansulting/elabox-system-tools/foundation/logger"
 	"github.com/cansulting/elabox-system-tools/foundation/system"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/system/appman"
-	"github.com/cansulting/elabox-system-tools/internal/cwd/system/config"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/system/debugging"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/system/global"
 
@@ -37,8 +36,8 @@ func OnRecievedRequest(
 	client protocol.ClientInterface,
 	action data.Action,
 ) interface{} {
-	if config.GetBuildMode() == config.DEBUG {
-		logger.GetInstance().Debug().Msg("onRecievedRequest action=" + action.Id)
+	if system.BuildMode == system.DEBUG {
+		logger.GetInstance().Debug().Msg("onRecievedRequest " + action.ToString())
 	}
 	switch action.Id {
 	case constants.ACTION_RPC:
@@ -62,30 +61,102 @@ func OnRecievedRequest(
 		return onAppChangeState(client, action)
 	case constants.SYSTEM_ACTIVITY_RESULT:
 		return onReturnActivityResult(action)
+	case constants.APP_TERMINATE:
+		return onAppTerminate(client, action)
+	case constants.ACTION_APP_RESTART:
+		return onAppRestart(client, action)
+	case constants.ACTION_APP_CLEAR_DATA:
+		return onAppClearData(client, action)
+	case constants.ACTION_APP_INSTALLED:
+		return initPackage(action)
 	case constants.SYSTEM_UPDATE_MODE:
 		return activateUpdateMode(client, action)
 	case constants.SYSTEM_TERMINATE:
 		return terminate(5)
 	case constants.SYSTEM_TERMINATE_NOW:
 		return terminate(0)
+	case constants.SYSTEM_CONFIGURED:
+		return configureSystem()
 	default:
 		return rpc.CreateResponse(rpc.NOT_IMPLEMENTED, "request for action "+action.Id+" was not implemented.")
 	}
 }
 
-// client app changed its state
+// use to restart the app
+func onAppRestart(
+	client protocol.ClientInterface,
+	action data.Action) interface{} {
+	appid := action.PackageId
+	if appid == "" {
+		return rpc.CreateResponse(rpc.INVALID_CODE, "package id shouldnt be empty")
+	}
+	app := appman.GetAppConnect(appid, client)
+	if app == nil {
+		return rpc.CreateResponse(rpc.INVALID_CODE, appid+" app not found")
+	}
+	if err := app.Restart(); err != nil {
+		global.Logger.Error().Err(err).Caller().Msg("failed to restart app " + appid)
+		return rpc.CreateResponse(rpc.SYSTEMERR_CODE, "failed to restart app "+appid)
+	}
+	return rpc.CreateSuccessResponse("restarted")
+}
+
+func onAppClearData(
+	client protocol.ClientInterface,
+	action data.Action) interface{} {
+	appid := action.PackageId
+	if appid == "" {
+		return rpc.CreateResponse(rpc.INVALID_CODE, "package id shouldnt be empty")
+	}
+	app := appman.GetAppConnect(appid, client)
+	if app == nil {
+		return rpc.CreateResponse(rpc.INVALID_CODE, appid+" app not found")
+	}
+	if err := app.ClearData(); err != nil {
+		global.Logger.Error().Err(err).Caller().Msg("failed to clear data for app " + appid)
+		return rpc.CreateResponse(rpc.SYSTEMERR_CODE, "failed to clear data for app "+appid)
+	}
+	return rpc.CreateSuccessResponse("cleared")
+}
+
+func onAppTerminate(
+	client protocol.ClientInterface,
+	action data.Action) interface{} {
+	appid := action.PackageId
+	if appid == "" {
+		return rpc.CreateResponse(rpc.INVALID_CODE, "package id shouldnt be empty")
+	}
+	app := appman.GetAppConnect(appid, nil)
+	if app == nil {
+		return rpc.CreateResponse(rpc.INVALID_CODE, appid+" app not found")
+	}
+	if err := app.Terminate(); err != nil {
+		global.Logger.Error().Err(err).Caller().Msg("failed to terminate app " + appid)
+		return rpc.CreateResponse(rpc.SYSTEMERR_CODE, "failed to terminate app "+appid)
+	}
+	return rpc.CreateSuccessResponse("terminated")
+}
+
 func onAppChangeState(
 	client protocol.ClientInterface,
 	action data.Action) interface{} {
-	state := constants.AppRunningState(action.DataToInt())
+	appstate, err := action.DataToAppState()
+	if err != nil {
+		return rpc.CreateResponse(rpc.INVALID_CODE, "unable to read app change state value for "+action.PackageId)
+	}
 
 	switch {
-	case state == constants.APP_AWAKE || state == constants.APP_AWAKE_DEBUG:
+	case appstate.State == constants.APP_AWAKE || appstate.State == constants.APP_AWAKE_DEBUG:
 		var app *appman.AppConnect
-		if state == constants.APP_AWAKE {
+		if appstate.State == constants.APP_AWAKE {
 			app = appman.GetAppConnect(action.PackageId, client)
 		} else {
-			app = debugging.DebugApp(action.PackageId, client)
+			app_cwd := appstate.Data.(string)
+			app, err = debugging.DebugApp(action.PackageId, app_cwd, client)
+			if err != nil {
+				logger.GetInstance().Error().Err(err).Caller().Msg("failed debugging app " + action.PackageId)
+				return rpc.CreateResponse(rpc.INVALID_CODE, "failed debugging app "+action.PackageId)
+			}
 		}
 		if app != nil {
 			return rpc.CreateJsonResponse(200, app.PendingActions)
@@ -93,7 +164,7 @@ func onAppChangeState(
 			global.Logger.Warn().Caller().Msg("Trying to awake package " + action.PackageId + " but not installed.")
 			return rpc.CreateResponse(rpc.INVALID_CODE, "package not installed")
 		}
-	case state == constants.APP_SLEEP:
+	case appstate.State == constants.APP_SLEEP:
 		// if sleep then wait to terminate the app
 		appman.RemoveAppConnect(action.PackageId, false)
 	}
@@ -121,7 +192,7 @@ func startActivity(action data.Action, client protocol.ClientInterface) string {
 		}
 	}
 	if err := appman.LaunchAppActivity(packageId, client, action); err != nil {
-		global.Logger.Error().Caller().Err(err).Msg("Failed to launch activity " + action.Id)
+		global.Logger.Error().Caller().Err(err).Msg("Failed to launch activity " + packageId + " with action " + action.Id)
 		return rpc.CreateResponse(rpc.SYSTEMERR_CODE, err.Error())
 	}
 	global.Logger.Debug().Msg("Start activity with " + action.Id + action.DataToString())
@@ -133,7 +204,7 @@ func startService(action data.Action) string {
 	if pkgid == "" {
 		return rpc.CreateResponse(rpc.INVALID_CODE, "package id shouldnt be empty")
 	}
-	_, err := appman.LaunchAppService(pkgid)
+	err := appman.InitializePackage(pkgid)
 	if err != nil {
 		return rpc.CreateResponse(rpc.INVALID_CODE, err.Error())
 	}
@@ -166,12 +237,14 @@ func onReturnActivityResult(action data.Action) string {
 // send RPC to specific package
 func sendPackageRPC(pkid string, action data.Action) string {
 	if pkid == "" {
+		global.Logger.Error().Caller().Msg("No package provided for action " + action.Id)
 		return rpc.CreateResponse(rpc.INVALID_CODE, "No package provided for action "+action.Id)
 	}
 	// step: get package
 	app := appman.GetAppConnect(pkid, nil)
 	if app == nil {
-		return rpc.CreateResponse(rpc.INVALID_CODE, "Unable to send RPC, cant find package.")
+		global.Logger.Error().Caller().Msg("Unable to send RPC, cant find package " + pkid)
+		return rpc.CreateResponse(rpc.INVALID_CODE, "Unable to send RPC, cant find package "+pkid)
 	}
 	// step: call rpc
 	if app.Client == nil {
@@ -180,7 +253,7 @@ func sendPackageRPC(pkid string, action data.Action) string {
 	}
 	res, err := app.RPC.CallAct(action)
 	if err != nil {
-		global.Logger.Error().Err(err).Caller().Msg("Failed to call RPC for package " + pkid)
+		global.Logger.Error().Err(err).Caller().Msg("Failed to call RPC for package " + pkid + " with action " + action.Id)
 		return rpc.CreateResponse(rpc.INVALID_CODE, err.Error())
 	}
 	// step: clean response. remove \"
@@ -214,4 +287,15 @@ func terminate(seconds uint) string {
 		os.Exit(0)
 	}()
 	return rpc.CreateSuccessResponse("Terminated")
+}
+
+// initialize and start newly instlled package
+func initPackage(action data.Action) string {
+	global.Logger.Debug().Msg("Initializing package " + action.PackageId)
+	pki := action.PackageId
+	if err := appman.InitializePackage(pki); err != nil {
+		global.Logger.Error().Err(err).Msg("Failed to initialize package " + pki)
+		return rpc.CreateResponse(rpc.SYSTEMERR_CODE, err.Error())
+	}
+	return rpc.CreateSuccessResponse("Initialized")
 }

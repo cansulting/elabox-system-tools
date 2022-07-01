@@ -22,7 +22,7 @@ type ConnectorServer interface {
 	GetState() data.ConnectionType
 	Open() error
 	SetStatus(status system.Status, data interface{}) error
-	GetStatus() string
+	GetStatus() system.Status
 	// send data to all room
 	Broadcast(room string, event string, data interface{}) error
 	// send service response to client

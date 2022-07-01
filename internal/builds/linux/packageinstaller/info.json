@@ -1,19 +1,23 @@
 {
-	"name": "Package Manager",
+	"name": "Package Installer",
 	"description": "Package Installer",
 	"packageId": "ela.installer",
-	"build": 1,
-	"version": "0.1.0",
+	"build": 2,
+	"version": "0.2.0",
 	"program": "packageinstaller",
+	"programArgs": null,
+	"activityGroup": {
+		"customLink": "",
+		"customPort": 0,
+		"activities": [
+			"ela.action.INSTALL",
+			"ela.action.SYSTEM_INSTALL",
+			"ela.action.UNINSTALL"
+		]
+	},
 	"permissions": [],
 	"exportService": false,
-	"activities": [
-		"ela.action.INSTALL",
-		"ela.action.SYSTEM_INSTALL"
-	],
-	"actionListener": [],
 	"location": "system",
 	"nodejs": false,
-	"packagerVersion": "0.1.0",
-	"ext": null
+	"packagerVersion": "0.1.0"
 }

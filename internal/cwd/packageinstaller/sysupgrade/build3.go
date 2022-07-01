@@ -3,8 +3,6 @@
 package sysupgrade
 
 import (
-	"strconv"
-
 	"github.com/cansulting/elabox-system-tools/foundation/logger"
 	"github.com/cansulting/elabox-system-tools/registry/util"
 )
@@ -14,6 +12,7 @@ type build3upgrade struct {
 
 func (instance build3upgrade) onUpgrade(oldBuild int) error {
 	if oldBuild <= 3 {
+		logger.GetInstance().Debug().Msg("Starts upgrading build lower or equal to 3")
 		// we need to delete registry. registry was updated
 		logger.GetInstance().Debug().Msg("Deleting app registry...")
 		if err := util.DeleteDB(); err != nil {
@@ -21,7 +20,7 @@ func (instance build3upgrade) onUpgrade(oldBuild int) error {
 		}
 		return nil
 	}
-	logger.GetInstance().Debug().Msg(
-		"No upgrade found for old build " + strconv.Itoa(oldBuild) + ". skipped.")
+	//logger.GetInstance().Debug().Msg(
+	//	"No upgrade found for old build " + strconv.Itoa(oldBuild) + ". skipped.")
 	return nil
 }

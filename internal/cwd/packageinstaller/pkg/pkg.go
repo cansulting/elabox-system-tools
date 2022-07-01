@@ -123,6 +123,7 @@ func (instance *Data) RunCustomInstaller(srcPkg string, wait bool, args ...strin
 		}
 		cmd.Process.Release()
 	}
+	constants.Logger.Debug().Msg("Finished custom installer.")
 	return nil
 }
 

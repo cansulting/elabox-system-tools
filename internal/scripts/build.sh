@@ -6,9 +6,11 @@ EID_SRC=$PROJ_HOME/Elastos.ELA.SideChain.EID
 ESC_SRC=$PROJ_HOME/Elastos.ELA.SideChain.ESC
 GLIDE_SRC=$PROJ_HOME/glide-frontend
 ELA_COMPANION=$PROJ_HOME/elabox-companion
-ELA_LANDING=$PROJ_HOME/landing-page
+ELA_LANDING=$PROJ_HOME/elabox-companion-landing
 ELA_REWARDS=$PROJ_HOME/elabox-rewards
 ELA_LOGS=$PROJ_HOME/elabox-logs
+ELA_STORE=$PROJ_HOME/elabox-dapp-store
+ELA_SETUP=$PROJ_HOME/elabox-setup-wizard
 cos=$(go env GOOS)                  # current os. 
 carc=$(go env GOARCH)               # current archi
 packageinstaller=packageinstaller           # package installer project name
@@ -64,6 +66,10 @@ if [ -d "$ELA_LOGS" ]; then
 fi
 echo "Rebuild Glide? (y/n)"
 read answerGlide
+echo "Rebuild elastos dapp store? (y/n)"
+read answerDstore
+echo "Rebuild Setup Wizard? (y/n)"
+read answerSetup
 
 #####################
 # build packager
@@ -111,6 +117,13 @@ eval "$gobuild" -o $buildpath/$system_name/bin ../cwd/$system_name
 programName=$(jq ".program" $buildpath/$system_name/info.json | sed 's/\"//g')
 mv $buildpath/$system_name/bin/$system_name $buildpath/$system_name/bin/$programName 
 
+# build account manager
+echo "Building Account Manager"
+mkdir -p $buildpath/account_manager/bin
+eval "$gobuild" -o $buildpath/account_manager/bin ../cwd/account_manager
+programName=$(jq ".program" $buildpath/account_manager/info.json | sed 's/\"//g')
+mv $buildpath/account_manager/bin/account_manager $buildpath/account_manager/bin/$programName 
+
 # build reward if exists
 if [ -d "$ELA_REWARDS" ]; then 
     wd=$PWD
@@ -141,10 +154,12 @@ if [[ "$answerComp" == "1" || "$answerComp" == "2" ]]; then
     echo "Start building client companion app, please wait this will take awhile..." 
     initDir=$PWD
     cd $ELA_COMPANION/src_client
-    sudo npm install
+    sudo yarn
     sudo npm run build
     cd $initDir
-    rm -r $buildpath/companion/www && mkdir -p $buildpath/companion/www
+    if [[ -d "$buildpath/companion/www" ]]; then
+        rm -r $buildpath/companion/www && mkdir -p $buildpath/companion/www
+    fi
     cp -r $ELA_COMPANION/src_client/build/* $buildpath/companion/www
     built=1
 fi
@@ -213,12 +228,13 @@ if [ "$answerEla" == "y" ]; then
     mkdir -p $eidbin
     cp ${EID_SRC}/build/bin/geth $eidbin
     chmod +x $eidbin/geth
+    mv $escbin/geth $eidbin/ela.eid
     # esc
     escbin=$buildpath/esc/bin
     mkdir -p $escbin
     cp ${ESC_SRC}/build/bin/geth $escbin
     chmod +x $escbin/geth
-    mv $escbin/geth $escbin/esc
+    mv $escbin/geth $escbin/ela.esc
     # carrier
     carrierlib=$buildpath/carrier/bin
     mkdir -p $carrierlib
@@ -243,6 +259,26 @@ if [ "$answerGlide" == "y" ]; then
 fi
 
 #########################
+# build dapp store?
+#########################
+if [ "$answerDstore" == "y" ]; then
+    wd=$PWD
+    cd $ELA_STORE/scripts
+    ./build.sh -o $target -a $arch -d $MODE
+    cd $wd
+fi
+
+#########################
+# build setup wizard?
+#########################
+if [ "$answerSetup" == "y" ]; then
+    wd=$PWD
+    cd $ELA_SETUP/scripts
+    ./build.sh -o $target -a $arch -d $MODE
+    cd $wd
+fi
+
+#########################
 # Packaging
 #########################
 echo "Start packaging..."
@@ -251,6 +287,7 @@ packager $buildpath/esc/packager.json
 packager $buildpath/carrier/packager.json
 packager $buildpath/mainchain/packager.json
 packager $buildpath/$packageinstaller/packager.json
+packager $buildpath/account_manager/packager.json
 packager $buildpath/feeds/packager.json
 packager $buildpath/$system_name/packager.json
 

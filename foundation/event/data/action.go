@@ -15,9 +15,12 @@ package data
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"reflect"
 
+	"github.com/cansulting/elabox-system-tools/foundation/app/data"
+	"github.com/cansulting/elabox-system-tools/foundation/constants"
 	"github.com/cansulting/elabox-system-tools/foundation/errors"
 
 	"github.com/mitchellh/mapstructure"
@@ -28,9 +31,9 @@ type Action struct {
 	Id string `json:"id"`
 	// optional. which specific package will handle this action.
 	// if nothing was specified then look for any valid package that can carry out the action
-	PackageId string `json:"packageId"`
+	PackageId string `json:"packageId,omitempty"`
 	// optional. data which will be use to execute the action
-	Data interface{} `json:"data"`
+	Data interface{} `json:"data,omitempty"`
 	//valueAction *Action     `json:"-"`
 }
 
@@ -111,6 +114,36 @@ func (a *Action) DataToMap() (map[string]interface{}, error) {
 	return nil, nil
 }
 
+func (a *Action) DataToObj(obj interface{}) error {
+	str := a.DataToString()
+	if str != "" {
+		return json.Unmarshal([]byte(str), obj)
+	}
+	return errors.SystemNew("data is empty", nil)
+}
+
+func (a *Action) DataToAppState() (*data.AppState, error) {
+	if a.Data != nil {
+		switch a.Data.(type) {
+		case string:
+			appState := data.AppState{}
+			if err := a.DataToObj(&appState); err != nil {
+				return nil, err
+			}
+			return &appState, nil
+		case map[string]interface{}:
+			datm := a.Data.(map[string]interface{})
+			state := datm["state"].(float64)
+			appState := data.AppState{
+				State: constants.AppRunningState(state),
+				Data:  datm["data"],
+			}
+			return &appState, nil
+		}
+	}
+	return nil, nil
+}
+
 func convertData(data interface{}) interface{} {
 	if data != nil {
 		switch data.(type) {
@@ -132,4 +165,20 @@ func (a *Action) ToJson() string {
 		return ""
 	}
 	return string(res)
+}
+
+func (a *Action) ToString() string {
+	data := ""
+	if a.Data != nil {
+		switch a.Data.(type) {
+		case string:
+			data = a.Data.(string)
+		case map[string]interface{}:
+			content, _ := json.Marshal(a.Data)
+			data = string(content)
+		case float64:
+			data = fmt.Sprintf("%f", a.Data)
+		}
+	}
+	return "id=" + a.Id + " package=" + a.PackageId + " data=" + data
 }

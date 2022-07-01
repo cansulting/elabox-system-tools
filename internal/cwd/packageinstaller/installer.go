@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"io"
 	"os"
+	"strconv"
 
 	"github.com/cansulting/elabox-system-tools/foundation/app/data"
 	"github.com/cansulting/elabox-system-tools/foundation/constants"
@@ -23,24 +24,26 @@ import (
 	structure for installing packages to ela system
 */
 type installer struct {
-	backup         *utils.Backup       // backup instance
-	BackupEnabled  bool                // true if instance will create a backup for replaced files
-	packageInfo    *data.PackageConfig // package info for installer
-	packageContent *pkg.Data
-	subinstaller   []*installer // list of subpackages/subinstaller
-	onProgress     func(int, string)
-	onError        func(string, int, string, error)
-	progress       int // current progress 0 - 100
+	backup            *utils.Backup       // backup instance
+	BackupEnabled     bool                // true if instance will create a backup for replaced files
+	packageInfo       *data.PackageConfig // package info for installer
+	packageContent    *pkg.Data
+	subinstaller      []*installer // list of subpackages/subinstaller
+	onProgress        func(int, string)
+	onError           func(string, int, string, error)
+	progress          int // current progress 0 - 100
+	broadcastProgress bool
 }
 
 // create new installer instance
 // @param content - package content
 // @param broadcast - true if will broadcast to system for progress and status updates
-func NewInstaller(content *pkg.Data, backup bool) *installer {
+func NewInstaller(content *pkg.Data, backup bool, broadcastProgress bool) *installer {
 	return &installer{
-		BackupEnabled:  backup,
-		packageInfo:    content.Config,
-		packageContent: content,
+		BackupEnabled:     backup,
+		packageInfo:       content.Config,
+		packageContent:    content,
+		broadcastProgress: broadcastProgress,
 	}
 }
 
@@ -52,9 +55,11 @@ func (instance *installer) Start() error {
 		instance.backup = &utils.Backup{
 			PackageId: packageInfo.PackageId,
 		}
+		if err := os.MkdirAll(path.GetDefaultBackupPath(), perm.PUBLIC_WRITE); err != nil {
+			return errors.SystemNew("Failed to create backup directory", err)
+		}
 		backupPath := path.GetDefaultBackupPath() + "/system.backup"
-		err := instance.backup.Create(backupPath)
-		if err != nil {
+		if err := instance.backup.Create(backupPath); err != nil {
 			return errors.SystemNew("Couldn't create backup for @"+backupPath, err)
 		}
 	}
@@ -71,8 +76,8 @@ func (instance *installer) Start() error {
 		return err
 	}
 	// step: delete the package first
-	if err := utils.UninstallPackage(packageInfo.PackageId, false); err != nil {
-		return err
+	if err := utils.UninstallPackage(packageInfo.PackageId, false, false, instance.broadcastProgress); err != nil {
+		pkconst.Logger.Error().Err(err).Caller().Msg("unable to uninstall package " + packageInfo.PackageId)
 	}
 	pkconst.Logger.Info().Msg("start installing " + packageInfo.PackageId)
 	// step: init install location and filters
@@ -194,7 +199,7 @@ func (t *installer) _onSubPackage(path string, reader io.ReadCloser, size uint64
 	if err != nil {
 		return errors.SystemNew("Failed loading subpackage ", err)
 	}
-	subPackage := NewInstaller(pkg, false)
+	subPackage := NewInstaller(pkg, false, t.broadcastProgress)
 	// step: decompress subpackage file
 	if err := subPackage.Start(); err != nil {
 		return errors.SystemNew("installer: subpackage "+path+"...", err)
@@ -234,6 +239,20 @@ func (t *installer) Finalize() error {
 	if t.packageContent.HasPostInstallScript() {
 		if err := t.packageContent.StartPostInstall(); err != nil {
 			return err
+		}
+	}
+	// activate port for activity custom port
+	if t.packageInfo.ActivityGroup.CustomPort > 0 {
+		if err := utils.AllowPort(t.packageInfo.ActivityGroup.CustomPort); err != nil {
+			pkconst.Logger.Error().Err(err).Caller().Msg("failed to allow port " + strconv.Itoa(t.packageInfo.ActivityGroup.CustomPort) + " for " + t.packageInfo.PackageId)
+		}
+	}
+	// activate ports
+	if len(t.packageInfo.ExposePorts) > 0 {
+		for _, port := range t.packageInfo.ExposePorts {
+			if err := utils.AllowPort(port); err != nil {
+				pkconst.Logger.Error().Err(err).Caller().Msg("failed to allow port " + strconv.Itoa(port) + " for " + t.packageInfo.PackageId)
+			}
 		}
 	}
 	t.packageContent.Clean()

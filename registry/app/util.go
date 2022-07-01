@@ -95,13 +95,15 @@ func RetrievePackagesWithBroadcast(action string) ([]string, error) {
 	return records.RetrievePackagesWithBroadcast(action)
 }*/
 
-func retrievePackageSource(packageId string) (string, error) {
-	pk, err := RetrievePackage(packageId)
+func retrievePackageInstallLocation(packageId string) (string, error) {
+	rows, err := retrievePackagesWhere([]string{"location"}, "id = \""+packageId+"\"")
 	if err != nil {
 		return "", err
 	}
-	if pk != nil {
-		return pk.Source, nil
+	loc := ""
+	if rows.Next() {
+		rows.Scan(&loc)
 	}
-	return "", nil
+	rows.Close()
+	return loc, nil
 }

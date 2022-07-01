@@ -47,6 +47,25 @@ func SelectQuery(query string, args ...interface{}) (*sql.Rows, error) {
 	return row, nil
 }
 
+func Count(table string, where string, args ...interface{}) (int, error) {
+	if err := initialize(); err != nil {
+		return 0, err
+	}
+	query := "select count(*) from " + table
+	if where != "" {
+		query += " where " + where
+	}
+	row, err := Db.Query(query, args...)
+	if err != nil {
+		return 0, err
+	}
+	defer row.Close()
+	row.Next()
+	var count int
+	row.Scan(&count)
+	return count, nil
+}
+
 func DeleteDB() error {
 	if Db != nil {
 		if err := Db.Close(); err != nil {

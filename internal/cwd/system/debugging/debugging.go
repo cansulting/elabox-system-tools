@@ -14,17 +14,27 @@ package debugging
 
 import (
 	"github.com/cansulting/elabox-system-tools/foundation/app/data"
+	"github.com/cansulting/elabox-system-tools/foundation/constants"
 	"github.com/cansulting/elabox-system-tools/foundation/event/protocol"
+	"github.com/cansulting/elabox-system-tools/foundation/logger"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/system/appman"
 )
 
 // use to debug a package. if package is already running then stop it, hence create a debug app
-func DebugApp(pkid string, client protocol.ClientInterface) *appman.AppConnect {
+// @packageCWD current working directory of package
+func DebugApp(pkid string, packageCWD string, client protocol.ClientInterface) (*appman.AppConnect, error) {
+	logger.GetInstance().Debug().Msg("Start debugging app " + pkid)
 	app := appman.LookupAppConnect(pkid)
-	if app != nil && app.Client != nil && app.Client.IsAlive() {
-		return app
+	if app != nil {
+		app.Client = client
+		return app, nil
 	}
 	// step: stop if app is already running
-	appman.RemoveAppConnect(pkid, true)
-	return appman.AddAppConnect(&data.PackageConfig{PackageId: pkid}, client)
+	//appman.RemoveAppConnect(pkid, true)
+	pkg := data.DefaultPackage()
+	err := pkg.LoadFromSrc(packageCWD + "/" + constants.APP_CONFIG_NAME)
+	if err != nil {
+		return nil, err
+	}
+	return appman.AddDebugAppConnect(pkg, client), nil
 }

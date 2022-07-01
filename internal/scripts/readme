@@ -25,3 +25,6 @@ dlinstall.sh
 
 upload.sh
 - use to upload the package and installer to storage server
+
+imager.sh
+- create and compress the specific usb storage as image

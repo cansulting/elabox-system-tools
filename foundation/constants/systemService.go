@@ -46,6 +46,9 @@ const SYSTEM_ACTIVITY_RESULT = "ela.system.ACTIVITY_RESULT"
 const SYSTEM_TERMINATE = "ela.system.TERMINATE"
 const SYSTEM_TERMINATE_NOW = "ela.system.TERMINATE_NOW"
 
+// system configure success
+const SYSTEM_CONFIGURED = "ela.system.CONFIGURED"
+
 /*
 service state was changed. usually contains the state integer value.
 Check Service Center for references.
@@ -60,6 +63,13 @@ const SERVICE_PENDING_ACTIONS = "ela.system.PENDING_ACTIONS"
 
 // sends terminate action to app
 const APP_TERMINATE = "ela.system.APP_TERMINATE"
+
+const ACTION_APP_RESTART = "ela.system.APP_RESTART"
+const ACTION_APP_CLEAR_DATA = "ela.system.APP_CLEAR_DATA"
+
+// initialize package. called after a package was installed
+const ACTION_APP_INSTALLED = "ela.system.APP_INSTALLED"
+const ACTION_APP_UNINSTALLED = "ela.system.APP_UNINSTALLED"
 
 type AppRunningState int
 

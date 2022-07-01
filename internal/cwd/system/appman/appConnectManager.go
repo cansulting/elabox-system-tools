@@ -19,10 +19,11 @@ import (
 	"errors"
 
 	appd "github.com/cansulting/elabox-system-tools/foundation/app/data"
-	"github.com/cansulting/elabox-system-tools/foundation/constants"
 	"github.com/cansulting/elabox-system-tools/foundation/event/data"
 	"github.com/cansulting/elabox-system-tools/foundation/event/protocol"
+	"github.com/cansulting/elabox-system-tools/foundation/logger"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/system/global"
+	"github.com/cansulting/elabox-system-tools/registry/app"
 	registry "github.com/cansulting/elabox-system-tools/registry/app"
 )
 
@@ -46,7 +47,11 @@ func GetAppConnect(packageId string, client protocol.ClientInterface) *AppConnec
 		return app
 	}
 	// retrieve if already exist
-	pk, _ := registry.RetrievePackage(packageId)
+	pk, err := registry.RetrievePackage(packageId)
+	if err != nil {
+		logger.GetInstance().Err(err).Caller().Msg("Failed to retrieve package " + packageId)
+		return nil
+	}
 	if pk == nil {
 		return nil
 	}
@@ -63,6 +68,13 @@ func AddAppConnect(pk *appd.PackageConfig, client protocol.ClientInterface) *App
 	app := newAppConnect(pk, client)
 	running[pk.PackageId] = app
 	return app
+}
+
+// add app connect for debugging
+func AddDebugAppConnect(pk *appd.PackageConfig, client protocol.ClientInterface) *AppConnect {
+	appcon := AddAppConnect(pk, client)
+	appcon.launched = true
+	return appcon
 }
 
 // get package from running list
@@ -85,12 +97,11 @@ func RemoveAppConnect(packageId string, terminate bool) {
 	app := LookupAppConnect(packageId)
 	if app != nil {
 		if terminate {
-			if err := app.Terminate(); err != nil {
-				global.Logger.Error().Err(err).Stack().Msg("Failed terminate " + app.PackageId + ". Trying force terminate.")
-				if err := app.ForceTerminate(); err != nil {
-					global.Logger.Error().Err(err).Caller().Msg("appConnectManager.TerminateAllApp failed force terminate ")
+			go func() {
+				if err := app.Terminate(); err != nil {
+					global.Logger.Error().Err(err).Stack().Msg("Failed terminate " + app.PackageId + ". ")
 				}
-			}
+			}()
 		}
 		// close service
 		// if app.Service != nil {
@@ -118,23 +129,10 @@ func LaunchAppActivity(
 		return errors.New("package " + packageId + " is not installed")
 	}
 	if !appc.Config.HasActivity(pendingActivity.Id) {
-		return errors.New("package " + packageId + " doesnt have a registered activity")
+		return errors.New("package " + packageId + " doesnt have a registered activity for action " + pendingActivity.Id)
 	}
 	_, err := SendAppPendingAction(appc, pendingActivity, data.Action{})
 	return err
-}
-
-func LaunchAppService(pkgid string) (*AppConnect, error) {
-	app := GetAppConnect(pkgid, nil)
-	if app == nil {
-		return nil, errors.New("Package " + pkgid + " was not found.")
-	}
-	if app.launched {
-		return app, nil
-	}
-	ac := data.NewActionById(constants.ACTION_START_SERVICE)
-	app.PendingActions.AddPendingService(&ac)
-	return app, app.Launch()
 }
 
 // use to launch app
@@ -154,15 +152,54 @@ func SendAppPendingAction(
 }
 
 // run all start up apps
-func InitializeStartups() {
+func InitializeAllPackages() {
 	global.Logger.Info().Msg("Services are starting up...")
-	pkgs, err := registry.RetrieveStartupPackages()
+	pkgs, err := registry.RetrieveAllPackages()
 	if err != nil {
 		global.Logger.Error().Err(err).Caller().Msg("Failed retrieving startup packages.")
+		return
 	}
 	for _, pkg := range pkgs {
-		if _, err := LaunchAppService(pkg.PackageId); err != nil {
-			global.Logger.Error().Err(err).Caller().Msg("Failed launching app.")
+		config, err := app.RetrievePackage(pkg)
+		if err != nil {
+			global.Logger.Error().Err(err).Caller().Msg("Failed retrieving package " + pkg)
+			continue
+		}
+		// should we initialize the package?
+		if !config.ExportServices &&
+			!config.Nodejs &&
+			config.ActivityGroup.CustomPort == 0 {
+			continue
+		}
+		if err := InitializePackage(pkg); err != nil {
+			global.Logger.Error().Err(err).Caller().Msg("Failed initializing package " + pkg)
 		}
 	}
+}
+
+// run packages that are necessary to configure the elabox
+func initializeConfigPackages() error {
+	global.Logger.Info().Msg("Services for config state are starting up...")
+	for _, pkg := range global.CONFIG_PKGS {
+		if err := InitializePackage(pkg); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// initialize specific package
+func InitializePackage(pki string) error {
+	app := GetAppConnect(pki, nil)
+	if app == nil {
+		return errors.New("Package " + pki + " was not found.")
+	}
+	if app.launched {
+		return nil
+	}
+	if err := app.init(); err != nil {
+		global.Logger.Error().Err(err).Caller().Msg("Failed launching app.")
+		return err
+	}
+	return nil
 }

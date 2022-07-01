@@ -24,14 +24,21 @@ import (
 */
 
 // retrieve all packages
-func RetrieveAllPackages() ([]*data.PackageConfig, error) {
-	row, err := retrievePackagesRaw("", []string{"id, source, version, name, location, nodejs, program, build"})
+func RetrieveAllPackages() ([]string, error) {
+	row, err := retrievePackagesRaw("", []string{"id"})
 	if err != nil {
 		return nil, err
 	}
 	defer row.Close()
-	results := convertRawToPackageConfig(row)
+	results := make([]string, 0, 10)
+	for row.Next() {
+		pk := ""
+		row.Scan(&pk)
+		results = append(results, pk)
+	}
+	// results := convertRawToPackageConfig(row)
 	return results, nil
+
 }
 
 // add package data to db
@@ -76,16 +83,44 @@ func RegisterPackageSrc(srcDir string) (*data.PackageConfig, error) {
 	return config, nil
 }
 
-func RetrievePackage(id string) (*data.PackageConfig, error) {
-	pks, err := retrievePackagesRaw(id, []string{"id", "source", "version", "name", "location", "nodejs", "program", "build"})
+// remove package data from db
+func UnregisterPackage(pkId string) error {
+	logger.GetInstance().Info().Str("category", "registry").Msg("Unregistering package " + pkId)
+	query := `delete from packages where id = ?`
+	err := util.ExecuteQuery(query, pkId)
 	if err != nil {
-		return nil, errors.SystemNew("appman.RetrievePackage failed", err)
+		return errors.SystemNew("records.UnregisterPackage Failed to remove "+pkId, err)
 	}
-	results := convertRawToPackageConfig(pks)
-	if len(results) > 0 {
-		return results[0], nil
+	if err := removeActivities(pkId); err != nil {
+		return errors.SystemNew("appman.UnregisterPackage failed removing activities", err)
 	}
-	return nil, nil
+	return nil
+}
+
+// use to retrieve package
+// @returns package config, nil if not found
+func RetrievePackage(id string) (*data.PackageConfig, error) {
+	// pks, err := retrievePackagesRaw(id, []string{"id", "source", "version", "name", "location", "nodejs", "program", "build"})
+	// if err != nil {
+	// 	return nil, errors.SystemNew("appman.RetrievePackage failed", err)
+	// }
+	// results := convertRawToPackageConfig(pks)
+	// if len(results) > 0 {
+	// 	return results[0], nil
+	// }
+	if installed, err := IsPackageInstalled(id); err != nil || !installed {
+		if err != nil {
+			return nil, err
+		}
+		return nil, nil
+	}
+	loc, err := retrievePackageInstallLocation(id)
+	if err != nil {
+		return nil, errors.SystemNew("unable to locate package "+id, err)
+	}
+	config := data.DefaultPackage()
+	err = config.LoadFromLocation(id, loc)
+	return config, err
 }
 
 func RetrievePackagesWithActivity(action string) ([]string, error) {
@@ -93,19 +128,24 @@ func RetrievePackagesWithActivity(action string) ([]string, error) {
 }
 
 // retrieve all packages that needs to execute upon startup
-func RetrieveStartupPackages() ([]*data.PackageConfig, error) {
+func RetrieveStartupPackages() ([]string, error) {
 	row, err := retrievePackagesWhere(
-		[]string{"id, source, name, location, nodejs, exportService, program"},
+		[]string{"id"},
 		"nodejs=true or exportService=true")
 	if err != nil {
 		return nil, err
 	}
 	defer row.Close()
-	results := make([]*data.PackageConfig, 0, 10)
+	results := make([]string, 0, 10)
 	for row.Next() {
-		pk := data.DefaultPackage()
-		row.Scan(&pk.PackageId, &pk.Source, &pk.Name, &pk.InstallLocation, &pk.Nodejs, &pk.ExportServices, &pk.Program)
+		pk := ""
+		row.Scan(&pk)
 		results = append(results, pk)
 	}
 	return results, nil
+}
+
+func IsPackageInstalled(id string) (bool, error) {
+	count, err := util.Count("packages", "id=?", id)
+	return count > 0, err
 }

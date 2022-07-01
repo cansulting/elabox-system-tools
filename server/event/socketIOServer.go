@@ -61,6 +61,7 @@ func onClientConnected(socket *socketio.Channel) {
 
 func onClientDisconnected(socket *socketio.Channel) {
 	log.Println("Server:onClientDisconnected", "system disconnected")
+	socket.Close()
 }
 
 // implementation for connector broadcast

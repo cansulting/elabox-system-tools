@@ -5,5 +5,6 @@ type InstallState string
 const (
 	INITIALIZING InstallState = "INIT"
 	INPROGRESS   InstallState = "INPROGRESS"
-	SUCCESS      InstallState = "SUCCESS"
+	INSTALLED    InstallState = "INSTALLED"
+	UNINSTALLED  InstallState = "UNINSTALLED"
 )

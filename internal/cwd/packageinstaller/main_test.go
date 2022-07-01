@@ -64,20 +64,20 @@ func TestSystemUpdateCommandline(test *testing.T) {
 			return
 		}*/
 
-	processInstallCommand(pkpath, false, true, false, true)
+	processInstallCommand(pkpath, false, true, false)
 	//log.Println(string(bytes))
 }
 
 // test install a package and register it
 func TestSystemUpdateCommandline2(test *testing.T) {
 	wd, _ := os.Getwd()
-	pkpath := wd + "/../../builds/linux/system/ela.system.box"
+	pkpath := wd + "/../../builds/linux/companion/ela.companion.box"
 	pkg, err := pkg.LoadFromSource(pkpath)
 	if err != nil {
 		test.Error(err)
 		return
 	}
-	newInstall := NewInstaller(pkg, true)
+	newInstall := NewInstaller(pkg, true, false)
 	// step: start install
 	if err := newInstall.Start(); err != nil {
 		test.Error(err)

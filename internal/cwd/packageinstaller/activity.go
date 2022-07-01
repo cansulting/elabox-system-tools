@@ -26,6 +26,7 @@ import (
 	"github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/broadcast"
 	global "github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/constants"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/pkg"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/utils"
 )
 
 type activity struct {
@@ -46,26 +47,49 @@ func (a *activity) OnStart() error {
 // callback when recieved a pending action from system
 func (a *activity) OnPendingAction(action *data.Action) error {
 	// step: validate action
-	sourcePkg := action.DataToString()
-	a.currentPkg = sourcePkg
-	broadcast.UpdateSystem(a.currentPkg, broadcast.INITIALIZING)
-	global.Logger.Info().Msg("Installing package @" + sourcePkg)
-	pkgData, err := pkg.LoadFromSource(sourcePkg)
-	if err != nil {
-		a.finish(err.Error())
+	switch action.Id {
+	case constants.ACTION_APP_INSTALL:
+		sourcePkg := action.DataToString()
+		broadcast.UpdateSystem(sourcePkg, broadcast.INITIALIZING)
+		pkgData, err := pkg.LoadFromSource(sourcePkg)
+		if err != nil {
+			a.finish(err.Error())
+			return nil
+		}
+		go func() {
+			a.currentPkg = pkgData.Config.PackageId
+			if !pkgData.HasCustomInstaller() {
+				if err := a.startNormalInstall(pkgData); err != nil {
+					broadcast.Error(pkgData.Config.PackageId, global.INSTALL_ERROR, err.Error())
+				}
+			}
+			if err := a.runCustomInstaller(sourcePkg, pkgData); err != nil {
+				broadcast.Error(pkgData.Config.PackageId, global.INSTALL_ERROR, err.Error())
+			}
+		}()
+		return nil
+	// uninstall package
+	default:
+		pkid := action.DataToString()
+		if pkid == "" {
+			return errors.SystemNew("failed to uninstall, no package id was provided as parameter", nil)
+		}
+		global.Logger.Info().Msg("start uninstall package " + pkid)
+		go func() {
+			a.terminatePackage(pkid)
+			if err := utils.UninstallPackage(pkid, global.DELETE_DATA_ONUNINSTALL, true, true); err != nil {
+				broadcast.Error(pkid, global.UNINSTALL_ERROR, err.Error())
+			}
+		}()
 		return nil
 	}
-	if action.Id == constants.ACTION_APP_INSTALL ||
-		!pkgData.HasCustomInstaller() {
-		return a.startNormalInstall(pkgData)
-	}
-	return a.runCustomInstaller(sourcePkg, pkgData)
 }
 
 func (a *activity) startNormalInstall(pkgd *pkg.Data) error {
+	global.Logger.Info().Msg("Installing package @" + pkgd.Config.PackageId)
 	// step: start installing
 	backup := pkgd.Config.IsSystemPackage()
-	install := NewInstaller(pkgd, backup)
+	install := NewInstaller(pkgd, backup, true)
 	install.SetProgressListener(a.onInstallProgress)
 	install.SetErrorListener(a.onInstallError)
 	broadcast.UpdateSystem(pkgd.Config.PackageId, broadcast.INPROGRESS)
@@ -88,7 +112,7 @@ func (a *activity) runCustomInstaller(pkgSource string, pkgd *pkg.Data) error {
 	if err := pkgd.RunCustomInstaller(pkgSource, false, "-s", "-l", "-i"); err != nil {
 		return errors.SystemNew("Failed installing system package.", err)
 	}
-	a.running = false
+	//a.running = false
 	time.Sleep(time.Millisecond * 200)
 	// system terminate
 	global.AppController.RPC.CallSystem(data.NewActionById(constants.SYSTEM_TERMINATE_NOW))
@@ -105,10 +129,17 @@ func (a *activity) finish(err string) {
 		broadcast.Error(a.currentPkg, 0, err)
 	} else {
 		global.Logger.Info().Msg("Install success")
-		broadcast.UpdateSystem(a.currentPkg, broadcast.SUCCESS)
+		broadcast.UpdateSystem(a.currentPkg, broadcast.INSTALLED)
+		broadcast.OnPackageInstalled(a.currentPkg)
 	}
 	// comment this line. system will terminate this activity automatically
 	//a.running = false
+}
+
+func (a *activity) terminatePackage(pki string) {
+	if _, err := global.AppController.RPC.CallSystem(data.NewAction(constants.APP_TERMINATE, pki, nil)); err != nil {
+		global.Logger.Error().Err(err).Msg("failed to terminate package " + pki)
+	}
 }
 
 // callback from installer on progress

@@ -12,12 +12,22 @@ package global
 
 import (
 	"github.com/cansulting/elabox-system-tools/foundation/logger"
+	"github.com/cansulting/elabox-system-tools/foundation/system"
 	"github.com/cansulting/elabox-system-tools/server"
 )
 
 var Server *server.Manager               // the server manager that handles event and web
-var Running bool = true                  // true if this system is currently running
+var Running = true                       // true if this system is currently running
 const INSTALLER_PKG_ID = "ela.installer" // package id of installer
 const SYSTEM_PKID = "ela.system"         //
-const RUN_STARTUPAPPS = true             // true if system runs startup apps
+const RUN_STARTUPAPPS = !system.IDE      // true if system runs startup apps
 var Logger = logger.Init(SYSTEM_PKID)
+
+const APP_TERMINATE_COUNTDOWN = 3 // number of seconds to wait before terminating an app
+const CONFIG_ENV = "config"       // env name for config, value is "1" if elabox was already configured
+
+var CONFIG_PKGS = []string{ // packages that are initially required for system configuration
+	"ela.setup",
+	"ela.companion",
+	"ela.account",
+	"ela.rewards"}

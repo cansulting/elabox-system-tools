@@ -4,13 +4,37 @@
 	"packageId": "ela.esc",
 	"build": 2,
 	"version": "0.1.4.3",
-	"program": "esc",
+	"program": "ela.esc",
+	"programArgs": [
+		"--datadir",
+		"/home/elabox/data/ela.esc/blocks",
+		"--syncmode",
+		"full",
+		"--rpc",
+		"--rpcport",
+		"20637",
+		"--ws",
+		"--wsport",
+		"20646",
+		"--wsapi",
+		"eth,web3",
+		"--rpccorsdomain",
+		"*",
+		"--rpcaddr",
+		"0.0.0.0",
+		"--rpcvhosts",
+		"*",
+		"--rpcapi",
+		"admin,db,eth,miner,web3,net,personal,txpool"
+	],
+	"activityGroup": {
+		"customLink": "",
+		"customPort": 0,
+		"activities": null
+	},
 	"permissions": null,
-	"exportService": false,
-	"activities": null,
-	"actionListener": null,
+	"exportService": true,
 	"location": "external",
 	"nodejs": false,
-	"packagerVersion": "0.1.0",
-	"ext": null
+	"packagerVersion": "0.1.0"
 }

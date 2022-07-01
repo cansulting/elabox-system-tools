@@ -8,6 +8,7 @@ import (
 )
 
 const PKG_ID = "ela.installer"
+const DELETE_DATA_ONUNINSTALL = false
 
 const TERMINATE_TIMEOUT = 5 // seconds to wait for system to terminate
 var AppController *app.Controller
