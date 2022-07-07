@@ -144,6 +144,7 @@ func (instance *Data) Write(values []byte) (int, error) {
 
 func (instance *Data) ExtractScripts() error {
 	cinstallerDir := constants.GetTempPath()
+	os.RemoveAll(cinstallerDir)
 
 	// export installer and scripts
 	filters := []utils.Filter{
@@ -207,11 +208,17 @@ func (instance *Data) ExtractFiles(keyword string, targetPath string, limit uint
 }
 
 func (instance *Data) HasPreInstallScript() bool {
-	return instance.preInstall != ""
+	if _, err := os.Stat(instance.preInstall); err == nil {
+		return true
+	}
+	return false
 }
 
 func (instance *Data) HasPostInstallScript() bool {
-	return instance.postInstall != ""
+	if _, err := os.Stat(instance.postInstall); err == nil {
+		return true
+	}
+	return false
 }
 
 func (instance *Data) execScript(script string) error {

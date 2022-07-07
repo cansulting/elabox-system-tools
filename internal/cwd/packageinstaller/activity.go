@@ -126,7 +126,7 @@ func (a *activity) OnEnd() error {
 func (a *activity) finish(err string) {
 	if err != "" {
 		global.Logger.Error().Caller().Stack().Msg(err)
-		broadcast.Error(a.currentPkg, 0, err)
+		broadcast.Error(a.currentPkg, global.INSTALL_ERROR, err)
 	} else {
 		global.Logger.Info().Msg("Install success")
 		broadcast.UpdateSystem(a.currentPkg, broadcast.INSTALLED)
