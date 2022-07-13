@@ -6,6 +6,7 @@ import (
 
 	"github.com/cansulting/elabox-system-tools/foundation/errors"
 	"github.com/cansulting/elabox-system-tools/foundation/logger"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/global"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/broadcast"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/constants"
 	"github.com/cansulting/elabox-system-tools/registry/app"
@@ -30,9 +31,14 @@ func UninstallPackage(
 	}
 	location := pk.GetInstallDir()
 	// is file not exist. skip
-	if _, err := os.Stat(location); err != nil {
-		//log.Println("")
-		//return nil
+	//if _, err := os.Stat(location); err != nil {
+	//log.Println("")
+	//return nil
+	//}
+	if _, err := os.Stat(location + "/" + global.UNINSTALL_SH); err == nil {
+		if err := ExecScript(global.UNINSTALL_SH, location, nil); err != nil {
+			return err
+		}
 	}
 	// step: remove app directory
 	if err := os.RemoveAll(location); err != nil {

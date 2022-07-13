@@ -20,8 +20,6 @@ import (
 	"github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/utils"
 )
 
-const sh = "/bin/bash"
-
 // package contents
 type Data struct {
 	Config         *data.PackageConfig
@@ -221,26 +219,12 @@ func (instance *Data) HasPostInstallScript() bool {
 	return false
 }
 
-func (instance *Data) execScript(script string) error {
-	cmd := exec.Command(sh, script)
-	if _, err := os.Stat(instance.Config.GetInstallDir()); err == nil {
-		cmd.Dir = instance.Config.GetInstallDir()
-	}
-	cmd.Stdout = instance
-	cmd.Stderr = instance
-	cmd.Stdin = os.Stdin
-	if err := cmd.Run(); err != nil {
-		return err
-	}
-	return nil
-}
-
 // start running pre install script
 func (instance *Data) StartPreInstall() error {
 	// has pre install script?
 	if _, err := os.Stat(instance.preInstall); err == nil {
 		constants.Logger.Debug().Msg("-------------Execute pre install script-------------")
-		return instance.execScript(instance.preInstall)
+		return utils.ExecScript(instance.preInstall, instance.Config.GetInstallDir(), instance)
 	}
 	return nil
 }
@@ -250,7 +234,7 @@ func (instance *Data) StartPostInstall() error {
 	// has pre install script?
 	if _, err := os.Stat(instance.postInstall); err == nil {
 		constants.Logger.Debug().Msg("-------------Execute post install script-------------")
-		return instance.execScript(instance.postInstall)
+		return utils.ExecScript(instance.postInstall, instance.Config.GetInstallDir(), instance)
 	}
 	return nil
 }

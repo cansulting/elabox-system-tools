@@ -20,7 +20,6 @@ import (
 	"path"
 	"path/filepath"
 	"strconv"
-	"time"
 
 	"github.com/cansulting/elabox-system-tools/foundation/app/data"
 	"github.com/cansulting/elabox-system-tools/foundation/constants"
@@ -47,8 +46,8 @@ type AppConnect struct {
 	RPC                *RPCBridge
 	nodejs             *Nodejs
 	server             *http.Server
-	initialized        bool // true if this specific app/package was already initialized
 	terminatedIntently bool // true if this app was terminated intentionally
+	wwwServing         bool
 }
 
 // create new app connect
@@ -71,7 +70,7 @@ func newAppConnect(
 		nodejs:         node,
 		process:        nil,
 		Client:         client,
-		initialized:    false,
+		wwwServing:     false,
 	}
 	res.RPC = NewRPCBridge(pk.PackageId, res, global.Server.EventServer)
 	return res
@@ -79,10 +78,6 @@ func newAppConnect(
 
 // initialize web serving and services related to this app
 func (app *AppConnect) init() error {
-	if app.initialized {
-		return nil
-	}
-	app.initialized = true
 	// www serving
 	if app.Config.ActivityGroup.CustomPort > 0 {
 		if err := app.startServeWww(); err != nil {
@@ -103,7 +98,8 @@ func (app *AppConnect) IsRunning() bool {
 	if app.nodejs != nil {
 		return app.nodejs.IsRunning()
 	}
-	return app.process != nil
+	return app.launched
+	//return app.process != nil
 }
 
 // send pending actions
@@ -136,7 +132,7 @@ func (app *AppConnect) Launch() error {
 		}()
 	}
 	// binary runnning
-	if app.Config.HasMainProgram() && app.process == nil {
+	if app.Config.HasMainProgram() {
 		global.Logger.Info().Msg("Launching " + app.PackageId + " app")
 		args := app.Config.ProgramArgs
 		if args == nil {
@@ -173,6 +169,7 @@ func (app *AppConnect) forceTerminate() error {
 	}
 	if app.process != nil {
 		if err := app.process.Kill(); err != nil {
+			app.process = nil
 			return err
 		}
 		app.process = nil
@@ -207,33 +204,31 @@ func (app *AppConnect) Terminate() error {
 	if !app.IsRunning() {
 		return nil
 	}
-	global.Logger.Info().Msg("Waiting for app " + app.Config.PackageId + " to terminate in " + strconv.Itoa(global.APP_TERMINATE_COUNTDOWN) + " seconds")
+	global.Logger.Info().Msg("waiting for app " + app.Config.PackageId + " to terminate")
 	if app.nodejs != nil {
 		if err := app.nodejs.Stop(); err != nil {
 			global.Logger.Error().Err(err).Caller().Msg("AppConnect nodejs " + app.PackageId + "failed to terminate.")
 		}
 	}
-	if !app.IsClientConnected() {
-		return nil
-	}
+	// if !app.IsClientConnected() {
+	// 	return nil
+	// }
 	go func() {
+		//time.Sleep(time.Second * time.Duration(global.APP_TERMINATE_COUNTDOWN))
 		_, err := app.RPCCall(constants.APP_TERMINATE, nil)
 		if err != nil {
 			global.Logger.Error().Err(err).Caller().Msg("AppConnect " + app.PackageId + " failed sending terminate RPC.")
-			app.forceTerminate()
 		}
+		app.forceTerminate()
 	}()
-
 	// stopping www
 	if app.Config.ActivityGroup.CustomPort > 0 {
 		app.stopServeWww()
 	}
-
-	time.Sleep(time.Second * time.Duration(global.APP_TERMINATE_COUNTDOWN))
-	if app.IsRunning() {
-		return app.forceTerminate()
-	}
-
+	// time.Sleep(time.Second * time.Duration(global.APP_TERMINATE_COUNTDOWN))
+	// if app.IsRunning() {
+	// 	return app.forceTerminate()
+	// }
 	return nil
 }
 
@@ -253,6 +248,7 @@ func asyncRun(app *AppConnect, cmd *exec.Cmd) {
 	if err := cmd.Wait(); err != nil {
 		if !app.terminatedIntently {
 			global.Logger.Error().Err(err).Msg("ERROR launching " + app.PackageId)
+			app.Terminate()
 		}
 	}
 	app.process = nil
@@ -266,6 +262,10 @@ func (n *AppConnect) Write(data []byte) (int, error) {
 
 // start serving the www for app with custom port
 func (n *AppConnect) startServeWww() error {
+	if n.wwwServing {
+		return nil
+	}
+	n.wwwServing = true
 	port := n.Config.ActivityGroup.CustomPort
 	pkg := n.Config.PackageId
 	wwwPath := n.Config.GetWWWDir()
@@ -302,5 +302,6 @@ func (n *AppConnect) stopServeWww() error {
 		return err
 	}
 	n.server = nil
+	n.wwwServing = false
 	return nil
 }
