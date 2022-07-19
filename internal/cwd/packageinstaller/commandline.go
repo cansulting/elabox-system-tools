@@ -47,7 +47,7 @@ func startCommandline() {
 	}
 	pk := os.Args[1]
 	if IsArgExist("-u") {
-		processUninstallCommand(pk)
+		processUninstallCommand(pk, IsArgExist("-l"))
 	} else {
 		processInstallCommand(pk, IsArgExist("-r"), IsArgExist("-l"), !IsArgExist("-i"))
 	}
@@ -165,7 +165,11 @@ func normalInstall(content *pkg.Data) {
 
 // process uninstall
 
-func processUninstallCommand(pk string) {
+func processUninstallCommand(pk string, logging bool) {
+	if logging {
+		logger.SetHook(loggerHook{})
+		pkconst.Logger = logger.GetInstance()
+	}
 	action := data.NewAction(constants.ACTION_APP_UNINSTALL, "", pk)
 	_, err := pkconst.AppController.RPC.StartActivity(action)
 	if err != nil {
