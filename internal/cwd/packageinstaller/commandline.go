@@ -41,6 +41,7 @@ func startCommandline() {
 		println("-s - this is system update")
 		println("-l - create log file")
 		println("-i - ignore custom installer")
+		println("-u -uninstall package")
 		return
 	}
 	pk := os.Args[1]
