@@ -163,19 +163,19 @@ func normalInstall(content *pkg.Data) {
 	}
 }
 
-// process uninstall
+// package uninstall
 
-func processUninstallCommand(pk string, logging bool) {
+func processUninstallCommand(targetPk string, logging bool) {
 	if logging {
 		logger.SetHook(loggerHook{})
 		pkconst.Logger = logger.GetInstance()
 	}
-	action := data.NewAction(constants.ACTION_APP_UNINSTALL, "", pk)
+	action := data.NewAction(constants.ACTION_APP_UNINSTALL, "", targetPk)
 	_, err := pkconst.AppController.RPC.StartActivity(action)
 	if err != nil {
 		pkconst.Logger.Error().Err(err).Caller().Msg("Failed to uninstall package")
 	} else {
-		pkconst.Logger.Info().Msg(pk + " uninstalled sucessfully.")
+		pkconst.Logger.Info().Msg(targetPk + " uninstalled sucessfully.")
 	}
 }
 
