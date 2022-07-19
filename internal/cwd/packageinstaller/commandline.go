@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/cansulting/elabox-system-tools/foundation/constants"
+	"github.com/cansulting/elabox-system-tools/foundation/event/data"
 	"github.com/cansulting/elabox-system-tools/foundation/logger"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/broadcast"
 	pkconst "github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/constants"
@@ -45,7 +46,12 @@ func startCommandline() {
 		return
 	}
 	pk := os.Args[1]
-	processInstallCommand(pk, IsArgExist("-r"), IsArgExist("-l"), !IsArgExist("-i"))
+	if IsArgExist("-u") {
+		processUninstallCommand(pk)
+	} else {
+		processInstallCommand(pk, IsArgExist("-r"), IsArgExist("-l"), !IsArgExist("-i"))
+	}
+
 }
 
 func processInstallCommand(targetPk string, restart bool, logging bool, runCustomInstaller bool) {
@@ -154,6 +160,18 @@ func normalInstall(content *pkg.Data) {
 			pkconst.Logger.Error().Err(err).Caller().Msg("Failed reverting installer.")
 		}
 		panic("Failed installing @normalInstall()")
+	}
+}
+
+// process uninstall
+
+func processUninstallCommand(pk string) {
+	action := data.NewAction(constants.ACTION_APP_UNINSTALL, "", pk)
+	_, err := pkconst.AppController.RPC.StartActivity(action)
+	if err != nil {
+		pkconst.Logger.Error().Err(err).Caller().Msg("Failed to uninstall package")
+	} else {
+		pkconst.Logger.Info().Msg(pk + " uninstalled sucessfully.")
 	}
 }
 
