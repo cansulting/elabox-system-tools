@@ -1,7 +1,7 @@
 package appman
 
 import (
-	"github.com/cansulting/elabox-system-tools/internal/cwd/env"
+	"github.com/cansulting/elabox-system-tools/foundation/env"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/system/global"
 )
 

@@ -71,6 +71,7 @@ func newAppConnect(
 		process:        nil,
 		Client:         client,
 		wwwServing:     false,
+		launched:       false,
 	}
 	res.RPC = NewRPCBridge(pk.PackageId, res, global.Server.EventServer)
 	return res
@@ -138,10 +139,14 @@ func (app *AppConnect) Launch() error {
 		if args == nil {
 			args = []string{}
 		}
-		// is this a sh program?
+		// is this a sh program? or node?
 		program := app.Location
-		if ext := path.Ext(app.Config.Program); ext == ".sh" {
+		ext := path.Ext(app.Config.Program)
+		if ext == ".sh" {
 			program = "/usr/bin/bash"
+			args = append(args, app.Location)
+		} else if ext == ".js" {
+			program = "/usr/bin/node"
 			args = append(args, app.Location)
 		}
 		cmd := exec.Command(program, args...)

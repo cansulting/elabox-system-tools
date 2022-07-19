@@ -55,6 +55,9 @@ func initEnv() error {
 }
 
 func SetEnv(key string, value string) error {
+	if err := initEnv(); err != nil {
+		return err
+	}
 	if singleton.Vars[key] != value {
 		singleton.Vars[key] = value
 		os.Setenv(key, value)
@@ -64,6 +67,9 @@ func SetEnv(key string, value string) error {
 }
 
 func GetEnv(key string) string {
+	if err := initEnv(); err != nil {
+		return ""
+	}
 	if key == "" {
 		return ""
 	}
