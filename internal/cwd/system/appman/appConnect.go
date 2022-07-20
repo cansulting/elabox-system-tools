@@ -284,7 +284,7 @@ func (n *AppConnect) startServeWww() error {
 		path := ""
 		serverMux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 			path = wwwPath + r.URL.Path
-			if _, err := os.Stat(path); err == nil {
+			if filei, err := os.Stat(path); err == nil && !filei.IsDir() {
 				http.ServeFile(w, r, path)
 				return
 			}

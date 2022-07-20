@@ -36,19 +36,30 @@ type WebService struct {
 func (s *WebService) Start() error {
 	s.running = true
 	wwwPath := path.GetSystemWWW()
+	wwwPathX := path.GetExternalWWW()
+	oldwwwPath := wwwPath
 	lastPkg := PAGE_COMPANIONAPP
 
 	// handle any requests
 	http.HandleFunc("/", func(rw http.ResponseWriter, r *http.Request) {
 		url := r.URL.Path
 		pkg := lastPkg
+
 		//println("serve", url)
 		// retrieve the package based from url
 		if url != "/" {
 			splits := strings.Split(url, "/")
 			tmp := splits[1]
-			// is this a package?
+			pathExist := false
+			// is this a package? either on system path or external path
 			if _, err := os.Stat(wwwPath + "/" + tmp); err == nil {
+				oldwwwPath = wwwPath
+				pathExist = true
+			} else if _, err := os.Stat(wwwPathX + "/" + tmp); err == nil {
+				oldwwwPath = wwwPathX
+				pathExist = true
+			}
+			if pathExist {
 				pkg = tmp
 				r.URL.Path = "/"
 				if len(splits) > 1 {
@@ -58,6 +69,7 @@ func (s *WebService) Start() error {
 		} else {
 			pkg = PAGE_LANDING
 			url = "/" + PAGE_COMPANIONAPP
+			oldwwwPath = wwwPath
 		}
 
 		// switch package?
@@ -68,19 +80,19 @@ func (s *WebService) Start() error {
 		}
 
 		// serve the file
-		fpath := wwwPath + url
+		fpath := oldwwwPath + url
 		file, err := os.Stat(fpath)
 		//println(fpath)
 		// file not found then locate from last package
 		if err != nil {
-			fpath = wwwPath + "/" + pkg + url
+			fpath = oldwwwPath + "/" + pkg + url
 			file, err = os.Stat(fpath)
 			if err != nil {
 				fpath = ""
 			}
 		}
 		if fpath == "" || file != nil && file.IsDir() {
-			fpath = wwwPath + "/" + pkg + "/index.html"
+			fpath = oldwwwPath + "/" + pkg + "/index.html"
 			//println("Redirect to " + fpath)
 		}
 		http.ServeFile(rw, r, fpath)
