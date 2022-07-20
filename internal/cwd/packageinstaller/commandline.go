@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/cansulting/elabox-system-tools/foundation/constants"
-	"github.com/cansulting/elabox-system-tools/foundation/event/data"
 	"github.com/cansulting/elabox-system-tools/foundation/logger"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/broadcast"
 	pkconst "github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/constants"
@@ -170,12 +169,8 @@ func processUninstallCommand(targetPk string, logging bool) {
 		logger.SetHook(loggerHook{})
 		pkconst.Logger = logger.GetInstance()
 	}
-	action := data.NewAction(constants.ACTION_APP_UNINSTALL, "", targetPk)
-	_, err := pkconst.AppController.RPC.StartActivity(action)
-	if err != nil {
-		pkconst.Logger.Error().Err(err).Caller().Msg("Failed to uninstall package")
-	} else {
-		pkconst.Logger.Info().Msg(targetPk + " uninstalled sucessfully.")
+	if err := utils.UninstallPackage(targetPk, false, false, true); err != nil {
+		pkconst.Logger.Error().Err(err).Caller().Msg("unable to uninstall package " + targetPk)
 	}
 }
 
