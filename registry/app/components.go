@@ -84,6 +84,13 @@ func registerActivities(pkg *data.PackageConfig) error {
 	}
 	return nil
 }
+func changeServiceStatus(pk string, status bool) error {
+	query := "insert or replace into service_status(packageId,status) values(?,?);"
+	if err := util.ExecuteQuery(query, pk, status); err != nil {
+		return errors.SystemNew("error in updating status of "+pk, err)
+	}
+	return nil
+}
 
 /*
 func RetrievePackagesWithBroadcast(action string) ([]string, error) {

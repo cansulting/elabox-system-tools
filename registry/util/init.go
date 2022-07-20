@@ -47,6 +47,9 @@ func initialize() error {
 	if err := createActionTable(Db); err != nil {
 		return errors.SystemNew("Initialize DB failed. Unable to create action table.", err)
 	}
+	if err := createServiceStatusTable(Db); err != nil {
+		return errors.SystemNew("Initialize DB failed. Unable to create action table.", err)
+	}
 	//if createBroadcastTable(db); err != nil {
 	//	return err
 	//}
@@ -82,6 +85,21 @@ func createActionTable(db *sql.DB) error {
 		id integer primary key autoincrement,
 		packageId varchar(100) not null,
 		action varchar(100) not null
+	)`
+	stmt, err := db.Prepare(packageQuery)
+	if err != nil {
+		return err
+	}
+	_, err = stmt.Exec()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func createServiceStatusTable(db *sql.DB) error {
+	packageQuery := `create table if not exists service_status(
+		packageId varchar(100) primary key not null,
+		status integer not null
 	)`
 	stmt, err := db.Prepare(packageQuery)
 	if err != nil {

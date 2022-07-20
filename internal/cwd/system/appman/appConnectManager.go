@@ -199,3 +199,9 @@ func InitializePackage(pki string) error {
 	}
 	return nil
 }
+func updateServiceStatus(pk string, status bool) {
+	err := registry.UpdateServiceStatus(pk, status)
+	if err != nil {
+		logger.GetInstance().Err(err).Caller().Msg("Failed to update status of " + pk)
+	}
+}

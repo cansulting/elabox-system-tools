@@ -155,6 +155,7 @@ func (app *AppConnect) Launch() error {
 	}
 
 	app.launched = true
+	updateServiceStatus(app.PackageId, true)
 	return nil
 }
 
@@ -208,6 +209,7 @@ func (app *AppConnect) Off() error {
 		if err := app.Terminate(); err != nil {
 			return err
 		}
+		updateServiceStatus(app.PackageId, false)
 	}
 	return nil
 }
