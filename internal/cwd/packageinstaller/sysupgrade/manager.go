@@ -19,10 +19,6 @@ func Start(oldBuild int, newBuild int) error {
 	if err := upgrader.onUpgrade(oldBuild); err != nil {
 		return err
 	}
-	upgrader2 := build6{}
-	if err := upgrader2.onUpgrade(oldBuild); err != nil {
-		return err
-	}
 	logger.GetInstance().Debug().Msg("Component upgrades finished.")
 	return nil
 }
