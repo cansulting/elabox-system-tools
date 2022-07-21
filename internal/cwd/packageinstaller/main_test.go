@@ -85,6 +85,16 @@ func TestSystemUpdateCommandline2(test *testing.T) {
 	}
 }
 
+//test uninstall app
+
+func TestSystemUninstallCommandLine(test *testing.T) {
+	err := processUninstallCommand("ela.sample", false)
+	if err != nil {
+		test.Error(err)
+		return
+	}
+}
+
 // test installer via activity
 // func TestRunActivityManually(t *testing.T) {
 // 	InitializePath()
