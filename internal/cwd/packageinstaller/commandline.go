@@ -164,14 +164,16 @@ func normalInstall(content *pkg.Data) {
 
 // package uninstall
 
-func processUninstallCommand(targetPk string, logging bool) {
+func processUninstallCommand(targetPk string, logging bool) error {
 	if logging {
 		logger.SetHook(loggerHook{})
 		pkconst.Logger = logger.GetInstance()
 	}
-	if err := utils.UninstallPackage(targetPk, false, false, true); err != nil {
+	if err := utils.UninstallPackage(targetPk, false, false, false); err != nil {
 		pkconst.Logger.Error().Err(err).Caller().Msg("unable to uninstall package " + targetPk)
+		return err
 	}
+	return nil
 }
 
 // start installer server
