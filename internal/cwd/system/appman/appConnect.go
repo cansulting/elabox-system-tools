@@ -204,7 +204,7 @@ func (app *AppConnect) Restart() error {
 }
 
 // off an app
-func (app *AppConnect) Off() error {
+func (app *AppConnect) DisableApp() error {
 	if app.IsRunning() {
 		if err := app.Terminate(); err != nil {
 			return err
@@ -213,7 +213,7 @@ func (app *AppConnect) Off() error {
 	}
 	return nil
 }
-func (app *AppConnect) On() error {
+func (app *AppConnect) EnableApp() error {
 	return app.Launch()
 }
 
