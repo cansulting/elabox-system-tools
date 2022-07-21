@@ -21,6 +21,7 @@ import (
 )
 
 const CHUNK_SIZE = 1024 * 10 // the chunk to read per batch. the reading will be separated into batch to minimize load
+const CHUNK_SIZE_PER_PAGE = CHUNK_SIZE / 10
 const LOG_FILE = constants.LOG_FILE
 
 type Log map[string]interface{}
