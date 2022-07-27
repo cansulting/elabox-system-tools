@@ -25,6 +25,7 @@ import (
 	"github.com/cansulting/elabox-system-tools/foundation/constants"
 	eventd "github.com/cansulting/elabox-system-tools/foundation/event/data"
 	"github.com/cansulting/elabox-system-tools/foundation/event/protocol"
+	"github.com/cansulting/elabox-system-tools/foundation/logger"
 	"github.com/cansulting/elabox-system-tools/foundation/perm"
 	"github.com/cansulting/elabox-system-tools/foundation/system"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/system/global"
@@ -226,7 +227,12 @@ func (app *AppConnect) EnableService() error {
 	if err != nil {
 		return err
 	}
-	return app.Launch()
+	go func() {
+		if err := app.Launch(); err != nil {
+			logger.GetInstance().Debug().Err(err).Caller().Msg("failed launching " + app.PackageId)
+		}
+	}()
+	return nil
 }
 
 // this terminate the app naturally

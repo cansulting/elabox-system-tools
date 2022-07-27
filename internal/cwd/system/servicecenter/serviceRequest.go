@@ -352,5 +352,8 @@ func initPackage(action data.Action) string {
 		global.Logger.Error().Err(err).Msg("Failed to initialize package " + pki)
 		return rpc.CreateResponse(rpc.SYSTEMERR_CODE, err.Error())
 	}
+	if err := app.EnableService(pki, true); err != nil {
+		global.Logger.Error().Err(err).Msg("failed to enable app " + pki)
+	}
 	return rpc.CreateSuccessResponse("Initialized")
 }
