@@ -150,8 +150,8 @@ func IsPackageInstalled(id string) (bool, error) {
 	return count > 0, err
 }
 
-func UpdateServiceStatus(pk string, status bool) error {
-	err := changeServiceStatus(pk, status)
+func EnableService(pk string, status bool) error {
+	err := setEnableService(pk, status)
 	if err != nil {
 		return err
 	}
