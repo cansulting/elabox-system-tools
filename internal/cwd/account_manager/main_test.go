@@ -29,3 +29,11 @@ func Test_AuthenticateSystemAccount(t *testing.T) {
 	}
 	t.Log("Authenticate", success)
 }
+func Test_GetDeviceSerial(t *testing.T) {
+	deviceSerial := GetDeviceSerial()
+	if len(deviceSerial) == 0 {
+		t.Error("Error in getting device serial")
+		return
+	}
+	t.Log("Got Device Serial", deviceSerial)
+}
