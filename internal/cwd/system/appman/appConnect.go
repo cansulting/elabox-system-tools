@@ -209,7 +209,7 @@ func (app *AppConnect) Restart() error {
 }
 
 // off an app
-func (app *AppConnect) DisableApp() error {
+func (app *AppConnect) DisableService() error {
 	if app.IsRunning() {
 		if err := app.Terminate(); err != nil {
 			return err
@@ -221,7 +221,11 @@ func (app *AppConnect) DisableApp() error {
 	}
 	return nil
 }
-func (app *AppConnect) EnableApp() error {
+func (app *AppConnect) EnableService() error {
+	err := EnableService(app.PackageId, true)
+	if err != nil {
+		return err
+	}
 	return app.Launch()
 }
 

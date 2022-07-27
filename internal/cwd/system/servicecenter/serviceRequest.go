@@ -120,7 +120,7 @@ func onAppOff(
 	if app == nil {
 		return rpc.CreateResponse(rpc.INVALID_CODE, appid+" app not found")
 	}
-	if err := app.DisableApp(); err != nil {
+	if err := app.DisableService(); err != nil {
 		global.Logger.Error().Err(err).Caller().Msg("failed to off app " + appid)
 		return rpc.CreateResponse(rpc.SYSTEMERR_CODE, "failed to off app "+appid)
 	}
@@ -139,9 +139,9 @@ func onAppOn(
 	if app == nil {
 		return rpc.CreateResponse(rpc.INVALID_CODE, appid+" app not found")
 	}
-	if err := app.EnableApp(); err != nil {
-		global.Logger.Error().Err(err).Caller().Msg("failed to on app " + appid)
-		return rpc.CreateResponse(rpc.SYSTEMERR_CODE, "failed to on app "+appid)
+	if err := app.EnableService(); err != nil {
+		global.Logger.Error().Err(err).Caller().Msg("failed to enable on app " + appid)
+		return rpc.CreateResponse(rpc.SYSTEMERR_CODE, "failed to enable on app "+appid)
 	}
 	return rpc.CreateSuccessResponse("app is now on")
 }
