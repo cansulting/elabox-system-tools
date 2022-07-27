@@ -14,6 +14,7 @@ package servicecenter
 
 import (
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/cansulting/elabox-system-tools/foundation/app/rpc"
@@ -65,6 +66,12 @@ func OnRecievedRequest(
 		return onAppTerminate(client, action)
 	case constants.ACTION_APP_RESTART:
 		return onAppRestart(client, action)
+	case constants.ACTION_APP_OFF:
+		return onAppOff(client, action)
+	case constants.ACTION_APP_ON:
+		return onAppOn(client, action)
+	case constants.ACTION_APP_CHECK_STATUS:
+		return onAppCheckStatus(client, action)
 	case constants.ACTION_APP_CLEAR_DATA:
 		return onAppClearData(client, action)
 	case constants.ACTION_APP_INSTALLED:
@@ -101,6 +108,54 @@ func onAppRestart(
 	return rpc.CreateSuccessResponse("restarted")
 }
 
+// use to off the app
+func onAppOff(
+	client protocol.ClientInterface,
+	action data.Action) interface{} {
+	appid := action.PackageId
+	if appid == "" {
+		return rpc.CreateResponse(rpc.INVALID_CODE, "package id shouldnt be empty")
+	}
+	app := appman.GetAppConnect(appid, client)
+	if app == nil {
+		return rpc.CreateResponse(rpc.INVALID_CODE, appid+" app not found")
+	}
+	if err := app.DisableApp(); err != nil {
+		global.Logger.Error().Err(err).Caller().Msg("failed to off app " + appid)
+		return rpc.CreateResponse(rpc.SYSTEMERR_CODE, "failed to off app "+appid)
+	}
+	return rpc.CreateSuccessResponse("app is now off")
+}
+
+//use to on the app
+func onAppOn(
+	client protocol.ClientInterface,
+	action data.Action) interface{} {
+	appid := action.PackageId
+	if appid == "" {
+		return rpc.CreateResponse(rpc.INVALID_CODE, "package id shouldnt be empty")
+	}
+	app := appman.GetAppConnect(appid, client)
+	if app == nil {
+		return rpc.CreateResponse(rpc.INVALID_CODE, appid+" app not found")
+	}
+	if err := app.EnableApp(); err != nil {
+		global.Logger.Error().Err(err).Caller().Msg("failed to on app " + appid)
+		return rpc.CreateResponse(rpc.SYSTEMERR_CODE, "failed to on app "+appid)
+	}
+	return rpc.CreateSuccessResponse("app is now on")
+}
+func onAppCheckStatus(client protocol.ClientInterface, action data.Action) interface{} {
+	appid := action.PackageId
+	if appid == "" {
+		return rpc.CreateResponse(rpc.INVALID_CODE, "package id shouldnt be empty")
+	}
+	app := appman.GetAppConnect(appid, client)
+	if app == nil {
+		return rpc.CreateResponse(rpc.INVALID_CODE, appid+" app not found")
+	}
+	return rpc.CreateSuccessResponse(strconv.FormatBool(app.IsRunning()))
+}
 func onAppClearData(
 	client protocol.ClientInterface,
 	action data.Action) interface{} {

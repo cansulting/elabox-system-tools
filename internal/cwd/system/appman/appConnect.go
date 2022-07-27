@@ -156,6 +156,10 @@ func (app *AppConnect) Launch() error {
 	}
 
 	app.launched = true
+	err := EnableService(app.PackageId, true)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -201,6 +205,23 @@ func (app *AppConnect) Restart() error {
 			return err
 		}
 	}
+	return app.Launch()
+}
+
+// off an app
+func (app *AppConnect) DisableApp() error {
+	if app.IsRunning() {
+		if err := app.Terminate(); err != nil {
+			return err
+		}
+		err := EnableService(app.PackageId, false)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+func (app *AppConnect) EnableApp() error {
 	return app.Launch()
 }
 

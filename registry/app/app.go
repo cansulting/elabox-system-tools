@@ -149,3 +149,11 @@ func IsPackageInstalled(id string) (bool, error) {
 	count, err := util.Count("packages", "id=?", id)
 	return count > 0, err
 }
+
+func EnableService(pk string, status bool) error {
+	err := setEnableService(pk, status)
+	if err != nil {
+		return err
+	}
+	return nil
+}
