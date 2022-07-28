@@ -20,11 +20,11 @@ import (
 	"os"
 
 	"github.com/cansulting/elabox-system-tools/foundation/constants"
-	"github.com/cansulting/elabox-system-tools/foundation/env"
 	"github.com/cansulting/elabox-system-tools/foundation/event"
 	"github.com/cansulting/elabox-system-tools/foundation/event/data"
 	"github.com/cansulting/elabox-system-tools/foundation/event/protocol"
 	"github.com/cansulting/elabox-system-tools/foundation/system"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/system/env"
 	"github.com/cansulting/elabox-system-tools/registry/app"
 )
 

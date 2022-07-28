@@ -4,9 +4,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/cansulting/elabox-system-tools/foundation/env"
 	"github.com/cansulting/elabox-system-tools/foundation/system"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/system/appman"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/system/env"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/system/global"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/system/servicecenter"
 )
