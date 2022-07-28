@@ -91,6 +91,19 @@ func setEnableService(pk string, status bool) error {
 	}
 	return nil
 }
+func GetServiceStatus(pk string) (bool, error) {
+	query := "select status from service_status where packageId = ?;"
+	row, err := util.SelectQuery(query, pk)
+	if err != nil {
+		return false, errors.SystemNew("error in getting status of "+pk, err)
+	}
+	var status bool
+	defer row.Close()
+	for row.Next() {
+		row.Scan(&status)
+	}
+	return status, nil
+}
 
 /*
 func RetrievePackagesWithBroadcast(action string) ([]string, error) {
