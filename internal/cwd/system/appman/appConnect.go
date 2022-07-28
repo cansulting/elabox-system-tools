@@ -157,10 +157,6 @@ func (app *AppConnect) Launch() error {
 	}
 
 	app.launched = true
-	err := EnableService(app.PackageId, true)
-	if err != nil {
-		return err
-	}
 	return nil
 }
 
@@ -228,8 +224,8 @@ func (app *AppConnect) EnableService() error {
 		return err
 	}
 	go func() {
-		if err := app.Launch(); err != nil {
-			logger.GetInstance().Debug().Err(err).Caller().Msg("failed launching " + app.PackageId)
+		if err := app.init(); err != nil {
+			logger.GetInstance().Debug().Err(err).Caller().Msg("failed enabling service " + app.PackageId)
 		}
 	}()
 	return nil

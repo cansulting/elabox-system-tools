@@ -162,7 +162,7 @@ func InitializeAllPackages() {
 	for _, pkg := range pkgs {
 		config, err := app.RetrievePackage(pkg)
 		if err != nil {
-			global.Logger.Error().Err(err).Caller().Msg("Failed retrieving package " + pkg)
+			global.Logger.Warn().Err(err).Caller().Msg("Failed retrieving package " + pkg)
 			continue
 		}
 		// should we initialize the package?
