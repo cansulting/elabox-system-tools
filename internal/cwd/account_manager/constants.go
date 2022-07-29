@@ -6,7 +6,7 @@ import "github.com/cansulting/elabox-system-tools/foundation/app"
 const AC_AUTH_DID = "account.actions.AUTH_DID"           // use to authenticaticate specific did
 const AC_SETUP_CHECK = "account.actions.DID_SETUP_CHECK" // use to check if theres an existing did setup
 const AC_SETUP_DID = "account.actions.DID_SETUP"         // use to setup did
-const AC_DEVICE_SERIAL = "account.actions.DEVICE_SERIAL" //usse to get device serial
+const AC_DEVICE_SERIAL = "account.actions.DEVICE_SERIAL" //use to get device serial
 
 const PACKAGE_ID = "ela.account"
 const HOME_DIR = "/home/elabox"
