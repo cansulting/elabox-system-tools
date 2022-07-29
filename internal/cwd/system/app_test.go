@@ -7,6 +7,7 @@ import (
 	"github.com/cansulting/elabox-system-tools/foundation/app/rpc"
 	"github.com/cansulting/elabox-system-tools/foundation/constants"
 	"github.com/cansulting/elabox-system-tools/foundation/event/data"
+	"github.com/cansulting/elabox-system-tools/registry/app"
 )
 
 const TEST_APP = "ela.logs"
@@ -72,4 +73,12 @@ func TestAppClearData(test *testing.T) {
 		return
 	}
 	test.Log(res)
+}
+func TestGetServiceStatus(test *testing.T) {
+	status, err := app.GetServiceStatus("ela.mainchain")
+	if err != nil {
+		test.Error("cannot get status", err)
+		return
+	}
+	test.Log(status)
 }
