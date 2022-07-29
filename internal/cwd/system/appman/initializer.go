@@ -1,7 +1,7 @@
 package appman
 
 import (
-	"github.com/cansulting/elabox-system-tools/internal/cwd/system/env"
+	"github.com/cansulting/elabox-system-tools/foundation/system"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/system/global"
 )
 
@@ -9,7 +9,7 @@ func Initialize(commandline bool) error {
 	if !commandline {
 		if global.RUN_STARTUPAPPS {
 			// if system is not yet configured only run utility services needed to run the basic functions
-			if env.GetEnv(global.CONFIG_ENV) == "1" {
+			if system.GetEnv(global.CONFIG_ENV) == "1" {
 				InitializeAllPackages()
 			} else {
 				return initializeConfigPackages()

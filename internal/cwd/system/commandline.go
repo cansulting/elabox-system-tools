@@ -24,7 +24,6 @@ import (
 	"github.com/cansulting/elabox-system-tools/foundation/event/data"
 	"github.com/cansulting/elabox-system-tools/foundation/event/protocol"
 	"github.com/cansulting/elabox-system-tools/foundation/system"
-	"github.com/cansulting/elabox-system-tools/internal/cwd/system/env"
 	"github.com/cansulting/elabox-system-tools/registry/app"
 )
 
@@ -42,9 +41,9 @@ func processCmdline() {
 	case "env", "-e":
 		largs := len(args)
 		if largs == 3 {
-			println(env.GetEnv(args[2]))
+			println(system.GetEnv(args[2]))
 		} else if largs == 4 {
-			env.SetEnv(args[2], args[3])
+			system.SetEnv(args[2], args[3])
 		}
 	// use for version
 	case "version", "-v":

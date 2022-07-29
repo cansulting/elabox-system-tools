@@ -16,10 +16,7 @@ func Init() error {
 	if system.BuildMode != system.DEBUG {
 		logger.ConsoleOut = false
 	}
-	if err := initEnv(); err != nil {
-		return err
-	}
-	if err := SetEnv(ELAENV, string(system.BuildMode)); err != nil {
+	if err := system.SetEnv(ELAENV, string(system.BuildMode)); err != nil {
 		return errors.SystemNew("System Config Environment error", err)
 	}
 	pkg, err := app.RetrievePackage(constants.SYSTEM_SERVICE_ID)
@@ -29,7 +26,7 @@ func Init() error {
 	if err != nil {
 		return errors.SystemNew("System config environment error ", err)
 	}
-	if err := SetEnv(ELAVERSION, pkg.Version); err != nil {
+	if err := system.SetEnv(ELAVERSION, pkg.Version); err != nil {
 		return errors.SystemNew("System Config Environment error", err)
 	}
 	return nil
