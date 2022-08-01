@@ -70,6 +70,8 @@ func OnRecievedRequest(
 		return onAppOff(client, action)
 	case constants.ACTION_APP_ON:
 		return onAppOn(client, action)
+	case constants.ACTION_APP_DEVICE_SERIAL:
+		return onGetDeviceSerial()
 	case constants.ACTION_APP_CHECK_STATUS:
 		return onAppCheckStatus(client, action)
 	case constants.ACTION_APP_CLEAR_DATA:
@@ -356,4 +358,15 @@ func initPackage(action data.Action) string {
 		global.Logger.Error().Err(err).Msg("failed to enable app " + pki)
 	}
 	return rpc.CreateSuccessResponse("Initialized")
+}
+
+// get device serial
+func onGetDeviceSerial() string {
+	deviceSerial, err := appman.GetDeviceSerial()
+	if err != nil {
+		global.Logger.Error().Err(err).Msg("Unable to get serial")
+		return rpc.CreateResponse(rpc.SYSTEMERR_CODE, err.Error())
+	}
+	resp := map[string]string{"Serial": deviceSerial}
+	return rpc.CreateJsonResponse(rpc.SUCCESS_CODE, resp)
 }

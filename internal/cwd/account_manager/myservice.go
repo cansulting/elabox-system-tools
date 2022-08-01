@@ -86,10 +86,3 @@ func (instance *MyService) onSetupDid(client protocol.ClientInterface, action da
 	}
 	return rpc.CreateSuccessResponse("success")
 }
-
-// get device serial
-func (instance *MyService) onGetDeviceSerial(client protocol.ClientInterface, action data.Action) string {
-	deviceSerial := GetDeviceSerial()
-	resp := map[string]string{"Serial": deviceSerial}
-	return rpc.CreateJsonResponse(rpc.SUCCESS_CODE, resp)
-}
