@@ -14,7 +14,6 @@ func (instance *MyService) IsRunning() bool {
 }
 
 func (instance *MyService) OnStart() error {
-	Controller.RPC.OnRecieved(AC_DEVICE_SERIAL, instance.onGetDeviceSerial)
 	Controller.RPC.OnRecieved(AC_AUTH_DID, instance.onAuthDidAction)
 	Controller.RPC.OnRecieved(AC_SETUP_CHECK, instance.onCheckSetup)
 	Controller.RPC.OnRecieved(AC_SETUP_DID, instance.onSetupDid)
