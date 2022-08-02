@@ -160,19 +160,26 @@ func InitializeAllPackages() {
 		return
 	}
 	for _, pkg := range pkgs {
-		config, err := app.RetrievePackage(pkg)
+		isOn, err := app.GetServiceStatus(pkg)
 		if err != nil {
-			global.Logger.Error().Err(err).Caller().Msg("Failed retrieving package " + pkg)
+			global.Logger.Warn().Err(err).Caller().Msg("Failed retrieving status of " + pkg)
 			continue
 		}
-		// should we initialize the package?
-		if !config.ExportServices &&
-			!config.Nodejs &&
-			config.ActivityGroup.CustomPort == 0 {
-			continue
-		}
-		if err := InitializePackage(pkg); err != nil {
-			global.Logger.Error().Err(err).Caller().Msg("Failed initializing package " + pkg)
+		if isOn {
+			config, err := app.RetrievePackage(pkg)
+			if err != nil {
+				global.Logger.Warn().Err(err).Caller().Msg("Failed retrieving package " + pkg)
+				continue
+			}
+			// should we initialize the package?
+			if !config.ExportServices &&
+				!config.Nodejs &&
+				config.ActivityGroup.CustomPort == 0 {
+				continue
+			}
+			if err := InitializePackage(pkg); err != nil {
+				global.Logger.Error().Err(err).Caller().Msg("Failed initializing package " + pkg)
+			}
 		}
 	}
 }

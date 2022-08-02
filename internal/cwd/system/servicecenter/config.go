@@ -2,14 +2,14 @@ package servicecenter
 
 import (
 	"github.com/cansulting/elabox-system-tools/foundation/app/rpc"
-	"github.com/cansulting/elabox-system-tools/foundation/env"
+	"github.com/cansulting/elabox-system-tools/foundation/system"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/system/appman"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/system/global"
 )
 
 func configureSystem() string {
 	if !isConfig() {
-		if err := env.SetEnv(global.CONFIG_ENV, "1"); err != nil {
+		if err := system.SetEnv(global.CONFIG_ENV, "1"); err != nil {
 			global.Logger.Error().Err(err).Msg("failed to mark as config")
 		}
 		appman.InitializeAllPackages()
@@ -18,5 +18,5 @@ func configureSystem() string {
 }
 
 func isConfig() bool {
-	return env.GetEnv(global.CONFIG_ENV) == "1"
+	return system.GetEnv(global.CONFIG_ENV) == "1"
 }

@@ -157,3 +157,23 @@ func EnableService(pk string, status bool) error {
 	}
 	return nil
 }
+
+// use to check if package is enabled or not
+func GetServiceStatus(pk string) (bool, error) {
+	query := "select status from service_status where packageId = ?;"
+	row, err := util.SelectQuery(query, pk)
+	if err != nil {
+		return false, errors.SystemNew("error in getting status of "+pk, err)
+	}
+	var status bool
+	defer row.Close()
+	found := false
+	for row.Next() {
+		found = true
+		row.Scan(&status)
+	}
+	if !found {
+		return true, nil
+	}
+	return status, nil
+}
