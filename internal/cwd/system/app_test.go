@@ -74,6 +74,21 @@ func TestAppClearData(test *testing.T) {
 	}
 	test.Log(res)
 }
+
+func TestGetDeviceSerial(test *testing.T) {
+	handler, err := rpc.NewRPCHandlerDefault()
+	if err != nil {
+		test.Error(err)
+		return
+	}
+	res, err := handler.CallSystem(data.NewAction(constants.ACTION_APP_DEVICE_SERIAL, "", nil))
+	if err != nil {
+		test.Error(err)
+		return
+	}
+	test.Log(res)
+}
+
 func TestGetServiceStatus(test *testing.T) {
 	status, err := app.GetServiceStatus("ela.mainchain")
 	if err != nil {
