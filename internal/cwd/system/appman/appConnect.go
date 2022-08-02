@@ -207,12 +207,12 @@ func (app *AppConnect) Restart() error {
 
 // off an app
 func (app *AppConnect) DisableService() error {
+	err := EnableService(app.PackageId, false)
+	if err != nil {
+		return err
+	}
 	if app.IsRunning() {
 		if err := app.Terminate(); err != nil {
-			return err
-		}
-		err := EnableService(app.PackageId, false)
-		if err != nil {
 			return err
 		}
 	}
