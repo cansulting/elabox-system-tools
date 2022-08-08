@@ -36,7 +36,7 @@ func (s *SocketIOClient) GetState() data.ConnectionType {
 
 // implementation for connector client. let client send service requests
 func (s *SocketIOClient) SendSystemRequest(event string, action data.Action) (string, error) {
-	println("socketIOConnectorClient.SendSystemRequest", event)
+	//println("socketIOConnectorClient.SendSystemRequest", event)
 	return s.socket.Ack(event, action, time.Second*constants.TIMEOUT)
 }
 
