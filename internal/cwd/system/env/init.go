@@ -16,6 +16,7 @@ func Init() error {
 	if system.BuildMode != system.DEBUG {
 		logger.ConsoleOut = false
 	}
+	logger.GetInstance().Info().Msg("System running " + string(system.BuildMode))
 	if err := system.SetEnv(ELAENV, string(system.BuildMode)); err != nil {
 		return errors.SystemNew("System Config Environment error", err)
 	}
