@@ -8,6 +8,7 @@
 // you’ll have to release your application under similar terms as the LGPL.
 // Please check license description @ https://www.gnu.org/licenses/lgpl-3.0.txt
 
+//go:build RELEASE
 // +build RELEASE
 
 package perm
@@ -16,7 +17,7 @@ type FS int
 
 const (
 	PUBLIC       = 0777
-	PUBLIC_VIEW  = 0744
+	PUBLIC_VIEW  = 0755
 	PUBLIC_WRITE = 0766
 	PRIVATE      = 0700
 )
