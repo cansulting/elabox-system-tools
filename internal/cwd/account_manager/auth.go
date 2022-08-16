@@ -9,6 +9,8 @@ import (
 
 	"github.com/cansulting/elabox-system-tools/foundation/perm"
 	"github.com/cansulting/elabox-system-tools/foundation/system"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/account_manager/data"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/account_manager/utils"
 )
 
 const SHADOW_FILE = "/etc/shadow"
@@ -18,7 +20,7 @@ func AuthenticateDid(did string) bool {
 	deviceSerial := system.GetDeviceInfo().Serial
 	hash := sha256.Sum256([]byte(did + deviceSerial))
 	// step: load the currently saved did hash
-	savedHash, err := os.ReadFile(DID_HASH_PATH)
+	savedHash, err := os.ReadFile(data.DID_HASH_PATH)
 	if err != nil {
 		return false
 	}
@@ -29,7 +31,7 @@ func AuthenticateDid(did string) bool {
 }
 
 func IsDidSetup() bool {
-	if _, err := os.Stat(DID_HASH_PATH); err != nil {
+	if _, err := os.Stat(data.DID_HASH_PATH); err != nil {
 		return false
 	}
 	return true
@@ -41,7 +43,7 @@ func AuthenticateSystemAccount(username string, password string) (error, bool) {
 	if err != nil {
 		return err, false
 	}
-	hashContent := Grep(username, string(contents))
+	hashContent := utils.Grep(username, string(contents))
 	// unable to find specific user account
 	if hashContent == "" {
 		return nil, false
@@ -81,10 +83,10 @@ func SetDeviceDid(presentation map[string]interface{}) error {
 	deviceSerial := system.GetDeviceInfo().Serial
 	hash := sha256.Sum256([]byte(did + deviceSerial))
 	// step: save to file
-	if err := os.MkdirAll(DID_DATA_DIR, perm.PUBLIC_WRITE); err != nil {
+	if err := os.MkdirAll(data.DID_DATA_DIR, perm.PUBLIC_WRITE); err != nil {
 		return err
 	}
-	if err := os.WriteFile(DID_HASH_PATH, hash[:], perm.PUBLIC_VIEW); err != nil {
+	if err := os.WriteFile(data.DID_HASH_PATH, hash[:], perm.PUBLIC_VIEW); err != nil {
 		return err
 	}
 	return nil

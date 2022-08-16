@@ -1,4 +1,4 @@
-package main
+package data
 
 import "github.com/cansulting/elabox-system-tools/foundation/app"
 

@@ -1,9 +1,11 @@
-package main
+package utils
 
 import (
 	"encoding/json"
 	"os"
 	"strings"
+
+	"github.com/cansulting/elabox-system-tools/internal/cwd/account_manager/data"
 )
 
 type Address struct {
@@ -38,7 +40,7 @@ func Grep(keyword string, src string) string {
 
 // use to retrieve wallet address from keystore path
 func LoadWalletAddr() (string, error) {
-	dat, err := os.ReadFile(KEYSTORE_PATH)
+	dat, err := os.ReadFile(data.KEYSTORE_PATH)
 	if err != nil {
 		return "", err
 	}

@@ -1,6 +1,11 @@
 package main
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/cansulting/elabox-system-tools/internal/cwd/account_manager/data"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/account_manager/factory"
+)
 
 const SAMPLE_DID = "HELLO_DID_USER"
 const SAMPLE_USERNAME = "elabox"
@@ -28,4 +33,20 @@ func Test_AuthenticateSystemAccount(t *testing.T) {
 		return
 	}
 	t.Log("Authenticate", success)
+}
+
+func Test_AccountCreate(t *testing.T) {
+	acc := "test"
+	if exist, _ := factory.IsAccountExist(acc); exist {
+		if err := factory.DeleteAccount(acc); err != nil {
+			t.Error("failed deleting account", acc, err)
+			return
+		}
+	}
+	acc_data := data.Account{
+		Username: acc,
+	}
+	if err := factory.CreateAccount(acc, acc_data); err != nil {
+		t.Error("failed creating account", err)
+	}
 }

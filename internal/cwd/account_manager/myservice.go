@@ -4,6 +4,8 @@ import (
 	"github.com/cansulting/elabox-system-tools/foundation/app/rpc"
 	"github.com/cansulting/elabox-system-tools/foundation/event/data"
 	"github.com/cansulting/elabox-system-tools/foundation/event/protocol"
+	acdata "github.com/cansulting/elabox-system-tools/internal/cwd/account_manager/data"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/account_manager/utils"
 )
 
 type MyService struct {
@@ -14,9 +16,9 @@ func (instance *MyService) IsRunning() bool {
 }
 
 func (instance *MyService) OnStart() error {
-	Controller.RPC.OnRecieved(AC_AUTH_DID, instance.onAuthDidAction)
-	Controller.RPC.OnRecieved(AC_SETUP_CHECK, instance.onCheckSetup)
-	Controller.RPC.OnRecieved(AC_SETUP_DID, instance.onSetupDid)
+	acdata.Controller.RPC.OnRecieved(acdata.AC_AUTH_DID, instance.onAuthDidAction)
+	acdata.Controller.RPC.OnRecieved(acdata.AC_SETUP_CHECK, instance.onCheckSetup)
+	acdata.Controller.RPC.OnRecieved(acdata.AC_SETUP_DID, instance.onSetupDid)
 	return nil
 }
 
@@ -84,4 +86,11 @@ func (instance *MyService) onSetupDid(client protocol.ClientInterface, action da
 		return rpc.CreateResponse(rpc.SYSTEMERR_CODE, "failed to setup did, "+err.Error())
 	}
 	return rpc.CreateSuccessResponse("success")
+}
+
+func RetrievePrimaryAccountDetails() map[string]interface{} {
+	result := make(map[string]interface{})
+	wallet, _ := utils.LoadWalletAddr()
+	result["wallet"] = wallet
+	return result
 }
