@@ -14,17 +14,18 @@ package path
 // Constant and variables used by the system.
 // Reference: https://help.ubuntu.com/community/LinuxFilesystemTreeOverview
 
-
-const PATH_SYSTEM = "/usr/ela/system"              // where ela binaries will be stored
-const PATH_CACHES = "/tmp/ela"                     // dir where caches will be saved
-const PATH_HOME = "/home/elabox"                   // the root path for elabox. the root directory for non system apps and data
-const PATH_SYSTEM_DATA = "/var/ela/data"           // dir where system data will be persist
-const PATH_APPS = PATH_HOME + "/apps"              // where non system bin/apps will be installed
-const PATH_APPDATA = PATH_HOME + "/data"           // where non system bin/apps data will be persist
-const PATH_DOWNLOADS = PATH_APPDATA + "/downloads" // where downloaded files will be stored
-const PATH_SYSTEM_WWW = "/var/www"
-const PATH_EXTERNAL_WWW = PATH_HOME + "/www"
-const PATH_LIB = "/usr/local/lib/ela"
+const PATH_SYSTEM = "/usr/ela/system"                // where ela binaries will be stored
+const PATH_CACHES = "/tmp/ela"                       // dir where caches will be saved
+const PATH_HOME = "/home/elabox"                     // the root path for elabox. the root directory for non system apps and data
+const PATH_SYSTEM_DATA = "/var/ela/data"             // dir where system data will be persist
+const PATH_HOME_APPS = PATH_HOME + "/apps"           // where non system bin/apps will be installed
+const PATH_HOME_DATA = PATH_HOME + "/data"           // where non system bin/apps data will be persist
+const PATH_DOWNLOADS = PATH_HOME_DATA + "/downloads" // where downloaded files will be stored
+const PATH_SYSTEM_WWW = "/var/www"                   //
+const PATH_EXTERNAL_WWW = PATH_HOME + "/www"         //
+const PATH_LIB = "/usr/local/lib/ela"                //
+const PATH_USERS = "/usr/ela/users"                  // users directory
+const PATH_HOME_DOCUMENTS = PATH_HOME + "/documents"
 
 func GetSystemAppDir() string {
 	return PATH_SYSTEM
@@ -53,7 +54,7 @@ func GetSystemAppDirData(packageId string) string {
 }
 
 func GetExternalAppData(packageId string) string {
-	return PATH_APPDATA + "/" + packageId
+	return PATH_HOME_DATA + "/" + packageId
 }
 
 // get the app main executable
