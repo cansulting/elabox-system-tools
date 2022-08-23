@@ -27,7 +27,7 @@ done
 # NodeJs 
 curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash -
 echo 'Y' | sudo apt update 
-sudo apt install nodejs
+echo 'Y' | sudo apt install nodejs
 
 # download go lang
 if [ ! -d "/usr/local/go" ]; then 
@@ -40,14 +40,14 @@ if [ ! -d "/usr/local/go" ]; then
     echo ""export PATH=$PATH:/usr/local/go/bin"" >> ~/.bashrc
 
     # install gcc pipelines
-    snap install zig --beta --classic # for cross compiling remove other toolchains
-    sudo apt install gcc-aarch64-linux-gnu
-    sudo apt install gcc-multilib -y
-    sudo apt install gcc-9-x86-64-linux-gnux32 # linux amd64
-    sudo apt-get install gcc-mingw-w64 # windows
-    sudo apt-get install gcc-i686-linux-gnu #linux intel
+    echo 'Y' | snap install zig --beta --classic # for cross compiling remove other toolchains
+    echo 'Y' | sudo apt install gcc-aarch64-linux-gnu
+    echo 'Y' | sudo apt install gcc-multilib -y
+    echo 'Y' | sudo apt install gcc-9-x86-64-linux-gnux32 # linux amd64
+    echo 'Y' | sudo apt-get install gcc-mingw-w64 # windows
+    echo 'Y' | sudo apt-get install gcc-i686-linux-gnu #linux intel
     # for carrier build 
-    sudo apt-get install build-essential autoconf automake autopoint libtool bison texinfo pkg-config cmake
+    echo 'Y' | sudo apt-get install build-essential autoconf automake autopoint libtool bison texinfo pkg-config cmake
     . ~/.bashrc
 else
     echo "Golang, GCC libraries installed. skipping..."
@@ -69,12 +69,12 @@ if [[ "$answer" == "y" ]]; then
     sudo ./google-cloud-sdk/bin/gcloud init
     sudo rm google-cloud-sdk-350.0.0-linux-arm.tar.gz
     export PATH=$PATH:/usr/local/go/bin
-    echo ""export PATH=$PATH:/usr/local/go/bin"" >> ~/.bashrc
+    echo ""export PATH=$PATH:/usr/local/go/bin:$PWD/google-cloud-sdk/bin"" >> ~/.bashrc
     . ~/.bashrc
     cd $cw
 
     # for json bash parsing
-    sudo apt install jq
+    echo 'Y' | sudo apt install jq
 fi
 
 ######################################
@@ -151,13 +151,13 @@ if [ ! -d "elabox-dapp-store" ]; then
     cd "../elabox-dapp-store"
     git switch development
 fi
-if [ ! -d "elabox-setup-wizard"]; then 
+if [ ! -d "elabox-setup-wizard" ]; then 
     cd $wd
     git clone https://github.com/cansulting/elabox-setup-wizard.git
     cd "../elabox-setup-wizard"
     git switch development
 fi
-if [ ! -d "elabox-binaries"]; then 
+if [ ! -d "elabox-binaries" ]; then 
     cd $wd
     git clone https://github.com/cansulting/elabox-binaries.git
     cd "../elabox-binaries"
