@@ -127,6 +127,11 @@ func (a *activity) finish(err string) {
 	if err != "" {
 		global.Logger.Error().Caller().Stack().Msg(err)
 		broadcast.Error(a.currentPkg, global.INSTALL_ERROR, err)
+		// termiante package
+		a.terminatePackage(a.currentPkg)
+		if err := utils.UninstallPackage(a.currentPkg, global.DELETE_DATA_ONUNINSTALL, true, true); err != nil {
+			broadcast.Error(a.currentPkg, global.UNINSTALL_ERROR, err.Error())
+		}
 	} else {
 		global.Logger.Info().Msg("Install success")
 		broadcast.UpdateSystem(a.currentPkg, broadcast.INSTALLED)
