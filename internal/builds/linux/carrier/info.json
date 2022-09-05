@@ -15,7 +15,7 @@
 	},
 	"permissions": null,
 	"exportService": true,
-	"location": "external",
+	"location": "system",
 	"nodejs": false,
 	"packagerVersion": "0.1.0"
 }

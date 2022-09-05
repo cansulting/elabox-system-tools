@@ -4,6 +4,7 @@
     "binDir": "./bin",
     "bin": "",
     "packages": [],
+    "postinstall": "postinstall.sh",
     "customInstaller": "",
     "lib": ""
 }
