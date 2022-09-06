@@ -62,9 +62,10 @@ func (a *activity) OnPendingAction(action *data.Action) error {
 				if err := a.startNormalInstall(pkgData); err != nil {
 					broadcast.Error(pkgData.Config.PackageId, global.INSTALL_ERROR, err.Error())
 				}
-			}
-			if err := a.runCustomInstaller(sourcePkg, pkgData); err != nil {
-				broadcast.Error(pkgData.Config.PackageId, global.INSTALL_ERROR, err.Error())
+			} else {
+				if err := a.runCustomInstaller(sourcePkg, pkgData); err != nil {
+					broadcast.Error(pkgData.Config.PackageId, global.INSTALL_ERROR, err.Error())
+				}
 			}
 		}()
 		return nil
