@@ -100,8 +100,8 @@ func (a *activity) startNormalInstall(pkgd *pkg.Data) error {
 	}
 	// step: register package
 	if err := install.Finalize(); err != nil {
-		a.finish("Unable to register package " + err.Error())
-		return nil
+		//a.finish("Unable to register package " + err.Error())
+		return err
 	}
 	a.finish("")
 	return nil

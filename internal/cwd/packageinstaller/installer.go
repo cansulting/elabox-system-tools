@@ -238,7 +238,7 @@ func (t *installer) Finalize() error {
 	}
 	if t.packageContent.HasPostInstallScript() {
 		if err := t.packageContent.StartPostInstall(); err != nil {
-			return err
+			return errors.SystemNew("issue found while running post install script. ", err)
 		}
 	}
 	// activate port for activity custom port
