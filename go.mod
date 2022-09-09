@@ -8,4 +8,5 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.8
 	github.com/mitchellh/mapstructure v1.4.2
 	github.com/rs/zerolog v1.25.0
+	github.com/ztrue/shutdown v0.1.1
 )

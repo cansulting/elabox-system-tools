@@ -17,3 +17,6 @@ github.com/mitchellh/mapstructure
 github.com/rs/zerolog
 github.com/rs/zerolog/internal/cbor
 github.com/rs/zerolog/internal/json
+# github.com/ztrue/shutdown v0.1.1
+## explicit
+github.com/ztrue/shutdown
