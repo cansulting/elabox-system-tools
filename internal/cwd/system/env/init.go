@@ -31,7 +31,7 @@ func Init() error {
 	if err := system.SetEnv(ELAVERSION, pkg.Version); err != nil {
 		return errors.SystemNew("System Config Environment error", err)
 	}
-	if(system.GetEnv(ELASHUTDOWNSTATUS) != "properly_shutdown"){
+	if(system.GetEnv(ELASHUTDOWNSTATUS) != "properly_shutdown") {
 		if err := system.SetEnv(ELASHUTDOWNSTATUS, "not_properly_shutdown"); err != nil {
 			return errors.SystemNew("System Config Environment error", err)
 		}	

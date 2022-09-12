@@ -25,6 +25,7 @@ import (
 	"github.com/cansulting/elabox-system-tools/foundation/system"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/system/appman"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/system/debugging"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/system/disk"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/system/global"
 
 	"log"
@@ -78,6 +79,10 @@ func OnRecievedRequest(
 		return onAppClearData(client, action)
 	case constants.ACTION_APP_INSTALLED:
 		return initPackage(action)
+	case constants.ACTION_APP_CHECK_SHUTDOWN_STATUS:
+		return onAppShutdownStatus()
+	case constants.ACTION_APP_DISK_CHECK:
+		return onAppDiskCheck()
 	case constants.SYSTEM_UPDATE_MODE:
 		return activateUpdateMode(client, action)
 	case constants.SYSTEM_TERMINATE:
@@ -157,6 +162,20 @@ func onAppCheckStatus(client protocol.ClientInterface, action data.Action) inter
 		return rpc.CreateResponse(rpc.INVALID_CODE, appid+" app not found")
 	}
 	return rpc.CreateSuccessResponse(strconv.FormatBool(app.IsRunning()))
+}
+func onAppShutdownStatus() interface{} {
+	restartStatus:= system.GetEnv("ELASHUTDOWNSTATUS")
+	if restartStatus == "properly_shutdown" {
+		system.SetEnv("ELASHUTDOWNSTATUS", "not_properly_shutdown")
+	}
+	return rpc.CreateSuccessResponse(restartStatus)
+}
+func onAppDiskCheck() interface{} {
+	success,err := disk.Check()
+	if err != nil {
+		return rpc.CreateResponse(rpc.SYSTEMERR_CODE, err.Error())
+	}
+	return rpc.CreateSuccessResponse(strconv.FormatBool(success))
 }
 func onAppClearData(
 	client protocol.ClientInterface,
