@@ -3,6 +3,7 @@ package disk
 import (
 	"os"
 	"os/exec"
+	"time"
 
 	"github.com/cansulting/elabox-system-tools/foundation/logger"
 	"github.com/cansulting/elabox-system-tools/foundation/system"
@@ -11,6 +12,7 @@ import (
 
 func Check() (bool,error){
 	logger.GetInstance().Info().Msg("Checking disk")	
+	time.Sleep(5 * time.Second)
 	cmd := exec.Command("/bin/sh", "-c", "sudo umount -l /dev/sda; sudo fsck -a /home/elabox; sudo mount /dev/sda /home/elabox")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr	

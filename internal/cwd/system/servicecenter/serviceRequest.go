@@ -171,10 +171,12 @@ func onAppShutdownStatus() interface{} {
 	return rpc.CreateSuccessResponse(restartStatus)
 }
 func onAppDiskCheck() interface{} {
+	appman.TerminateAllApp()
 	success,err := disk.Check()
 	if err != nil {
 		return rpc.CreateResponse(rpc.SYSTEMERR_CODE, err.Error())
 	}
+	appman.Initialize(false)
 	return rpc.CreateSuccessResponse(strconv.FormatBool(success))
 }
 func onAppClearData(
