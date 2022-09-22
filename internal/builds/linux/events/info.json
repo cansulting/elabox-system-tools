@@ -1,0 +1,19 @@
+{
+	"name": "Events Manager",
+	"description": "Service that manage Elabox Events Listeners",
+	"packageId": "ela.events",
+	"build": 1,
+	"version": "0.1.0",
+	"program": "ela.events",
+	"programArgs": null,
+	"activityGroup": {
+		"customLink": "",
+		"customPort": 0,
+		"activities": null
+	},
+	"permissions": [],
+	"exportService": true,
+	"location": "system",
+	"nodejs": false,
+	"packagerVersion": "0.1.0"
+}
