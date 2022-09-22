@@ -123,7 +123,11 @@ mkdir -p $buildpath/account_manager/bin
 eval "$gobuild" -o $buildpath/account_manager/bin ../cwd/account_manager
 programName=$(jq ".program" $buildpath/account_manager/info.json | sed 's/\"//g')
 mv $buildpath/account_manager/bin/account_manager $buildpath/account_manager/bin/$programName 
-
+# build events manager
+echo "Building Events Manager"
+mkdir -p $buildpath/events/bin
+eval "$gobuild" -o $buildpath/events/bin ../cwd/events
+ln -sf $PWD/$buildpath/events/bin/events /bin/events
 # build reward if exists
 if [ -d "$ELA_REWARDS" ]; then 
     wd=$PWD
@@ -291,6 +295,7 @@ packager $buildpath/esc/packager.json
 packager $buildpath/carrier/packager.json
 packager $buildpath/mainchain/packager.json
 packager $buildpath/$packageinstaller/packager.json
+packager $buildpath/events/packager.json
 packager $buildpath/account_manager/packager.json
 packager $buildpath/feeds/packager.json
 packager $buildpath/$system_name/packager.json
