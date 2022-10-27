@@ -41,7 +41,7 @@ func LoadFromSource(src string) (*Data, error) {
 	// step: read package
 	z, err := zip.OpenReader(src)
 	if err != nil {
-		return nil, errors.SystemNew("pkg.Load() failed to locate "+src, err)
+		return nil, errors.SystemNew("pkg.Load() failed to open package "+src, err)
 	}
 	res, err := LoadFromZipFiles(z.File)
 	if res != nil {
