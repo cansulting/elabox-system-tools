@@ -1,6 +1,9 @@
 package main
 
-import "github.com/cansulting/elabox-system-tools/foundation/app"
+import (
+	"github.com/cansulting/elabox-system-tools/foundation/app"
+	"github.com/cansulting/elabox-system-tools/foundation/path"
+)
 
 // actions
 const AC_AUTH_DID = "account.actions.AUTH_DID"           // use to authenticaticate specific did
@@ -12,5 +15,7 @@ const HOME_DIR = "/home/elabox"
 const DID_DATA_DIR = HOME_DIR + "/data/" + PACKAGE_ID
 const DID_HASH_PATH = DID_DATA_DIR + "/did.dat"
 const KEYSTORE_PATH = "/home/elabox/documents/ela.mainchain/keystore.dat"
+
+var ACCOUNT_FILE = path.GetSystemAppDirData(PACKAGE_ID) + "/ac.dat"
 
 var Controller *app.Controller
