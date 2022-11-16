@@ -2,8 +2,8 @@
 	"name": "ESC",
 	"description": "Ethereum Smart Contract(ESC) Node",
 	"packageId": "ela.esc",
-	"build": 2,
-	"version": "0.1.4.3",
+	"build": 4,
+	"version": "0.2.2",
 	"program": "ela.esc",
 	"programArgs": [
 		"--datadir",

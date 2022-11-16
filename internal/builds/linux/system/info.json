@@ -1,9 +1,9 @@
 {
 	"name": "Ela System",
-	"description": "Ela System powered by Elastos. Updated dashboard layout with uninstall and install feature. Security updates. Added Pasar dApp. And other stuffs.",
+	"description": "Ela System powered by Elastos. Added beta testing capability. Fixed setup. Other minor fixes.",
 	"packageId": "ela.system",
-	"build": 8,
-	"version": "0.6.8",
+	"build": 10,
+	"version": "0.6.11",
 	"program": "ela.system",
 	"programArgs": null,
 	"activityGroup": {
