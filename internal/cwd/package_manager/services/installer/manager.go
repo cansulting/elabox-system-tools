@@ -4,11 +4,10 @@
 package installer
 
 import (
-	"dashboard/data"
-	"dashboard/package_manager/broadcast"
-	"dashboard/package_manager/global"
-
 	"github.com/cansulting/elabox-system-tools/foundation/logger"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/package_manager/broadcast"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/package_manager/data"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/package_manager/global"
 )
 
 var tasklist = make(map[string]*Task)
@@ -68,7 +67,7 @@ func CreateUninstallTask(pkg string) *Task {
 // use to create install task
 // @pkg: install task for which package.
 // @downloadLink: where the package file will be downloaded
-func CreateInstallTask(pkg string, releaseType data.ReleaseType) (*Task, error) {
+func CreateInstallTask(pkg string, link string) (*Task, error) {
 	details, err := storehub.RetrieveApp(pkg, "")
 	if err != nil {
 		logger.GetInstance().Error().Err(err).Msg("failed to retrieve item " + pkg)

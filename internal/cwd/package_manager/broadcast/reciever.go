@@ -3,11 +3,10 @@
 package broadcast
 
 import (
-	"store/client-store/backend/global"
-
 	"github.com/cansulting/elabox-system-tools/foundation/event/data"
 	"github.com/cansulting/elabox-system-tools/foundation/event/protocol"
 	"github.com/cansulting/elabox-system-tools/foundation/logger"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/package_manager/global"
 )
 
 // register broadcast recievers

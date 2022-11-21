@@ -1,8 +1,9 @@
 package main
 
 import (
-	"store/client-store/backend/services/ipfs"
 	"testing"
+
+	"github.com/cansulting/elabox-system-tools/internal/cwd/package_manager/services/ipfs"
 )
 
 const TEST_CID = "QmePfgfoB27qQyWEV2oJNQMQkeXit1dCEue3WJHU85fHUE"

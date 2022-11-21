@@ -1,11 +1,10 @@
 package data
 
 import (
-	data2 "dashboard/data"
-	"dashboard/package_manager/global"
 	"strconv"
 
 	"github.com/cansulting/elabox-system-tools/foundation/app/data"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/package_manager/global"
 )
 
 type PackageInfo struct {
@@ -34,7 +33,7 @@ func NewPackageInfo() PackageInfo {
 }
 
 // add informations
-func (instance *PackageInfo) AddInfo(installed *data.PackageConfig, storeCacheItem *data2.PackagePreview, detailed bool) {
+func (instance *PackageInfo) AddInfo(installed *data.PackageConfig, storeCacheItem *PackagePreview, detailed bool) {
 	if installed != nil {
 		instance.CurrentBuild = int(installed.Build)
 		instance.IsService = installed.ExportServices

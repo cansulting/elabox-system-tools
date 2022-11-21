@@ -1,7 +1,6 @@
 package downloader
 
 import (
-	"dashboard/package_manager/global"
 	"errors"
 	"os"
 	"path"
@@ -9,6 +8,7 @@ import (
 
 	"github.com/cansulting/elabox-system-tools/foundation/logger"
 	"github.com/cansulting/elabox-system-tools/foundation/perm"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/package_manager/global"
 )
 
 // data for resumable downloads

@@ -2,8 +2,6 @@ package downloader
 
 import (
 	"context"
-	"dashboard/package_manager/global"
-	"dashboard/package_manager/services/ipfs"
 	"errors"
 	"fmt"
 	"io"
@@ -12,6 +10,8 @@ import (
 	"strconv"
 
 	"github.com/cansulting/elabox-system-tools/foundation/logger"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/package_manager/global"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/package_manager/services/ipfs"
 	files "github.com/ipfs/go-ipfs-files"
 )
 

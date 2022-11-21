@@ -5,16 +5,17 @@ package installer
 import (
 	"errors"
 
-	data2 "dashboard/data"
-	"dashboard/package_manager/broadcast"
-	"dashboard/package_manager/global"
-	"dashboard/package_manager/services/downloader"
 	"strconv"
 	"time"
+
+	data2 "github.com/cansulting/elabox-system-tools/internal/cwd/package_manager/data"
 
 	"github.com/cansulting/elabox-system-tools/foundation/constants"
 	"github.com/cansulting/elabox-system-tools/foundation/event/data"
 	"github.com/cansulting/elabox-system-tools/foundation/logger"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/package_manager/broadcast"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/package_manager/global"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/package_manager/services/downloader"
 	reg "github.com/cansulting/elabox-system-tools/registry/app"
 )
 

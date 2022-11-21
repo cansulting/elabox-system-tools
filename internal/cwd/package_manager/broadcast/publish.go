@@ -1,12 +1,12 @@
 package broadcast
 
 import (
-	"dashboard/package_manager/data"
-	"dashboard/package_manager/global"
 	"log"
 	"strconv"
 
 	sdata "github.com/cansulting/elabox-system-tools/foundation/event/data"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/package_manager/data"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/package_manager/global"
 )
 
 func PublishInstallProgress(progress uint, itemId string) error {

@@ -1,13 +1,12 @@
 package main
 
 import (
-	"dashboard/package_manager/data"
-	"dashboard/package_manager/services/installer"
 	"errors"
 	"sort"
-	data2 "store/data"
 
 	"github.com/cansulting/elabox-system-tools/foundation/logger"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/package_manager/data"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/package_manager/services/installer"
 	"github.com/cansulting/elabox-system-tools/registry/app"
 )
 
@@ -83,7 +82,7 @@ func RetrieveApp(pkgId string, storehubId string) (*data.PackageInfo, error) {
 }
 
 // use to download and install app
-func DownloadInstallApp(pkgId string, releaseType data2.ReleaseType) error {
+func DownloadInstallApp(pkgId string, link string) error {
 	task, err := installer.CreateInstallTask(pkgId, releaseType)
 	if err != nil {
 		return err

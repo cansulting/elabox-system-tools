@@ -2,17 +2,17 @@ package main
 
 import (
 	"os"
-	"store/client-store/backend/broadcast"
-	"store/client-store/backend/global"
-	"store/client-store/backend/services/downloader"
-	"store/client-store/backend/services/installer"
-	"store/data"
 	"strconv"
 	"testing"
 	"time"
 
 	"github.com/cansulting/elabox-system-tools/foundation/app/rpc"
 	"github.com/cansulting/elabox-system-tools/foundation/logger"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/package_manager/broadcast"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/package_manager/data"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/package_manager/global"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/package_manager/services/downloader"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/package_manager/services/installer"
 )
 
 const TEST_PKG_PATH = "/../build/ela.sample/ela.sample.box"
