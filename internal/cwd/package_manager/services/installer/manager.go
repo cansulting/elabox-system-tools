@@ -60,45 +60,38 @@ func initialize() {
 
 }
 
+func GetAllTasks() map[string]*Task {
+	return tasklist
+}
+
 func CreateUninstallTask(pkg string) *Task {
-	return CreateTask(pkg, "", nil)
+	return CreateTask(data.InstallDef{Id: pkg}, nil)
 }
 
 // use to create install task
 // @pkg: install task for which package.
 // @downloadLink: where the package file will be downloaded
-func CreateInstallTask(pkg string, link string) (*Task, error) {
-	details, err := storehub.RetrieveApp(pkg, "")
-	if err != nil {
-		logger.GetInstance().Error().Err(err).Msg("failed to retrieve item " + pkg)
-		return nil, err
-	}
-	var releaseUnit = details.Release.Production
-	switch releaseType {
-	case data.Beta:
-		releaseUnit = details.Release.Beta
-	case data.Development:
-		releaseUnit = details.Release.Alpha
-	}
-	return CreateTask(pkg, releaseUnit.Build.IpfsCID, releaseUnit.Build.Dependencies), nil
+func CreateInstallTask(link data.InstallDef, dependencies []data.InstallDef) (*Task, error) {
+	return CreateTask(link, dependencies), nil
 }
 
 // use to create install task
 // @pkg: install task for which package.
 // @downloadLink: where the package file will be downloaded
-func CreateTask(pkg string, downloadLink string, dependencies []string) *Task {
+func CreateTask(def data.InstallDef, dependencies []data.InstallDef) *Task {
 	initialize()
-	task := GetTask(pkg)
+	task := GetTask(def.Id)
 	if task == nil {
 		task = &Task{
-			Id:           pkg,
-			Url:          downloadLink,
+			Id:           def.Id,
+			Url:          def.Url,
 			Status:       global.UnInstalled,
 			ErrorCode:    0,
 			Dependencies: dependencies,
 			installing:   false,
+			Definition:   def,
 		}
-		tasklist[pkg] = task
+		tasklist[def.Id] = task
 
 		// step: if this task finished downloading, then add to install queue
 		task.OnStateChanged = func(task *Task) {
@@ -118,8 +111,8 @@ func CreateTask(pkg string, downloadLink string, dependencies []string) *Task {
 	} else {
 		task.Dependencies = dependencies
 	}
-	if downloadLink != "" {
-		task.Url = downloadLink
+	if def.Url != "" {
+		task.Url = def.Url
 	}
 	//task.Start()
 	return task

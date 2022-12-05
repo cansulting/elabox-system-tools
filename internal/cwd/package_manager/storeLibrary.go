@@ -6,6 +6,7 @@ import (
 
 	"github.com/cansulting/elabox-system-tools/foundation/logger"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/package_manager/data"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/package_manager/global"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/package_manager/services/installer"
 	"github.com/cansulting/elabox-system-tools/registry/app"
 )
@@ -16,7 +17,7 @@ var deviceSerial = ""
 // @beta is true if include all apps for testing and demo apps
 func RetrieveAllApps(beta bool) ([]data.PackageInfo, error) {
 	// step: retrieve all apps from registry
-	storeItems, err := app.
+	storeItems, err := app.RetrieveAllPackages()
 	if err != nil {
 		return nil, errors.New("unable to retrieve all installed packages. inner: " + err.Error())
 	}
@@ -24,29 +25,24 @@ func RetrieveAllApps(beta bool) ([]data.PackageInfo, error) {
 	var tmpPreview data.PackageInfo
 	// step: iterate on packages
 	for _, pkg := range storeItems {
-		installedInfo, err := app.RetrievePackage(pkg.Id)
+		installedInfo, err := app.RetrievePackage(pkg)
 		if err != nil {
-			logger.GetInstance().Debug().Msg("unable to retrieve cache item for package: " + pkg.Id + ". inner: " + err.Error())
+			logger.GetInstance().Debug().Msg("unable to retrieve cache item for package: " + pkg + ". inner: " + err.Error())
 		}
-		// if false && beta && pkg.Release.ReleaseType == data2.Beta && len(pkg.Tester.Users) > 0 {
-		// 	tester, err := isTester(pkg.Tester.Users)
-		// 	if err != nil {
-		// 		logger.GetInstance().Debug().Msg("unable to validate user: " + err.Error())
-		// 		continue
-		// 	}
-		// 	// not tester and not installed, skip the package
-		// 	if !tester && installedInfo == nil {
-		// 		continue
-		// 	}
-		// }
 		tmpPreview = data.PackageInfo{}
-		tmpPreview.AddInfo(installedInfo, &pkg, false)
+		tmpPreview.AddInfo(installedInfo, nil, false)
 		if task := installer.GetTask(tmpPreview.Id); task != nil {
 			tmpPreview.Status = task.Status
 		}
-
 		// check if currently in download
 		previews = append(previews, tmpPreview)
+	}
+	// add tasks installing
+	for _, task := range installer.GetAllTasks() {
+		if task.Status == global.Downloading || task.Status == global.Installing {
+			tmp := task.Definition.ToPackageInfo()
+			previews = append(previews, tmp)
+		}
 	}
 	// sort preview by name
 	sort.Slice(previews, func(i, j int) bool {
@@ -82,8 +78,8 @@ func RetrieveApp(pkgId string, storehubId string) (*data.PackageInfo, error) {
 }
 
 // use to download and install app
-func DownloadInstallApp(pkgId string, link string) error {
-	task, err := installer.CreateInstallTask(pkgId, releaseType)
+func DownloadInstallApp(link data.InstallDef, dependencies []data.InstallDef) error {
+	task, err := installer.CreateInstallTask(link, dependencies)
 	if err != nil {
 		return err
 	}

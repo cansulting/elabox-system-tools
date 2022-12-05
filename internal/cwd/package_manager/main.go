@@ -7,7 +7,7 @@ import (
 
 func main() {
 
-	con, err := app.NewController(nil, &StoreService{})
+	con, err := app.NewController(nil, &MyService{})
 	if err != nil {
 		panic(err)
 	}

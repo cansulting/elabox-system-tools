@@ -1,11 +1,12 @@
 package main
 
 import (
-	"github.com/cansulting/elabox-system-tools/internal/cwd/package_manager/broadcast"
-	"github.com/cansulting/elabox-system-tools/internal/cwd/package_manager/global"
 	"os"
 
-	storedata "github.com/cansulting/elabox-system-tools/internal/cwd/package_manager/data"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/package_manager/broadcast"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/package_manager/global"
+
+	data2 "github.com/cansulting/elabox-system-tools/internal/cwd/package_manager/data"
 
 	adata "github.com/cansulting/elabox-system-tools/foundation/app/data"
 	"github.com/cansulting/elabox-system-tools/foundation/app/rpc"
@@ -15,10 +16,10 @@ import (
 
 var systemVersion = ""
 
-type StoreService struct {
+type MyService struct {
 }
 
-func (instance *StoreService) OnStart() error {
+func (instance *MyService) OnStart() error {
 	if err := broadcast.Init(); err != nil {
 		return err
 	}
@@ -35,7 +36,7 @@ func (instance *StoreService) OnStart() error {
 }
 
 // callback RPC
-func (instance *StoreService) rpc_retrievePackages(client protocol.ClientInterface, action data.Action) string {
+func (instance *MyService) rpc_retrievePackages(client protocol.ClientInterface, action data.Action) string {
 	dmap, _ := action.DataToMap()
 	includeBeta := false
 	if dmap["beta"] != nil && dmap["beta"].(bool) == true {
@@ -48,7 +49,7 @@ func (instance *StoreService) rpc_retrievePackages(client protocol.ClientInterfa
 	return rpc.CreateJsonResponse(rpc.SUCCESS_CODE, apps)
 }
 
-func (instance *StoreService) rpc_retrievePackage(client protocol.ClientInterface, action data.Action) string {
+func (instance *MyService) rpc_retrievePackage(client protocol.ClientInterface, action data.Action) string {
 	app, err := RetrieveApp(action.PackageId, "")
 	if err != nil {
 		return rpc.CreateResponse(rpc.INVALID_CODE, err.Error())
@@ -56,21 +57,26 @@ func (instance *StoreService) rpc_retrievePackage(client protocol.ClientInterfac
 	return rpc.CreateJsonResponse(rpc.SUCCESS_CODE, app)
 }
 
-func (instance *StoreService) rpc_installPackage(client protocol.ClientInterface, action data.Action) string {
-	installType := storedata.Production
-	if val, err := action.DataToMap(); err != nil {
-		if val["type"] != nil {
-			installType = storedata.ReleaseType(val["type"].(int))
-		}
+func (instance *MyService) rpc_installPackage(client protocol.ClientInterface, action data.Action) string {
+	// parse rpc params
+	dataM, err := action.DataToMap()
+	if err != nil {
+		return rpc.CreateResponse(rpc.INVALID_CODE, err.Error())
 	}
-	err := DownloadInstallApp(action.PackageId, installType)
+	definition := dataM["definition"].(data2.InstallDef)
+	var dependencies []data2.InstallDef = nil
+	if dataM["dependencies"] != nil {
+		dependencies = dataM["dependencies"].([]data2.InstallDef)
+	}
+	// download and install
+	err = DownloadInstallApp(definition, dependencies)
 	if err != nil {
 		return rpc.CreateResponse(rpc.INVALID_CODE, err.Error())
 	}
 	return rpc.CreateSuccessResponse("started")
 }
 
-func (instance *StoreService) rpc_onuninstall(client protocol.ClientInterface, action data.Action) string {
+func (instance *MyService) rpc_onuninstall(client protocol.ClientInterface, action data.Action) string {
 	err := UninstallApp(action.PackageId)
 	if err != nil {
 		return rpc.CreateResponse(rpc.INVALID_CODE, err.Error())
@@ -78,12 +84,12 @@ func (instance *StoreService) rpc_onuninstall(client protocol.ClientInterface, a
 	return rpc.CreateSuccessResponse("started")
 }
 
-func (instance *StoreService) rpc_oncancelinstall(client protocol.ClientInterface, action data.Action) string {
+func (instance *MyService) rpc_oncancelinstall(client protocol.ClientInterface, action data.Action) string {
 	CancelInstall(action.PackageId)
 	return rpc.CreateSuccessResponse("cancelled")
 }
 
-func (instance *StoreService) rpc_onRetrieveSysVersion(client protocol.ClientInterface, action data.Action) string {
+func (instance *MyService) rpc_onRetrieveSysVersion(client protocol.ClientInterface, action data.Action) string {
 	// load json file from SYS_INFO_PATH
 	if systemVersion == "" {
 		contents, err := os.ReadFile(global.SYS_INFO_PATH)
@@ -99,10 +105,10 @@ func (instance *StoreService) rpc_onRetrieveSysVersion(client protocol.ClientInt
 	return rpc.CreateSuccessResponse(systemVersion)
 }
 
-func (instance *StoreService) IsRunning() bool {
+func (instance *MyService) IsRunning() bool {
 	return true
 }
 
-func (instance *StoreService) OnEnd() error {
+func (instance *MyService) OnEnd() error {
 	return nil
 }

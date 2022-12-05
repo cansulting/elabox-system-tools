@@ -22,13 +22,13 @@ type ReleaseUnit struct {
 	ReleaseType ReleaseType `json:"type"`
 	Version     string      `json:"version"`
 	DateEpoch   int         `json:"dateEpoch"`
-	Users       []string    `json:"testers"`
+	Users       []string    `json:"testers,omitempty"`
 }
 
 type ReleaseInfo struct {
-	Alpha      ReleaseUnit `json:"alpha"`
-	Beta       ReleaseUnit `json:"beta"`
-	Production ReleaseUnit `json:"prod"`
+	Alpha      ReleaseUnit `json:"alpha,omitempty"`
+	Beta       ReleaseUnit `json:"beta,omitempty"`
+	Production ReleaseUnit `json:"prod,omitempty"`
 }
 
 type PackagePreview struct {
@@ -36,5 +36,5 @@ type PackagePreview struct {
 	Name        string      `json:"name"`
 	Description string      `json:"desc"`
 	IconCID     string      `json:"iconcid"`
-	Release     ReleaseInfo `json:"release"`
+	Release     ReleaseInfo `json:"release,omitempty"`
 }

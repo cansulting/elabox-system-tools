@@ -31,7 +31,8 @@ type Task struct {
 	installProgress int16 // the install progress. download progress is not included
 	OnStateChanged  func(task *Task)
 	OnErrCallback   func(code int16, reason string)
-	Dependencies    []string
+	Dependencies    []data2.InstallDef
+	Definition      data2.InstallDef
 	installing      bool
 }
 
@@ -204,13 +205,13 @@ func (instance *Task) waitForDependencies() error {
 	for {
 		if currentDep == nil {
 			// check if the package is installed or not
-			isreg, err := reg.IsPackageInstalled(deps[0])
+			isreg, err := reg.IsPackageInstalled(deps[0].Id)
 			if err != nil {
 				return err
 			}
 			// install it now
 			if !isreg {
-				currentDep, err = CreateInstallTask(deps[0], data2.Production)
+				currentDep, err = CreateInstallTask(deps[0], nil)
 				if err != nil {
 					return err
 				}
