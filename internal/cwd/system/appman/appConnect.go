@@ -87,7 +87,7 @@ func (app *AppConnect) init() error {
 		}
 	}
 	// start services
-	if app.Config.ExportServices || app.Config.Nodejs {
+	if app.Config.HasServices() || app.Config.Nodejs {
 		ac := eventd.NewActionById(constants.ACTION_START_SERVICE)
 		app.PendingActions.AddPendingService(&ac)
 		return app.Launch()

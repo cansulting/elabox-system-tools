@@ -2,8 +2,8 @@
 	"name": "Ela System",
 	"description": "Ela System powered by Elastos. Added beta testing capability. Fixed setup. Other minor fixes.",
 	"packageId": "ela.system",
-	"build": 10,
-	"version": "0.6.11",
+	"build": 11,
+	"version": "1.0.0",
 	"program": "ela.system",
 	"programArgs": null,
 	"activityGroup": {
@@ -12,7 +12,10 @@
 		"activities": null
 	},
 	"permissions": null,
-	"exportService": false,
+	"service": {
+		"export": false,
+		"visible": false
+	},
 	"location": "system",
 	"nodejs": false,
 	"packagerVersion": "0.1.0"

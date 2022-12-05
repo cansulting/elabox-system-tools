@@ -1,10 +1,10 @@
 {
-	"name": "Account Manager",
-	"description": "Service that manage Elabox account and account related authentications.",
-	"packageId": "ela.account",
+	"name": "Package Manager",
+	"description": "Service that manage Elabox packages.",
+	"packageId": "ela.pkgmgr",
 	"build": 1,
 	"version": "0.1.0",
-	"program": "ela.account",
+	"program": "ela.pkgmgr",
 	"programArgs": null,
 	"activityGroup": {
 		"customLink": "",
@@ -13,8 +13,7 @@
 	},
 	"permissions": [],
 	"service": {
-		"export": false,
-		"visible": false
+		"export": true
 	},
 	"location": "system",
 	"nodejs": false,

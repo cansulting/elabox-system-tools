@@ -46,8 +46,8 @@ func RegisterPackage(pkData *data.PackageConfig) error {
 	logger.GetInstance().Info().Str("category", "registry").Msg("Registering package " + pkData.PackageId)
 	query := `
 		replace into 
-		packages(id, location, build, version, name, desc, source, nodejs, exportService, program) 
-		values(?,?,?,?,?,?,?,?,?,?)`
+		packages(id, location, build, version, name, desc, source, nodejs, program) 
+		values(?,?,?,?,?,?,?,?,?)`
 	err := util.ExecuteQuery(
 		query,
 		pkData.PackageId,
@@ -58,7 +58,6 @@ func RegisterPackage(pkData *data.PackageConfig) error {
 		pkData.Description,
 		pkData.Source,
 		pkData.Nodejs,
-		pkData.ExportServices,
 		pkData.Program,
 	)
 	if err != nil {

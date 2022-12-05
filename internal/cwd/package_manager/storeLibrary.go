@@ -14,8 +14,8 @@ import (
 var deviceSerial = ""
 
 // retrieve all apps
-// @beta is true if include all apps for testing and demo apps
-func RetrieveAllApps(beta bool) ([]data.PackageInfo, error) {
+// @includeHidden is true if include hidden(hidden from dashboard) packages
+func RetrieveAllApps(includeHidden bool) ([]data.PackageInfo, error) {
 	// step: retrieve all apps from registry
 	storeItems, err := app.RetrieveAllPackages()
 	if err != nil {
@@ -26,6 +26,12 @@ func RetrieveAllApps(beta bool) ([]data.PackageInfo, error) {
 	// step: iterate on packages
 	for _, pkg := range storeItems {
 		installedInfo, err := app.RetrievePackage(pkg)
+		// filter for hidden param
+		if !includeHidden &&
+			installedInfo.Service != nil &&
+			!installedInfo.Service.Visible {
+			continue
+		}
 		if err != nil {
 			logger.GetInstance().Debug().Msg("unable to retrieve cache item for package: " + pkg + ". inner: " + err.Error())
 		}

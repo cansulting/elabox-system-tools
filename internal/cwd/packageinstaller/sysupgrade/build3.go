@@ -11,7 +11,7 @@ type build3upgrade struct {
 }
 
 func (instance build3upgrade) onUpgrade(oldBuild int) error {
-	if oldBuild <= 3 {
+	if oldBuild <= 10 {
 		logger.GetInstance().Debug().Msg("Starts upgrading build lower or equal to 3")
 		// we need to delete registry. registry was updated
 		logger.GetInstance().Debug().Msg("Deleting app registry...")

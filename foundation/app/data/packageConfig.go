@@ -34,6 +34,11 @@ type ActivityGroupConfig struct {
 	Activities []string `json:"activities"` // if app has activity. this contains definition of actions that will triggerr activity
 }
 
+type ServiceGroupConfig struct {
+	Export  bool `json:"export"`  // true if run package services
+	Visible bool `json:"visible"` // true if service will be invisible to dashboard
+}
+
 // This structure represents package  json file along with the binary.
 // this contains information about the application behaviour, permission and services.
 type PackageConfig struct {
@@ -47,9 +52,8 @@ type PackageConfig struct {
 	ActivityGroup ActivityGroupConfig `json:"activityGroup,omitempty"` // www configuration
 	// request permission for specific action/feature
 	// if the specific action was called and was not defined. the process will be void
-	Permissions    []string `json:"permissions"`
-	ExportServices bool     `json:"exportService"` // true if the package contains services
-
+	Permissions      []string               `json:"permissions"`
+	Service          *ServiceGroupConfig    `json:"service,omitempty"`
 	BroacastListener []string               `json:"actionListener,omitempty"`  // defined actions which action listener will listen to
 	InstallLocation  string                 `json:"location,omitempty"`        // either system or external
 	Source           string                 `json:"-"`                         // the source location
@@ -134,7 +138,7 @@ func (c *PackageConfig) ChangeToSystemLocation() {
 
 // return true is this package contains services
 func (c *PackageConfig) HasServices() bool {
-	return c.ExportServices
+	return c.Service != nil && c.Service.Export
 }
 
 // use to check if contains activity that has action of

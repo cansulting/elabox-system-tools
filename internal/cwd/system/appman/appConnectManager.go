@@ -172,7 +172,7 @@ func InitializeAllPackages() {
 				continue
 			}
 			// should we initialize the package?
-			if !config.ExportServices &&
+			if !config.HasServices() &&
 				!config.Nodejs &&
 				config.ActivityGroup.CustomPort == 0 {
 				continue
