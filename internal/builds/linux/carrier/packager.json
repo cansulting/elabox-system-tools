@@ -6,5 +6,8 @@
     "packages": [],
     "postinstall": "postinstall.sh",
     "customInstaller": "",
-    "lib": ""
+    "lib": "",
+    "icons": {
+        "medium": "icon.png"
+    }
 }

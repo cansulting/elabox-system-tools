@@ -12,8 +12,12 @@
 		"activities": null
 	},
 	"permissions": null,
-	"exportService": false,
 	"location": "system",
 	"nodejs": true,
-	"packagerVersion": "0.1.0"
+	"packagerVersion": "0.1.0",
+	"icons": {
+		"small": "",
+		"medium": "icons/medium.png",
+		"large": ""
+	}
 }
