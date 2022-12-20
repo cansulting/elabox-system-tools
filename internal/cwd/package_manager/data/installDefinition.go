@@ -15,3 +15,11 @@ func (inst InstallDef) ToPackageInfo() PackageInfo {
 	}
 	return pkgi
 }
+
+func (inst InstallDef) FromMap(data map[string]interface{}) InstallDef {
+	inst.Id = data["id"].(string)
+	inst.Icon = data["icon"].(string)
+	inst.Name = data["name"].(string)
+	inst.Url = data["url"].(string)
+	return inst
+}

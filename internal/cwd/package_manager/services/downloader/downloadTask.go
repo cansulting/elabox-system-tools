@@ -32,6 +32,7 @@ type Task struct {
 	progress          int16            // the current progress of download. 100 mean fully downloaded
 	status            Status           // the current status of download. 0 mean idle, 1 mean downloading, 2 mean paused, 3 mean stopped
 	errorCode         int16            // the error code of download. 0 mean no error, 1 mean network error, 2 mean file error
+	LastError         error            // last error msg
 	Mode              DownloadMode     // download mode. via http or ipfs
 	OnStateChanged    func(task *Task) // callback event when status was changed
 	OnProgressChanged func(task *Task) // callback event when progress was changed
@@ -86,6 +87,7 @@ func (task *Task) Start() error {
 	err := task.Download(task.path, task.url, task.Mode)
 	if err != nil {
 		if !errors.Is(err, context.Canceled) {
+			task.LastError = err
 			task._onStateChanged(Error)
 			return err
 		} else {

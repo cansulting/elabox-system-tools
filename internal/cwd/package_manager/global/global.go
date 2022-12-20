@@ -26,6 +26,8 @@ const RETRIEVE_PACKAGE = PackageId + ".actions.RETRIEVE_PACKAGE"
 const INSTALL_PACKAGE = PackageId + ".actions.INSTALL_PACKAGE"
 const UNINSTALL_PACKAGE = PackageId + ".actions.UNINSTALL_PACKAGE"
 const CANCEL_INSTALL_PACKAGE = PackageId + ".actions.CANCEL_INSTALL_PACKAGE"
+
+// broadcasts
 const UPDATE_AVAILABLE = PackageId + ".broadcast.UPDATE_AVAILABLE"
 const INSTALL_PROGRESS = PackageId + ".broadcast.INSTALL_PROGRESS"
 const BROADCAST_ERROR = PackageId + ".broadcast.ERROR"

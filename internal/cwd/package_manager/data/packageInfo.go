@@ -1,6 +1,7 @@
 package data
 
 import (
+	"path"
 	"strconv"
 
 	"github.com/cansulting/elabox-system-tools/foundation/app/data"
@@ -35,20 +36,23 @@ func NewPackageInfo() PackageInfo {
 // add informations
 func (instance *PackageInfo) AddInfo(installed *data.PackageConfig, storeCacheItem *PackagePreview, detailed bool) {
 	if installed != nil {
+		instance.Id = installed.PackageId
+		instance.Name = installed.Name
+		instance.LatestBuild = int(installed.Build)
 		instance.CurrentBuild = int(installed.Build)
-		instance.IsService = installed.ExportServices
-		// resolve launch url
-		if detailed {
-			if !installed.ExportServices ||
-				installed.ActivityGroup.CustomLink != "" ||
-				installed.ActivityGroup.CustomPort != 0 {
-				instance.LaunchUrl = "/" + installed.PackageId
-				if installed.ActivityGroup.CustomLink != "" {
-					instance.LaunchUrl = installed.ActivityGroup.CustomLink
-				} else {
-					if installed.ActivityGroup.CustomPort != 0 {
-						instance.LaunchUrl = ":" + strconv.Itoa(installed.ActivityGroup.CustomPort)
-					}
+		instance.IsService = installed.HasServices()
+		if installed.Icons != nil {
+			instance.Icon = installed.GetIconUrl() + "/" + path.Base(installed.Icons.Medium)
+		}
+		if !installed.HasServices() ||
+			installed.ActivityGroup.CustomLink != "" ||
+			installed.ActivityGroup.CustomPort != 0 {
+			instance.LaunchUrl = "/" + installed.PackageId
+			if installed.ActivityGroup.CustomLink != "" {
+				instance.LaunchUrl = installed.ActivityGroup.CustomLink
+			} else {
+				if installed.ActivityGroup.CustomPort != 0 {
+					instance.LaunchUrl = ":" + strconv.Itoa(installed.ActivityGroup.CustomPort)
 				}
 			}
 		}

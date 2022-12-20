@@ -38,11 +38,11 @@ func (instance *MyService) OnStart() error {
 // callback RPC
 func (instance *MyService) rpc_retrievePackages(client protocol.ClientInterface, action data.Action) string {
 	dmap, _ := action.DataToMap()
-	includeBeta := false
-	if dmap["beta"] != nil && dmap["beta"].(bool) == true {
-		includeBeta = true
+	includeHidden := true
+	if dmap["include_hidden"] != nil && dmap["include_hidden"].(bool) == false {
+		includeHidden = false
 	}
-	apps, err := RetrieveAllApps(includeBeta)
+	apps, err := RetrieveAllApps(includeHidden)
 	if err != nil {
 		return rpc.CreateResponse(rpc.INVALID_CODE, err.Error())
 	}
@@ -63,7 +63,7 @@ func (instance *MyService) rpc_installPackage(client protocol.ClientInterface, a
 	if err != nil {
 		return rpc.CreateResponse(rpc.INVALID_CODE, err.Error())
 	}
-	definition := dataM["definition"].(data2.InstallDef)
+	definition := data2.InstallDef{}.FromMap(dataM["definition"].(map[string]interface{}))
 	var dependencies []data2.InstallDef = nil
 	if dataM["dependencies"] != nil {
 		dependencies = dataM["dependencies"].([]data2.InstallDef)

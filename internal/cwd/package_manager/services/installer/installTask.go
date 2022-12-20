@@ -85,10 +85,11 @@ func (instance *Task) download(restart bool) {
 			instance.downloadTask.Reset()
 		}
 	}
-	if err := instance.downloadTask.Start(); err != nil {
-		instance.onError(global.DOWNLOAD_ERROR, err.Error())
-		instance.setStatus(global.UnInstalled)
-	}
+	//if err := instance.downloadTask.Start(); err != nil {
+	// commented - duplicate onError will be called automatically by onDownloadStateChanged
+	//instance.onError(global.DOWNLOAD_ERROR, err.Error())
+	//instance.setStatus(global.UnInstalled)
+	//}
 }
 
 // callback when download task state changed
@@ -99,7 +100,7 @@ func (instance *Task) onDownloadStateChanged(task *downloader.Task) {
 	case downloader.Stopped:
 		instance.setStatus(global.UnInstalled)
 	case downloader.Error:
-		instance.onError(task.GetError(), "download error")
+		instance.onError(task.GetError(), task.LastError.Error())
 		instance.setStatus(global.UnInstalled)
 	}
 }

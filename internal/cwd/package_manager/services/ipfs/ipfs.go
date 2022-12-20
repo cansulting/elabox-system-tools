@@ -59,7 +59,7 @@ func DownloadFile(ctx context.Context, ipfsPath string, writer io.Writer, progre
 
 	path, err := parsePath(ipfsPath)
 	if err != nil {
-		return errors.New("invalid ipfs path, " + err.Error())
+		return errors.New("invalid ipfs path")
 	}
 	// download the file
 	out, err := ipfs.Unixfs().Get(cctx, path)

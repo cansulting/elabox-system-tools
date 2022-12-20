@@ -94,6 +94,8 @@ func (instance *installer) Start() error {
 		{Keyword: "packages/", CustomProcess: instance._onSubPackage, Perm: perm.PUBLIC},
 		// node js
 		{Keyword: "nodejs", InstallTo: packageInfo.GetInstallDir(), Perm: perm.PRIVATE},
+		// icons
+		{Keyword: "icons", InstallTo: packageInfo.GetInstallDir(), LinkTo: packageInfo.GetIconDir(), Perm: perm.PUBLIC_VIEW},
 	}
 	fileCount := len(instance.packageContent.Files)
 	processed := 0
