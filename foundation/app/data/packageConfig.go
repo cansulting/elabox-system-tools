@@ -39,6 +39,12 @@ type ServiceGroupConfig struct {
 	Visible bool `json:"visible"` // true if service will be invisible to dashboard
 }
 
+type Icons struct {
+	Small  string `json:"small"`
+	Medium string `json:"medium"`
+	Large  string `json:"large"`
+}
+
 // This structure represents package  json file along with the binary.
 // this contains information about the application behaviour, permission and services.
 type PackageConfig struct {
@@ -62,6 +68,7 @@ type PackageConfig struct {
 	Ext              map[string]interface{} `json:"ext,omitempty"`             // extra values
 	MinRuntime       string                 `json:"minRuntime,omitempty"`      // minimum system runtime version this package will run on
 	ExposePorts      []int                  `json:"exposePorts,omitempty"`     // this package requires port to be expose to make package usable.
+	Icons            *Icons                 `json:"icons,omitempty"`
 	//Services         map[string]string `json:"services"`       // if app has a service. this contains definition of commands available to service
 }
 
@@ -191,6 +198,16 @@ func (c *PackageConfig) GetInstallDir() string {
 	} else {
 		return path.GetExternalAppDir() + "/" + c.PackageId
 	}
+}
+
+// http url of icon
+func (c *PackageConfig) GetIconUrl() string {
+	return "system/" + c.PackageId + "/icons"
+}
+
+// dir location of icon
+func (c *PackageConfig) GetIconDir() string {
+	return path.GetSystemWWW() + "/" + c.GetIconUrl()
 }
 
 // get data directory of package
