@@ -1,6 +1,15 @@
 package main
 
-import "github.com/cansulting/elabox-system-tools/foundation/path"
+import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"log"
+	"time"
+
+	"github.com/cansulting/elabox-system-tools/foundation/path"
+)
+
 
 var notifQueue []NotifData
 
@@ -38,6 +47,17 @@ func AddNotif(data NotifData) error {
 	}
 	notifQueue = append(notifQueue, data)
 	return nil
+
+	// add notif
+	notifQueue, err := json.Marshal(notifQueue)
+	if err != nil {
+		panic(err)
+	}
+	err = ioutil.WriteFile(FILE_NAME, notifQueue, 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 }
 
 // retrieve queue of
@@ -61,4 +81,20 @@ func RetrieveNotif(page uint, length uint) ([]NotifData, error) {
 
 	result := notifQueue[startI:endI]
 	return result, nil
+
+	// retrieve notif
+
+	content, err := ioutil.ReadFile(FILE_NAME)
+
+	if err != nil {
+		//log.Fatal(err)
+		fmt.Println("File Does Not Exist")
+	} else {
+		err = json.Unmarshal(content, &notifQueue)
+		if err != nil {
+			log.Fatal(err)
+		}
+		return
+		//fmt.Printf("%s\n", content)
+	}	
 }
