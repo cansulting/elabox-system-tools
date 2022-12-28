@@ -20,8 +20,6 @@ import (
 	"github.com/cansulting/elabox-system-tools/internal/cwd/packageinstaller/utils"
 )
 
-const sh = "/bin/bash"
-
 // package contents
 type Data struct {
 	Config         *data.PackageConfig
@@ -43,7 +41,7 @@ func LoadFromSource(src string) (*Data, error) {
 	// step: read package
 	z, err := zip.OpenReader(src)
 	if err != nil {
-		return nil, errors.SystemNew("pkg.Load() failed to locate "+src, err)
+		return nil, errors.SystemNew("pkg.Load() failed to open package "+src, err)
 	}
 	res, err := LoadFromZipFiles(z.File)
 	if res != nil {
@@ -143,7 +141,8 @@ func (instance *Data) Write(values []byte) (int, error) {
 }
 
 func (instance *Data) ExtractScripts() error {
-	cinstallerDir := constants.GetTempPath()
+	cinstallerDir := constants.GetTempPath() + "/" + instance.Config.PackageId
+	os.RemoveAll(cinstallerDir)
 
 	// export installer and scripts
 	filters := []utils.Filter{
@@ -207,25 +206,21 @@ func (instance *Data) ExtractFiles(keyword string, targetPath string, limit uint
 }
 
 func (instance *Data) HasPreInstallScript() bool {
-	return instance.preInstall != ""
+	if instance.preInstall != "" {
+		if _, err := os.Stat(instance.preInstall); err == nil {
+			return true
+		}
+	}
+	return false
 }
 
 func (instance *Data) HasPostInstallScript() bool {
-	return instance.postInstall != ""
-}
-
-func (instance *Data) execScript(script string) error {
-	cmd := exec.Command(sh, script)
-	if _, err := os.Stat(instance.Config.GetInstallDir()); err == nil {
-		cmd.Dir = instance.Config.GetInstallDir()
+	if instance.postInstall != "" {
+		if _, err := os.Stat(instance.postInstall); err == nil {
+			return true
+		}
 	}
-	cmd.Stdout = instance
-	cmd.Stderr = instance
-	cmd.Stdin = os.Stdin
-	if err := cmd.Run(); err != nil {
-		return err
-	}
-	return nil
+	return false
 }
 
 // start running pre install script
@@ -233,7 +228,7 @@ func (instance *Data) StartPreInstall() error {
 	// has pre install script?
 	if _, err := os.Stat(instance.preInstall); err == nil {
 		constants.Logger.Debug().Msg("-------------Execute pre install script-------------")
-		return instance.execScript(instance.preInstall)
+		return utils.ExecScript(instance.preInstall, instance.Config.GetInstallDir(), instance)
 	}
 	return nil
 }
@@ -243,7 +238,7 @@ func (instance *Data) StartPostInstall() error {
 	// has pre install script?
 	if _, err := os.Stat(instance.postInstall); err == nil {
 		constants.Logger.Debug().Msg("-------------Execute post install script-------------")
-		return instance.execScript(instance.postInstall)
+		return utils.ExecScript(instance.postInstall, instance.Config.GetInstallDir(), instance)
 	}
 	return nil
 }

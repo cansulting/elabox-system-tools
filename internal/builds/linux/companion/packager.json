@@ -6,5 +6,8 @@
     "packages": [],
     "www": "./www",
     "customInstaller": "",
-    "nodejs": "./nodejs"
+    "nodejs": "./nodejs",
+    "icons": {
+        "medium": "icon.png"
+    }
 }

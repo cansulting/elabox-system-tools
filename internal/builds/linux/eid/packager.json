@@ -5,5 +5,8 @@
     "bin": "",
     "packages": [],
     "customInstaller": "",
-    "lib": ""
+    "lib": "",
+    "icons": {
+        "medium": "icon.png"
+    }
 }

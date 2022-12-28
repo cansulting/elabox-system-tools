@@ -36,17 +36,17 @@ func (instance *MyService) onAuthDidAction(client protocol.ClientInterface, acti
 	}
 	// step: compare with the existing hash
 	did := presentation["holder"].(string)
-	if AuthenticateDid(did) {
-		acc := RetrievePrimaryAccountDetails()
-		return rpc.CreateJsonResponse(rpc.SUCCESS_CODE, acc)
-	} else {
+	if _, valid := AuthenticateDid(did); !valid {
 		return rpc.CreateResponse(rpc.INVALID_CODE, "incorrect did credentials")
 	}
+	acc := GetAccount()
+	return rpc.CreateJsonResponse(rpc.SUCCESS_CODE, acc)
 }
 
 // use to check whether the elabox was setup already. return "setup" if already setup
 func (instance *MyService) onCheckSetup(client protocol.ClientInterface, action data.Action) string {
-	if IsDidSetup() {
+	acc := GetAccount()
+	if acc != nil && acc.Did != "" {
 		return rpc.CreateSuccessResponse("setup")
 	} else {
 		return rpc.CreateSuccessResponse("not_setup")
@@ -65,7 +65,8 @@ func (instance *MyService) onSetupDid(client protocol.ClientInterface, action da
 	}
 
 	// step: authenticate for existing did setup
-	if IsDidSetup() {
+	acc := GetAccount()
+	if acc.Did != "" {
 		if acData["username"] == nil || acData["password"] == nil {
 			return rpc.CreateResponse(rpc.INVALID_PARAMETER_PROVIDED, "username and password is required")
 		}
@@ -80,8 +81,21 @@ func (instance *MyService) onSetupDid(client protocol.ClientInterface, action da
 		}
 	}
 	presentation := acData["presentation"].(map[string]interface{})
-	if err := SetDeviceDid(presentation); err != nil {
+	// step: validate presentation
+	if presentation["holder"] == nil {
+		return rpc.CreateResponse(rpc.SYSTEMERR_CODE, "no holder provider in presentation")
+	}
+	did := presentation["holder"].(string)
+	if err := UpdateDid(did); err != nil {
 		return rpc.CreateResponse(rpc.SYSTEMERR_CODE, "failed to setup did, "+err.Error())
 	}
+	// step: update wallet address
+	if presentation["esc"] == nil {
+		return rpc.CreateResponse(rpc.INVALID_CODE, "no esc wallet address provided")
+	}
+	if err := UpdateWalletAddress("esc", presentation["esc"].(string)); err != nil {
+		return rpc.CreateResponse(rpc.INVALID_CODE, "failed updating esc wallet, "+err.Error())
+	}
+	SaveAccount()
 	return rpc.CreateSuccessResponse("success")
 }

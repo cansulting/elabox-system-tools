@@ -3,6 +3,8 @@ package utils
 import (
 	"io"
 	"io/fs"
+	"os"
+	"path"
 	"strings"
 )
 
@@ -16,17 +18,29 @@ type Filter struct {
 	InstallTo     string      // where file will be saved.
 	CustomProcess process     // to be called for custom processing for file
 	Perm          fs.FileMode // the current file permission
-	//additive    bool   // true if this Filter will be mixed to other Filter
+	LinkTo        string      // directory for new link file
 }
 
 // save the reader to specified path
-func (instance *Filter) Save(path string, reader io.ReadCloser) error {
-	return CopyToTarget(path, reader, instance.Perm)
+func (instance *Filter) Save(_path string, reader io.ReadCloser) error {
+	if err := CopyToTarget(_path, reader, instance.Perm); err != nil {
+		return err
+	}
+	// create link
+	if instance.LinkTo != "" {
+		link := instance.LinkTo + "/" + path.Base(_path)
+		// remove any existing link file
+		if _, err := os.Stat(link); err == nil {
+			os.Remove(link)
+		}
+		return os.Symlink(_path, link)
+	}
+	return nil
 }
 
 // use to apply Filter to path.
 // return newpath, error, true if Filter was applied
-func (f *Filter) CanApply(path string, reader io.ReadCloser, size uint64) (string, error, bool) {
+func (f *Filter) CanApply(ppath string, reader io.ReadCloser, size uint64) (string, error, bool) {
 	// path is absolute if contains not asterisk
 	isAbsolute := true
 	keyword := f.Keyword
@@ -34,21 +48,28 @@ func (f *Filter) CanApply(path string, reader io.ReadCloser, size uint64) (strin
 		isAbsolute = false
 		keyword = f.Keyword[1:]
 	}
-	indexFromPath := strings.Index(path, keyword)
+	indexFromPath := strings.Index(ppath, keyword)
+	// this keyword found on specified path?
 	if indexFromPath >= 0 {
 		// keyword is absolute but not found
 		if isAbsolute && indexFromPath > 0 {
-			return path, nil, false
+			return ppath, nil, false
 		}
 		// rename keyword
-		var result string = path
+		var result string = ppath
 		if f.Rename != "" {
-			result = strings.Replace(path, f.Keyword, f.Rename, 1)
+			result = strings.Replace(ppath, f.Keyword, f.Rename, 1)
 		}
 		// step: execute custom process
 		if f.CustomProcess != nil {
-			f.CustomProcess(path, reader, size)
+			f.CustomProcess(ppath, reader, size)
 			return "", nil, true
+		}
+		// step: create symlink
+		if f.LinkTo != "" {
+			if err := ResolveDir(f.LinkTo+"/", f.Perm); err != nil {
+				return result, err, true
+			}
 		}
 		// step: install to target location
 		if f.InstallTo != "" {
@@ -58,6 +79,6 @@ func (f *Filter) CanApply(path string, reader io.ReadCloser, size uint64) (strin
 		}
 		return "", nil, true
 	} else {
-		return path, nil, false
+		return ppath, nil, false
 	}
 }

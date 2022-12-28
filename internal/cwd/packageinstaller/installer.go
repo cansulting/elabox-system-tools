@@ -94,6 +94,8 @@ func (instance *installer) Start() error {
 		{Keyword: "packages/", CustomProcess: instance._onSubPackage, Perm: perm.PUBLIC},
 		// node js
 		{Keyword: "nodejs", InstallTo: packageInfo.GetInstallDir(), Perm: perm.PRIVATE},
+		// icons
+		{Keyword: "icons", InstallTo: packageInfo.GetInstallDir(), LinkTo: packageInfo.GetIconDir(), Perm: perm.PUBLIC_VIEW},
 	}
 	fileCount := len(instance.packageContent.Files)
 	processed := 0
@@ -238,7 +240,7 @@ func (t *installer) Finalize() error {
 	}
 	if t.packageContent.HasPostInstallScript() {
 		if err := t.packageContent.StartPostInstall(); err != nil {
-			return err
+			return errors.SystemNew("issue found while running post install script. ", err)
 		}
 	}
 	// activate port for activity custom port

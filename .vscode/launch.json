@@ -45,6 +45,24 @@
             "cwd": "${workspaceFolder}/internal/builds/linux/account_manager",
             "program": "${workspaceFolder}/internal/cwd/account_manager",
             "buildFlags": "-tags=IDE"
+        },
+        {
+            "name": "Launch Package Manager",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "cwd": "${workspaceFolder}/internal/builds/linux/package_manager",
+            "program": "${workspaceFolder}/internal/cwd/package_manager",
+            "buildFlags": "-tags=IDE"
+        },
+        {
+            "name": "Launch Notification Manager",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "cwd": "${workspaceFolder}/internal/builds/linux/notification_center",
+            "program": "${workspaceFolder}/internal/cwd/notification_center",
+            "buildFlags": "-tags=IDE"
         }
     ]
 }

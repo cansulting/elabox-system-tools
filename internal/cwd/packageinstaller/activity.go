@@ -62,9 +62,10 @@ func (a *activity) OnPendingAction(action *data.Action) error {
 				if err := a.startNormalInstall(pkgData); err != nil {
 					broadcast.Error(pkgData.Config.PackageId, global.INSTALL_ERROR, err.Error())
 				}
-			}
-			if err := a.runCustomInstaller(sourcePkg, pkgData); err != nil {
-				broadcast.Error(pkgData.Config.PackageId, global.INSTALL_ERROR, err.Error())
+			} else {
+				if err := a.runCustomInstaller(sourcePkg, pkgData); err != nil {
+					broadcast.Error(pkgData.Config.PackageId, global.INSTALL_ERROR, err.Error())
+				}
 			}
 		}()
 		return nil
@@ -99,8 +100,8 @@ func (a *activity) startNormalInstall(pkgd *pkg.Data) error {
 	}
 	// step: register package
 	if err := install.Finalize(); err != nil {
-		a.finish("Unable to register package " + err.Error())
-		return nil
+		//a.finish("Unable to register package " + err.Error())
+		return err
 	}
 	a.finish("")
 	return nil
@@ -126,7 +127,12 @@ func (a *activity) OnEnd() error {
 func (a *activity) finish(err string) {
 	if err != "" {
 		global.Logger.Error().Caller().Stack().Msg(err)
-		broadcast.Error(a.currentPkg, 0, err)
+		broadcast.Error(a.currentPkg, global.INSTALL_ERROR, err)
+		// termiante package
+		a.terminatePackage(a.currentPkg)
+		if err := utils.UninstallPackage(a.currentPkg, global.DELETE_DATA_ONUNINSTALL, true, true); err != nil {
+			broadcast.Error(a.currentPkg, global.UNINSTALL_ERROR, err.Error())
+		}
 	} else {
 		global.Logger.Info().Msg("Install success")
 		broadcast.UpdateSystem(a.currentPkg, broadcast.INSTALLED)

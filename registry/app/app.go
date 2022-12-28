@@ -46,8 +46,8 @@ func RegisterPackage(pkData *data.PackageConfig) error {
 	logger.GetInstance().Info().Str("category", "registry").Msg("Registering package " + pkData.PackageId)
 	query := `
 		replace into 
-		packages(id, location, build, version, name, desc, source, nodejs, exportService, program) 
-		values(?,?,?,?,?,?,?,?,?,?)`
+		packages(id, location, build, version, name, desc, source, nodejs, program) 
+		values(?,?,?,?,?,?,?,?,?)`
 	err := util.ExecuteQuery(
 		query,
 		pkData.PackageId,
@@ -58,7 +58,6 @@ func RegisterPackage(pkData *data.PackageConfig) error {
 		pkData.Description,
 		pkData.Source,
 		pkData.Nodejs,
-		pkData.ExportServices,
 		pkData.Program,
 	)
 	if err != nil {
@@ -148,4 +147,32 @@ func RetrieveStartupPackages() ([]string, error) {
 func IsPackageInstalled(id string) (bool, error) {
 	count, err := util.Count("packages", "id=?", id)
 	return count > 0, err
+}
+
+func EnableService(pk string, status bool) error {
+	err := setEnableService(pk, status)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// use to check if package is enabled or not
+func GetServiceStatus(pk string) (bool, error) {
+	query := "select status from service_status where packageId = ?;"
+	row, err := util.SelectQuery(query, pk)
+	if err != nil {
+		return false, errors.SystemNew("error in getting status of "+pk, err)
+	}
+	var status bool
+	defer row.Close()
+	found := false
+	for row.Next() {
+		found = true
+		row.Scan(&status)
+	}
+	if !found {
+		return true, nil
+	}
+	return status, nil
 }

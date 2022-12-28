@@ -7,6 +7,7 @@ import (
 	"github.com/cansulting/elabox-system-tools/foundation/app/rpc"
 	"github.com/cansulting/elabox-system-tools/foundation/constants"
 	"github.com/cansulting/elabox-system-tools/foundation/event/data"
+	"github.com/cansulting/elabox-system-tools/registry/app"
 )
 
 const TEST_APP = "ela.logs"
@@ -26,6 +27,32 @@ func TestAppRestart(test *testing.T) {
 	test.Log(res)
 }
 
+func TestAppOff(test *testing.T) {
+	handler, err := rpc.NewRPCHandlerDefault()
+	if err != nil {
+		test.Error(err)
+		return
+	}
+	res, err := handler.CallSystem(data.NewAction(constants.ACTION_APP_OFF, TEST_APP, nil))
+	if err != nil {
+		test.Error(err)
+		return
+	}
+	test.Log(res)
+}
+func TestAppOn(test *testing.T) {
+	handler, err := rpc.NewRPCHandlerDefault()
+	if err != nil {
+		test.Error(err)
+		return
+	}
+	res, err := handler.CallSystem(data.NewAction(constants.ACTION_APP_ON, TEST_APP, nil))
+	if err != nil {
+		test.Error(err)
+		return
+	}
+	test.Log(res)
+}
 func TestAppClearData(test *testing.T) {
 	handler, err := rpc.NewRPCHandlerDefault()
 	if err != nil {
@@ -46,4 +73,27 @@ func TestAppClearData(test *testing.T) {
 		return
 	}
 	test.Log(res)
+}
+
+func TestGetDeviceSerial(test *testing.T) {
+	handler, err := rpc.NewRPCHandlerDefault()
+	if err != nil {
+		test.Error(err)
+		return
+	}
+	res, err := handler.CallSystem(data.NewAction(constants.ACTION_APP_DEVICE_SERIAL, "", nil))
+	if err != nil {
+		test.Error(err)
+		return
+	}
+	test.Log(res)
+}
+
+func TestGetServiceStatus(test *testing.T) {
+	status, err := app.GetServiceStatus("ela.mainchain")
+	if err != nil {
+		test.Error("cannot get status", err)
+		return
+	}
+	test.Log(status)
 }

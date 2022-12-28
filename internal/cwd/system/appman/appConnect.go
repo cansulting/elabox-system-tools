@@ -20,12 +20,12 @@ import (
 	"path"
 	"path/filepath"
 	"strconv"
-	"time"
 
 	"github.com/cansulting/elabox-system-tools/foundation/app/data"
 	"github.com/cansulting/elabox-system-tools/foundation/constants"
 	eventd "github.com/cansulting/elabox-system-tools/foundation/event/data"
 	"github.com/cansulting/elabox-system-tools/foundation/event/protocol"
+	"github.com/cansulting/elabox-system-tools/foundation/logger"
 	"github.com/cansulting/elabox-system-tools/foundation/perm"
 	"github.com/cansulting/elabox-system-tools/foundation/system"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/system/global"
@@ -47,8 +47,8 @@ type AppConnect struct {
 	RPC                *RPCBridge
 	nodejs             *Nodejs
 	server             *http.Server
-	initialized        bool // true if this specific app/package was already initialized
 	terminatedIntently bool // true if this app was terminated intentionally
+	wwwServing         bool
 }
 
 // create new app connect
@@ -71,7 +71,8 @@ func newAppConnect(
 		nodejs:         node,
 		process:        nil,
 		Client:         client,
-		initialized:    false,
+		wwwServing:     false,
+		launched:       false,
 	}
 	res.RPC = NewRPCBridge(pk.PackageId, res, global.Server.EventServer)
 	return res
@@ -79,10 +80,6 @@ func newAppConnect(
 
 // initialize web serving and services related to this app
 func (app *AppConnect) init() error {
-	if app.initialized {
-		return nil
-	}
-	app.initialized = true
 	// www serving
 	if app.Config.ActivityGroup.CustomPort > 0 {
 		if err := app.startServeWww(); err != nil {
@@ -90,7 +87,7 @@ func (app *AppConnect) init() error {
 		}
 	}
 	// start services
-	if app.Config.ExportServices || app.Config.Nodejs {
+	if app.Config.HasServices() || app.Config.Nodejs {
 		ac := eventd.NewActionById(constants.ACTION_START_SERVICE)
 		app.PendingActions.AddPendingService(&ac)
 		return app.Launch()
@@ -103,7 +100,8 @@ func (app *AppConnect) IsRunning() bool {
 	if app.nodejs != nil {
 		return app.nodejs.IsRunning()
 	}
-	return app.process != nil
+	return app.launched
+	//return app.process != nil
 }
 
 // send pending actions
@@ -136,16 +134,20 @@ func (app *AppConnect) Launch() error {
 		}()
 	}
 	// binary runnning
-	if app.Config.HasMainProgram() && app.process == nil {
+	if app.Config.HasMainProgram() {
 		global.Logger.Info().Msg("Launching " + app.PackageId + " app")
 		args := app.Config.ProgramArgs
 		if args == nil {
 			args = []string{}
 		}
-		// is this a sh program?
+		// is this a sh program? or node?
 		program := app.Location
-		if ext := path.Ext(app.Config.Program); ext == ".sh" {
+		ext := path.Ext(app.Config.Program)
+		if ext == ".sh" {
 			program = "/usr/bin/bash"
+			args = append(args, app.Location)
+		} else if ext == ".js" {
+			program = "/usr/bin/node"
 			args = append(args, app.Location)
 		}
 		cmd := exec.Command(program, args...)
@@ -173,6 +175,7 @@ func (app *AppConnect) forceTerminate() error {
 	}
 	if app.process != nil {
 		if err := app.process.Kill(); err != nil {
+			app.process = nil
 			return err
 		}
 		app.process = nil
@@ -202,38 +205,62 @@ func (app *AppConnect) Restart() error {
 	return app.Launch()
 }
 
+// off an app
+func (app *AppConnect) DisableService() error {
+	err := EnableService(app.PackageId, false)
+	if err != nil {
+		return err
+	}
+	if app.IsRunning() {
+		if err := app.Terminate(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+func (app *AppConnect) EnableService() error {
+	err := EnableService(app.PackageId, true)
+	if err != nil {
+		return err
+	}
+	go func() {
+		if err := app.init(); err != nil {
+			logger.GetInstance().Debug().Err(err).Caller().Msg("failed enabling service " + app.PackageId)
+		}
+	}()
+	return nil
+}
+
 // this terminate the app naturally
 func (app *AppConnect) Terminate() error {
 	if !app.IsRunning() {
 		return nil
 	}
-	global.Logger.Info().Msg("Waiting for app " + app.Config.PackageId + " to terminate in " + strconv.Itoa(global.APP_TERMINATE_COUNTDOWN) + " seconds")
+	global.Logger.Info().Msg("waiting for app " + app.Config.PackageId + " to terminate")
 	if app.nodejs != nil {
 		if err := app.nodejs.Stop(); err != nil {
 			global.Logger.Error().Err(err).Caller().Msg("AppConnect nodejs " + app.PackageId + "failed to terminate.")
 		}
 	}
-	if !app.IsClientConnected() {
-		return nil
-	}
+	// if !app.IsClientConnected() {
+	// 	return nil
+	// }
 	go func() {
+		//time.Sleep(time.Second * time.Duration(global.APP_TERMINATE_COUNTDOWN))
 		_, err := app.RPCCall(constants.APP_TERMINATE, nil)
 		if err != nil {
 			global.Logger.Error().Err(err).Caller().Msg("AppConnect " + app.PackageId + " failed sending terminate RPC.")
-			app.forceTerminate()
 		}
+		app.forceTerminate()
 	}()
-
 	// stopping www
 	if app.Config.ActivityGroup.CustomPort > 0 {
 		app.stopServeWww()
 	}
-
-	time.Sleep(time.Second * time.Duration(global.APP_TERMINATE_COUNTDOWN))
-	if app.IsRunning() {
-		return app.forceTerminate()
-	}
-
+	// time.Sleep(time.Second * time.Duration(global.APP_TERMINATE_COUNTDOWN))
+	// if app.IsRunning() {
+	// 	return app.forceTerminate()
+	// }
 	return nil
 }
 
@@ -253,6 +280,7 @@ func asyncRun(app *AppConnect, cmd *exec.Cmd) {
 	if err := cmd.Wait(); err != nil {
 		if !app.terminatedIntently {
 			global.Logger.Error().Err(err).Msg("ERROR launching " + app.PackageId)
+			app.Terminate()
 		}
 	}
 	app.process = nil
@@ -266,6 +294,10 @@ func (n *AppConnect) Write(data []byte) (int, error) {
 
 // start serving the www for app with custom port
 func (n *AppConnect) startServeWww() error {
+	if n.wwwServing {
+		return nil
+	}
+	n.wwwServing = true
 	port := n.Config.ActivityGroup.CustomPort
 	pkg := n.Config.PackageId
 	wwwPath := n.Config.GetWWWDir()
@@ -279,7 +311,7 @@ func (n *AppConnect) startServeWww() error {
 		path := ""
 		serverMux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 			path = wwwPath + r.URL.Path
-			if _, err := os.Stat(path); err == nil {
+			if filei, err := os.Stat(path); err == nil && !filei.IsDir() {
 				http.ServeFile(w, r, path)
 				return
 			}
@@ -302,5 +334,6 @@ func (n *AppConnect) stopServeWww() error {
 		return err
 	}
 	n.server = nil
+	n.wwwServing = false
 	return nil
 }

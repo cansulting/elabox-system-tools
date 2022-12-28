@@ -41,10 +41,16 @@ func startCommandline() {
 		println("-s - this is system update")
 		println("-l - create log file")
 		println("-i - ignore custom installer")
+		println("-u -uninstall package")
 		return
 	}
 	pk := os.Args[1]
-	processInstallCommand(pk, IsArgExist("-r"), IsArgExist("-l"), !IsArgExist("-i"))
+	if IsArgExist("-u") {
+		processUninstallCommand(pk, IsArgExist("-l"))
+	} else {
+		processInstallCommand(pk, IsArgExist("-r"), IsArgExist("-l"), !IsArgExist("-i"))
+	}
+
 }
 
 func processInstallCommand(targetPk string, restart bool, logging bool, runCustomInstaller bool) {
@@ -154,6 +160,20 @@ func normalInstall(content *pkg.Data) {
 		}
 		panic("Failed installing @normalInstall()")
 	}
+}
+
+// package uninstall
+
+func processUninstallCommand(targetPk string, logging bool) error {
+	if logging {
+		logger.SetHook(loggerHook{})
+		pkconst.Logger = logger.GetInstance()
+	}
+	if err := utils.UninstallPackage(targetPk, false, false, false); err != nil {
+		pkconst.Logger.Error().Err(err).Caller().Msg("unable to uninstall package " + targetPk)
+		return err
+	}
+	return nil
 }
 
 // start installer server

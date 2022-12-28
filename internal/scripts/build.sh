@@ -197,11 +197,15 @@ fi
 ##################################
 # elastos mainchain, eid, cli, esc
 ##################################
-if [ "$answerEla" == "y" ]; then
+buildELA() {
     echo "Building ELA from source..."
     wd=$PWD
     cd $ELA_SRC 
     make all
+    echo "Done building Ela."
+}
+if [ "$answerEla" == "y" ]; then
+    buildELA
     echo "Building EID from source..."
     go env -w GO111MODULE=off
     cd $wd

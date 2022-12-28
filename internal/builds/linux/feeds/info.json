@@ -14,7 +14,10 @@
 		"activities": null
 	},
 	"permissions": null,
-	"exportService": true,
+	"service": {
+		"export": true,
+		"visible": true
+	},
 	"location": "external",
 	"nodejs": false,
 	"packagerVersion": "0.1.0"

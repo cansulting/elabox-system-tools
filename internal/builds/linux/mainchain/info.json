@@ -2,8 +2,8 @@
 	"name": "Mainchain",
 	"description": "Mainchain Node",
 	"packageId": "ela.mainchain",
-	"build": 1,
-	"version": "0.8.2",
+	"build": 2,
+	"version": "0.8.3",
 	"program": "ela.mainchain",
 	"programArgs": [
 		"--datadir",
@@ -15,7 +15,10 @@
 		"activities": null
 	},
 	"permissions": null,
-	"exportService": true,
+	"service": {
+		"export": true,
+		"visible": true
+	},
 	"location": "external",
 	"nodejs": false,
 	"packagerVersion": "0.1.0"

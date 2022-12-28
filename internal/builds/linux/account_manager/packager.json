@@ -2,7 +2,10 @@
     "cwd": "",
     "config": "info.json",
     "binDir": "",
-    "bin": "./bin/ela.account",
+    "bin": "./bin/ela.pkgmgr",
     "packages": [],
-    "customInstaller": ""
+    "customInstaller": "",
+    "icons": {
+        "medium": "icon.png"
+    }
 }

@@ -1,0 +1,21 @@
+{
+	"name": "Notification Center",
+	"description": "Service that manages system notifications.",
+	"packageId": "ela.notification",
+	"build": 1,
+	"version": "0.1.0",
+	"program": "ela.notification",
+	"programArgs": null,
+	"activityGroup": {
+		"customLink": "",
+		"customPort": 0,
+		"activities": null
+	},
+	"permissions": [],
+	"service": {
+		"export": true
+	},
+	"location": "system",
+	"nodejs": false,
+	"packagerVersion": "0.1.0"
+}

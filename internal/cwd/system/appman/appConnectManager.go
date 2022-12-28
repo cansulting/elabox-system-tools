@@ -160,19 +160,26 @@ func InitializeAllPackages() {
 		return
 	}
 	for _, pkg := range pkgs {
-		config, err := app.RetrievePackage(pkg)
+		isOn, err := app.GetServiceStatus(pkg)
 		if err != nil {
-			global.Logger.Error().Err(err).Caller().Msg("Failed retrieving package " + pkg)
+			global.Logger.Warn().Err(err).Caller().Msg("Failed retrieving status of " + pkg)
 			continue
 		}
-		// should we initialize the package?
-		if !config.ExportServices &&
-			!config.Nodejs &&
-			config.ActivityGroup.CustomPort == 0 {
-			continue
-		}
-		if err := InitializePackage(pkg); err != nil {
-			global.Logger.Error().Err(err).Caller().Msg("Failed initializing package " + pkg)
+		if isOn {
+			config, err := app.RetrievePackage(pkg)
+			if err != nil {
+				global.Logger.Warn().Err(err).Caller().Msg("Failed retrieving package " + pkg)
+				continue
+			}
+			// should we initialize the package?
+			if !config.HasServices() &&
+				!config.Nodejs &&
+				config.ActivityGroup.CustomPort == 0 {
+				continue
+			}
+			if err := InitializePackage(pkg); err != nil {
+				global.Logger.Error().Err(err).Caller().Msg("Failed initializing package " + pkg)
+			}
 		}
 	}
 }
@@ -199,6 +206,14 @@ func InitializePackage(pki string) error {
 	}
 	if err := app.init(); err != nil {
 		global.Logger.Error().Err(err).Caller().Msg("Failed launching app.")
+		return err
+	}
+	return nil
+}
+func EnableService(pk string, status bool) error {
+	err := registry.EnableService(pk, status)
+	if err != nil {
+		logger.GetInstance().Err(err).Caller().Msg("Failed to update status of " + pk)
 		return err
 	}
 	return nil

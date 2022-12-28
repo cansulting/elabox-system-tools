@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"log"
 	"os"
+	"path"
 	"path/filepath"
 
 	"github.com/cansulting/elabox-system-tools/foundation/app/data"
@@ -23,18 +24,20 @@ const VERSION = "0.1.0"
 	Config file needs to be loaded first before it can be used.
 */
 type Package struct {
-	Cwd               string   `json:"cwd"`               // current working directory
-	PackageConfig     string   `json:"config"`            // the package config file
-	BinDir            string   `json:"binDir"`            // bin directory. if bin file property was provided this will be skip
-	Bin               string   `json:"bin"`               // bin file
-	Lib               string   `json:"lib"`               // shared library for this package.
-	Packages          []string `json:"packages"`          // list of packages to be included
-	Www               string   `json:"www"`               // www front end to be included in source
-	Nodejs            string   `json:"nodejs"`            // add node js directory if the package contain node js app
-	PostInstall       string   `json:"postinstall"`       // script that will be executed after everything is installed
-	PreInstall        string   `json:"preinstall"`        // script that will be executed upon initialization
-	CustomInstaller   string   `json:"customInstaller"`   // custom installer
-	ContinueOnMissing bool     `json:"continueOnMissing"` // true if continue to package if theres a missing subpackage
+	Cwd               string      `json:"cwd"`               // current working directory
+	PackageConfig     string      `json:"config"`            // the package config file
+	BinDir            string      `json:"binDir"`            // bin directory. if bin file property was provided this will be skip
+	Bin               string      `json:"bin"`               // bin file
+	Lib               string      `json:"lib"`               // shared library for this package.
+	Packages          []string    `json:"packages"`          // list of packages to be included
+	Www               string      `json:"www"`               // www front end to be included in source
+	Nodejs            string      `json:"nodejs"`            // add node js directory if the package contain node js app
+	PostInstall       string      `json:"postinstall"`       // script that will be executed after everything is installed
+	PreInstall        string      `json:"preinstall"`        // script that will be executed upon initialization
+	UnInstall         string      `json:"uninstall"`         // script that will be called whenever uninstalling a package
+	CustomInstaller   string      `json:"customInstaller"`   // custom installer
+	ContinueOnMissing bool        `json:"continueOnMissing"` // true if continue to package if theres a missing subpackage
+	Icons             *data.Icons `json:"icons,omitempty"`
 }
 
 func NewPackage() *Package {
@@ -102,6 +105,33 @@ func (c *Package) Compile(destdir string) error {
 		log.Println("Compile() adding package info")
 		return errors.SystemNew("Compile() add config file failed.", err)
 	}
+	// add icons
+	if c.Icons != nil {
+		pkconfig.Icons = &data.Icons{}
+		if c.Icons.Small != "" {
+			fpath := "icons/small" + path.Ext(c.Icons.Small)
+			if err := addFile(fpath, c.Icons.Small, zipwriter); err != nil {
+				return errors.SystemNew("Failed adding icon.", err)
+			}
+			pkconfig.Icons.Small = fpath
+		}
+		if c.Icons.Medium != "" {
+			fpath := "icons/medium" + path.Ext(c.Icons.Medium)
+			if err := addFile(fpath, c.Icons.Medium, zipwriter); err != nil {
+				return errors.SystemNew("Failed adding icon.", err)
+			}
+			pkconfig.Icons.Medium = fpath
+		}
+		if c.Icons.Large != "" {
+			fpath := "icons/large" + path.Ext(c.Icons.Large)
+			if err := addFile(fpath, c.Icons.Large, zipwriter); err != nil {
+				return errors.SystemNew("Failed adding icon.", err)
+			}
+			pkconfig.Icons.Large = fpath
+		}
+	} else {
+		return errors.SystemNew("icons was not provided", nil)
+	}
 	// add binaries
 	if c.Bin != "" {
 		if err := addFile("bin/"+pkconfig.Program, c.Bin, zipwriter); err != nil {
@@ -123,7 +153,7 @@ func (c *Package) Compile(destdir string) error {
 	// add shared libraries
 	if c.Lib != "" {
 		if err := addDir("lib", c.Lib, zipwriter); err != nil {
-			return errors.SystemNew("Compile() failed adding lib files @ "+c.Lib, err)
+			return errors.SystemNew("failed adding lib files @ "+c.Lib, err)
 		}
 	}
 	// add sub packages
@@ -133,14 +163,14 @@ func (c *Package) Compile(destdir string) error {
 			pkconfig := data.DefaultPackage()
 			if err := pkconfig.LoadFromZipPackage(p); err != nil {
 				if !c.ContinueOnMissing {
-					return errors.SystemNew("Compile() failed loading subpackage package "+p, err)
+					return errors.SystemNew("failed loading subpackage package "+p, err)
 				} else {
 					log.Println("Warning: subpackage cannot be found @ ", p, ". skipped.")
 					continue
 				}
 			}
 			if err := addFile("packages/"+pkconfig.PackageId+"."+global.PACKAGE_EXT, p, zipwriter); err != nil {
-				return errors.SystemNew("Compile() failed adding package "+p, err)
+				return errors.SystemNew("failed adding package "+p, err)
 			}
 		}
 	}
@@ -148,34 +178,39 @@ func (c *Package) Compile(destdir string) error {
 	if c.Www != "" {
 		log.Println("Compile() adding wwww")
 		if err := addDir(global.PKEY_WWW, c.Www, zipwriter); err != nil {
-			return errors.SystemNew("Compile() failed adding www direcory @ "+c.Www, err)
+			return errors.SystemNew("failed adding www direcory @ "+c.Www, err)
 		}
 	}
 	// add node js app
 	if c.Nodejs != "" {
 		log.Println("Compile() adding nodejs")
 		if err := addDir("nodejs", c.Nodejs, zipwriter); err != nil {
-			return errors.SystemNew("Compile() failed adding node js direcory @ "+c.Nodejs, err)
+			return errors.SystemNew("failed adding node js direcory @ "+c.Nodejs, err)
 		}
 	}
 	// add custom installer
 	if c.CustomInstaller != "" {
-		log.Println("Compile() adding custom installer")
+		log.Println("adding custom installer")
 		if err := addFile(
 			global.PACKAGEKEY_CUSTOM_INSTALLER+filepath.Ext(c.CustomInstaller),
 			c.CustomInstaller, zipwriter); err != nil {
-			return errors.SystemNew("Compile() failed adding custom installer "+c.CustomInstaller, err)
+			return errors.SystemNew("failed adding custom installer "+c.CustomInstaller, err)
 		}
 	}
 	// scripts
 	if c.PreInstall != "" {
 		if err := addFile("scripts/"+global.PREINSTALL_SH, c.PreInstall, zipwriter); err != nil {
-			return errors.SystemNew("Compile() failed adding script "+c.PreInstall, err)
+			return errors.SystemNew("failed adding script "+c.PreInstall, err)
 		}
 	}
 	if c.PostInstall != "" {
 		if err := addFile("scripts/"+global.POSTINSTALL_SH, c.PostInstall, zipwriter); err != nil {
-			return errors.SystemNew("Compile() failed adding script "+c.PreInstall, err)
+			return errors.SystemNew("failed adding script "+c.PreInstall, err)
+		}
+	}
+	if c.UnInstall != "" {
+		if err := addFile("bin/"+global.UNINSTALL_SH, c.UnInstall, zipwriter); err != nil {
+			return errors.SystemNew("failed adding script "+c.UnInstall, err)
 		}
 	}
 	// close
