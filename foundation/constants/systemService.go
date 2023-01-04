@@ -10,8 +10,6 @@
 
 package constants
 
-const SYSTEM_SERVICE_ID = "ela.system"
-
 // ------------------------ service center related Requests ---------------------
 // app/service/action listener requests to listen to specific action.
 // They should subscribe to specific action via service center.

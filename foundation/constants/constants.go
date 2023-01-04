@@ -18,3 +18,7 @@ const PACKAGE_EXT = "box" // extension of packaged file
 const CUSTOMINSLLER = "custominstaller"
 
 const LOG_FILE = "/var/log/elabox.log" // the system log file path
+
+// package ids
+const SYSTEM_SERVICE_ID = "ela.system"
+const NOTIFICATION_CENTER_ID = "ela.notification"

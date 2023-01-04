@@ -20,6 +20,8 @@ import (
 	"github.com/cansulting/elabox-system-tools/foundation/event/protocol"
 )
 
+var instance *RPCHandler = nil
+
 // callback function whenever recieve an action from server
 type ServiceDelegate func(client protocol.ClientInterface, data data.Action) string
 
@@ -27,6 +29,18 @@ type ServiceDelegate func(client protocol.ClientInterface, data data.Action) str
 // Mainly use by app controller
 type RPCHandler struct {
 	connector protocol.ConnectorClient
+}
+
+// get current instance
+func GetInstance() (*RPCHandler, error) {
+	if instance == nil {
+		val, err := NewRPCHandlerDefault()
+		if err != nil {
+			return nil, err
+		}
+		instance = val
+	}
+	return instance, nil
 }
 
 // constructor for RPCHandler.
@@ -43,6 +57,7 @@ func NewRPCHandlerDefault() (*RPCHandler, error) {
 		return nil, errors.SystemNew("Controller: Failed to start. Couldnt create client connector.", err)
 	}
 	rpc := NewRPCHandler(connector)
+	instance = rpc
 	return rpc, nil
 }
 
