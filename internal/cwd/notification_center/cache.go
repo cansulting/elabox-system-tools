@@ -48,17 +48,18 @@ func RetrieveNotif(page uint, length uint) ([]NotifData, error) {
 	}
 	// if not enough then just return all data
 	totalNotif := len(notifQueue)
-	if totalNotif-int(length) <= 0 {
-		return notifQueue, nil
-	}
-
-	// not within the limit? return empty
-	startI := (totalNotif - (int(page) * int(length)))
-	endI := startI + int(length)
-	if startI < 0 {
+	if page <= 0 {
 		return nil, nil
 	}
-
+	// not within the limit? return empty
+	endI := (totalNotif - (int(page-1) * int(length)))
+	if endI <= 0 {
+		return nil, nil
+	}
+	startI := endI - int(length)
+	if startI < 0 {
+		startI = 0
+	}
 	result := notifQueue[startI:endI]
 	return result, nil
 }
