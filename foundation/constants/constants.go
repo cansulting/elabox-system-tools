@@ -22,3 +22,4 @@ const LOG_FILE = "/var/log/elabox.log" // the system log file path
 // package ids
 const SYSTEM_SERVICE_ID = "ela.system"
 const NOTIFICATION_CENTER_ID = "ela.notification"
+const ACCOUNT_SYS_ID = "ela.account"

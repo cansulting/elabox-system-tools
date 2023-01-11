@@ -34,13 +34,13 @@ func main() {
 		global.Logger.Panic().Err(err).Caller().Msg("Failed initializing service center. " + err.Error())
 		return
 	}
-	global.Server.EventServer.SetStatus(system.BOOTING, nil)
+	global.Server.EventServer.SetStatus(system.BOOTING)
 	defer servicecenter.Close()
 	if err := appman.Initialize(commandline); err != nil {
 		global.Logger.Panic().Err(err).Caller().Msg("Application manager failed to initialize.")
 		return
 	}
-	global.Server.EventServer.SetStatus(system.RUNNING, nil)
+	global.Server.EventServer.SetStatus(system.RUNNING)
 	// this runs the server
 	for global.Running {
 		time.Sleep(time.Second * 1)

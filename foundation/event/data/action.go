@@ -35,6 +35,7 @@ type Action struct {
 	// optional. data which will be use to execute the action
 	Data interface{} `json:"data,omitempty"`
 	//valueAction *Action     `json:"-"`
+	tmpMap map[string]interface{}
 }
 
 func NewAction(id string, packageId string, data interface{}) Action {
@@ -100,7 +101,9 @@ func (a *Action) DataToString() string {
 }
 
 func (a *Action) DataToMap() (map[string]interface{}, error) {
-
+	if a.tmpMap != nil {
+		return a.tmpMap, nil
+	}
 	switch a.Data.(type) {
 	case map[string]interface{}:
 		return a.Data.(map[string]interface{}), nil
@@ -109,6 +112,7 @@ func (a *Action) DataToMap() (map[string]interface{}, error) {
 	if str != "" {
 		tmp := make(map[string]interface{})
 		err := json.Unmarshal([]byte(str), &tmp)
+		a.tmpMap = tmp
 		return tmp, err
 	}
 	return nil, nil

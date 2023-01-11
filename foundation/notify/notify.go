@@ -8,6 +8,7 @@ import (
 
 const PUSH_NOTIFICATION = constants.NOTIFICATION_CENTER_ID + ".action.PUSH_NOTIFICATION"
 
+// notify notification center
 func System(val NotificationData) error {
 	rpcInst, err := rpc.GetInstance()
 	if err != nil {

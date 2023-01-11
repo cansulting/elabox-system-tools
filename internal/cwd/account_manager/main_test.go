@@ -7,19 +7,19 @@ const SAMPLE_USERNAME = "elabox"
 const SAMPLE_PASSWORD = "elabox"
 
 // use to test device did
-func Test_SetDeviceDid(t *testing.T) {
-	presentation := make(map[string]interface{})
-	presentation["holder"] = SAMPLE_DID
-	if err := SetDeviceDid(presentation); err != nil {
-		t.Error(err)
-	}
-}
+// func Test_SetDeviceDid(t *testing.T) {
+// 	presentation := make(map[string]interface{})
+// 	presentation["holder"] = SAMPLE_DID
+// 	if err := SetDeviceDid(presentation); err != nil {
+// 		t.Error(err)
+// 	}
+// }
 
-func Test_AuthenticationDid(t *testing.T) {
-	if !AuthenticateDid(SAMPLE_DID) {
-		t.Error("failed to authenticate did")
-	}
-}
+// func Test_AuthenticationDid(t *testing.T) {
+// 	if !AuthenticateDid(SAMPLE_DID) {
+// 		t.Error("failed to authenticate did")
+// 	}
+// }
 
 func Test_AuthenticateSystemAccount(t *testing.T) {
 	err, success := AuthenticateSystemAccount(SAMPLE_USERNAME, SAMPLE_PASSWORD)

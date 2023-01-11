@@ -338,7 +338,7 @@ func terminate(seconds uint) string {
 			time.Sleep(time.Second * time.Duration(seconds))
 		}
 		appman.TerminateAllApp()
-		global.Server.EventServer.SetStatus(system.STOPPED, nil)
+		global.Server.EventServer.SetStatus(system.STOPPED)
 		global.Running = false
 		time.Sleep(time.Millisecond * 100)
 		os.Exit(0)

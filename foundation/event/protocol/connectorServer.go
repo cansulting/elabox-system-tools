@@ -21,7 +21,7 @@ import (
 type ConnectorServer interface {
 	GetState() data.ConnectionType
 	Open() error
-	SetStatus(status system.Status, data interface{}) error
+	SetStatus(status system.Status) error
 	GetStatus() system.Status
 	// send data to all room
 	Broadcast(room string, event string, data interface{}) error

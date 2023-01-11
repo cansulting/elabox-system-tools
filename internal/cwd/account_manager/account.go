@@ -10,8 +10,16 @@ import (
 var currentAccount *Account = nil
 
 type Account struct {
-	Did     string            `json:"did"`
-	Wallets map[string]string `json:"wallets"`
+	Status      string            `json:"status"`
+	Token       string            `json:"token"`
+	DisplayName string            `json:"displayName"`
+	Did         string            `json:"did"`
+	Wallets     map[string]string `json:"wallets,omitempty"`
+}
+
+func (instance Account) ToJson() string {
+	content, _ := json.Marshal(instance)
+	return string(content)
 }
 
 func createEmptyAccount() *Account {

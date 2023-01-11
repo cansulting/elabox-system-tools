@@ -37,13 +37,13 @@ func (s *SocketIOServer) GetStatus() system.Status {
 }
 
 // use to set the current status of system
-func (s *SocketIOServer) SetStatus(status system.Status, data interface{}) error {
+func (s *SocketIOServer) SetStatus(status system.Status) error {
 	log.Println("Server.SetStatus", status)
 	system.SetStatus(status)
 	if err := s.Broadcast(
 		constants.SYSTEM_SERVICE_ID,
 		constants.BCAST_SYSTEM_STATUS_CHANGED,
-		statusData{status: string(status), data: data}); err != nil {
+		string(status)); err != nil {
 		log.Println("Server.SetStatus failure", err.Error())
 		return err
 	}

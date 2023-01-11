@@ -73,6 +73,8 @@ const ACTION_APP_CHECK_STATUS = "ela.system.APP_CHECK_STATUS"
 const ACTION_APP_INSTALLED = "ela.system.APP_INSTALLED"
 const ACTION_APP_UNINSTALLED = "ela.system.APP_UNINSTALLED"
 
+const ACTION_RETRIEVE_PUBKEY = ACCOUNT_SYS_ID + ".actions.PUB_KEY"
+
 type AppRunningState int
 
 const (

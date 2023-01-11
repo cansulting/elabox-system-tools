@@ -37,7 +37,7 @@ func Initialize(landingPagePath string) error {
 	if err := serverhandler.ListenAndServe(); err != nil {
 		return err
 	}
-	serverhandler.EventServer.SetStatus(system.UPDATING, nil)
+	serverhandler.EventServer.SetStatus(system.UPDATING)
 	return nil
 }
 
