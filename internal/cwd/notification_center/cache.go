@@ -18,7 +18,7 @@ func initQueue() error {
 	}
 	notifQueue = make([]NotifData, 0, NOTIF_QUEUE_LIMIT)
 	// sample
-	notifQueue = append(notifQueue, NotifData{Title: "Test", Message: "This is sample", Status: Unread})
+	//notifQueue = append(notifQueue, NotifData{Title: "Test", Message: "This is sample", Status: Unread})
 	// load notification here
 	return nil
 }

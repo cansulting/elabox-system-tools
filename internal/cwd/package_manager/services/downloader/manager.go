@@ -4,6 +4,7 @@ import (
 	"errors"
 	"os"
 	"path"
+	"strings"
 	"time"
 
 	"github.com/cansulting/elabox-system-tools/foundation/logger"
@@ -84,6 +85,14 @@ func AddCacheImage(id string, src string, dest string) error {
 		return errors.New("failed to download ")
 	}
 	return nil
+}
+
+func IdentifyDownloadMode(downloadUrl string) DownloadMode {
+	if strings.HasPrefix(downloadUrl, "http://") ||
+		strings.HasPrefix(downloadUrl, "https://") {
+		return HTTP
+	}
+	return IPFS
 }
 
 func addToResumables(id string, src string, dest string) {

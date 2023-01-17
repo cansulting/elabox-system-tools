@@ -130,7 +130,7 @@ func (task *Task) httpDownload(path string, url string) (err error) {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
-		return errors.New("http status code " + resp.Status)
+		return errors.New("http status code " + resp.Status + "for " + url)
 	}
 
 	task.total, err = strconv.ParseInt(resp.Header.Get("Content-Length"), 10, 64)

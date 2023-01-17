@@ -1,9 +1,9 @@
 package data
 
 type InstallDef struct {
-	Id   string `json:"id"`
-	Url  string `json:"url"`
-	Icon string `json:"icon"`
+	Id   string `json:"id"`   // definition id, usually the package id
+	Url  string `json:"url"`  // where the data will be downloaded
+	Icon string `json:"icon"` // icon that represents the install def
 	Name string `json:"name"`
 }
 

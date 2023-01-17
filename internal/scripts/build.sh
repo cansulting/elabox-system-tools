@@ -220,7 +220,7 @@ if [ "$answerEla" == "y" ]; then
     go env -u GO111MODULE
 
     targetdir=$buildpath
-    echo "Copying mainchain, eid and cli @$ELA_NODES"
+    echo "Copying mainchain, eid and cli "
     # mainchain
     mainchainlib=$buildpath/mainchain/bin
     mkdir -p $mainchainlib
@@ -232,7 +232,7 @@ if [ "$answerEla" == "y" ]; then
     mkdir -p $eidbin
     cp ${EID_SRC}/build/bin/geth $eidbin
     chmod +x $eidbin/geth
-    mv $escbin/geth $eidbin/ela.eid
+    mv $eidbin/geth $eidbin/ela.eid
     # esc
     escbin=$buildpath/esc/bin
     mkdir -p $escbin
