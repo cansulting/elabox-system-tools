@@ -157,11 +157,11 @@ if [ ! -d "elabox-setup-wizard" ]; then
     cd "../elabox-setup-wizard"
     git switch development
 fi
-if [ ! -d "elabox-binaries" ]; then 
+if [ ! -d "elabox-dashboard" ]; then 
     cd $wd
-    git clone https://github.com/cansulting/elabox-binaries.git
-    cd "../elabox-binaries"
-    git switch master
+    git clone https://github.com/cansulting/elabox-dashboard.git
+    cd "../elabox-dashboard"
+    git switch main
 fi
 
 ######################################

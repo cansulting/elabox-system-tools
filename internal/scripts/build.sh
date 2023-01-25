@@ -5,7 +5,6 @@ go env -u GOARCH
 go env -u GO111MODULE
 
 PROJ_HOME=../../..
-ELA_NODES=$PROJ_HOME/elabox-binaries/binaries
 ELA_SRC=$PROJ_HOME/Elastos.ELA
 EID_SRC=$PROJ_HOME/Elastos.ELA.SideChain.EID
 ESC_SRC=$PROJ_HOME/Elastos.ELA.SideChain.ESC
@@ -260,9 +259,6 @@ if [ "$answerEla" == "y" ]; then
     mv $escbin/geth $escbin/ela.esc
     # carrier
     carrierlib=$buildpath/carrier/bin
-    mkdir -p $carrierlib
-    cp ${ELA_NODES}/ela-bootstrapd $carrierlib
-    cp ${ELA_NODES}/bootstrapd.conf $carrierlib
     chmod +x $carrierlib/ela-bootstrapd
 fi
 
