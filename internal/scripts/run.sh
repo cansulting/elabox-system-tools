@@ -37,7 +37,6 @@ buildpath=../builds/$target/$pk
 pkinfo=$buildpath/info.json
 pkid=$(jq '.packageId' $pkinfo | sed 's/"//g')
 echo "Package ID" $pkid
-eval "$gobuild" -o $buildpath/bin/main ../cwd/$pk
 
 # box the binary
 ../builds/$target/packager/packager $buildpath/packager.json

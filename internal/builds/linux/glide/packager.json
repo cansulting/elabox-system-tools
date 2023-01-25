@@ -5,5 +5,8 @@
     "www": "./www",
     "packages": [],
     "lib": "",
-    "continueOnMissing": true
+    "continueOnMissing": true,
+    "icons": {
+        "medium": "icon.png"
+    }
 }

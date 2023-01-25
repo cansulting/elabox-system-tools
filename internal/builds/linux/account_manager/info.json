@@ -13,7 +13,7 @@
 	},
 	"permissions": [],
 	"service": {
-		"export": false,
+		"export": true,
 		"visible": false
 	},
 	"location": "system",

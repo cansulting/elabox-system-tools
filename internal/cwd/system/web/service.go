@@ -27,7 +27,6 @@ import (
 
 const PORT = "80"
 const PAGE_LANDING = constants.SYSTEM_SERVICE_ID
-const PAGE_COMPANIONAPP = "ela.companion"
 
 type WebService struct {
 	running bool
@@ -38,7 +37,7 @@ func (s *WebService) Start() error {
 	wwwPath := path.GetSystemWWW()
 	wwwPathX := path.GetExternalWWW()
 	oldwwwPath := wwwPath
-	lastPkg := PAGE_COMPANIONAPP
+	lastPkg := global.DEFAULT_DASHBOARD
 
 	// handle any requests
 	http.HandleFunc("/", func(rw http.ResponseWriter, r *http.Request) {
@@ -68,7 +67,7 @@ func (s *WebService) Start() error {
 			}
 		} else {
 			pkg = PAGE_LANDING
-			url = "/" + PAGE_COMPANIONAPP
+			url = "/" + global.DEFAULT_DASHBOARD
 			oldwwwPath = wwwPath
 		}
 

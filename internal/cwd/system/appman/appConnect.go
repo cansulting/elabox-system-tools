@@ -268,7 +268,7 @@ func asyncRun(app *AppConnect, cmd *exec.Cmd) {
 	defer delete(running, app.PackageId)
 	//var buffer bytes.Buffer
 	if system.BuildMode != system.RELEASE {
-		cmd.Stdout = app
+		//cmd.Stdout = app
 	}
 	cmd.Stderr = app
 	err := cmd.Start()

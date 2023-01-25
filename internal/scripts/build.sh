@@ -1,4 +1,9 @@
 #!/bin/bash
+# unset go lang env variables
+go env -u GOOS
+go env -u GOARCH
+go env -u GO111MODULE
+
 PROJ_HOME=../../..
 ELA_NODES=$PROJ_HOME/elabox-binaries/binaries
 ELA_SRC=$PROJ_HOME/Elastos.ELA
@@ -11,6 +16,7 @@ ELA_REWARDS=$PROJ_HOME/elabox-rewards
 ELA_LOGS=$PROJ_HOME/elabox-logs
 ELA_STORE=$PROJ_HOME/elabox-dapp-store
 ELA_SETUP=$PROJ_HOME/elabox-setup-wizard
+ELA_DASHBOARD=$PROJ_HOME/elabox-dashboard
 cos=$(go env GOOS)                  # current os. 
 carc=$(go env GOARCH)               # current archi
 packageinstaller=packageinstaller           # package installer project name
@@ -70,13 +76,12 @@ echo "Rebuild elastos dapp store? (y/n)"
 read answerDstore
 echo "Rebuild Setup Wizard? (y/n)"
 read answerSetup
+echo "Rebuild Dashboard? (y/n)"
+read answerDashboard
 
 #####################
 # build packager
 #####################
-go env -u GOOS
-go env -u GOARCH
-go env -u GO111MODULE
 buildpath=../builds/$target
 echo "Building " $packager
 mkdir -p $buildpath/packager
@@ -123,6 +128,20 @@ mkdir -p $buildpath/account_manager/bin
 eval "$gobuild" -o $buildpath/account_manager/bin ../cwd/account_manager
 programName=$(jq ".program" $buildpath/account_manager/info.json | sed 's/\"//g')
 mv $buildpath/account_manager/bin/account_manager $buildpath/account_manager/bin/$programName 
+
+# build notification
+echo "Building Notification System"
+mkdir -p $buildpath/notification_center/bin
+eval "$gobuild" -o $buildpath/notification_center/bin ../cwd/notification_center
+programName=$(jq ".program" $buildpath/notification_center/info.json | sed 's/\"//g')
+mv $buildpath/notification_center/bin/notification_center $buildpath/notification_center/bin/$programName 
+
+# build package manager
+echo "Building Package Manager"
+mkdir -p $buildpath/package_manager/bin
+eval "$gobuild" -o $buildpath/package_manager/bin ../cwd/package_manager
+programName=$(jq ".program" $buildpath/package_manager/info.json | sed 's/\"//g')
+mv $buildpath/package_manager/bin/package_manager $buildpath/package_manager/bin/$programName 
 
 # build reward if exists
 if [ -d "$ELA_REWARDS" ]; then 
@@ -283,6 +302,16 @@ if [ "$answerSetup" == "y" ]; then
 fi
 
 #########################
+# build dashboard?
+#########################
+if [ "$answerDashboard" == "y" ]; then
+    wd=$PWD
+    cd $ELA_DASHBOARD/scripts
+    ./build.sh -o $target -a $arch -d $MODE
+    cd $wd
+fi
+
+#########################
 # Packaging
 #########################
 echo "Start packaging..."
@@ -292,6 +321,8 @@ packager $buildpath/carrier/packager.json
 packager $buildpath/mainchain/packager.json
 packager $buildpath/$packageinstaller/packager.json
 packager $buildpath/account_manager/packager.json
+packager $buildpath/notification_center/packager.json
+packager $buildpath/package_manager/packager.json
 packager $buildpath/feeds/packager.json
 packager $buildpath/$system_name/packager.json
 

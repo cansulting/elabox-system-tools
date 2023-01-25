@@ -4,5 +4,8 @@
     "binDir": "",
     "bin": "./bin/packageinstaller",
     "packages": [],
-    "customInstaller": ""
+    "customInstaller": "",
+    "icons": {
+        "medium": "icon.png"
+    }
 }

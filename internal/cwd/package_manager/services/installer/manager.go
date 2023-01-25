@@ -65,20 +65,23 @@ func GetAllTasks() map[string]*Task {
 }
 
 func CreateUninstallTask(pkg string) *Task {
-	return CreateTask(data.InstallDef{Id: pkg}, nil)
+	return CreateTask(data.InstallDef{Id: pkg}, nil, false)
 }
 
 // use to create install task
 // @pkg: install task for which package.
 // @downloadLink: where the package file will be downloaded
-func CreateInstallTask(link data.InstallDef, dependencies []data.InstallDef) (*Task, error) {
-	return CreateTask(link, dependencies), nil
+func CreateInstallTask(link data.InstallDef, dependencies []data.InstallDef, autoinstall bool) (*Task, error) {
+	return CreateTask(link, dependencies, autoinstall), nil
 }
 
 // use to create install task
 // @pkg: install task for which package.
 // @downloadLink: where the package file will be downloaded
-func CreateTask(def data.InstallDef, dependencies []data.InstallDef) *Task {
+func CreateTask(
+	def data.InstallDef,
+	dependencies []data.InstallDef,
+	autoInstall bool) *Task {
 	initialize()
 	task := GetTask(def.Id)
 	if task == nil {
@@ -97,7 +100,9 @@ func CreateTask(def data.InstallDef, dependencies []data.InstallDef) *Task {
 		task.OnStateChanged = func(task *Task) {
 			switch task.Status {
 			case global.Downloaded:
-				addToSchedule(task)
+				if autoInstall {
+					addToSchedule(task)
+				}
 			case global.Installed:
 				RemoveTask(task.Id)
 			case global.UnInstalled:

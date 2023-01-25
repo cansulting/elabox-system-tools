@@ -1,26 +1,27 @@
 package main
 
 import (
-	"os"
+	"encoding/json"
 
 	"github.com/cansulting/elabox-system-tools/internal/cwd/package_manager/broadcast"
 	"github.com/cansulting/elabox-system-tools/internal/cwd/package_manager/global"
+	"github.com/cansulting/elabox-system-tools/internal/cwd/package_manager/services/system_updater"
 
 	data2 "github.com/cansulting/elabox-system-tools/internal/cwd/package_manager/data"
 
-	adata "github.com/cansulting/elabox-system-tools/foundation/app/data"
 	"github.com/cansulting/elabox-system-tools/foundation/app/rpc"
 	"github.com/cansulting/elabox-system-tools/foundation/event/data"
 	"github.com/cansulting/elabox-system-tools/foundation/event/protocol"
 )
-
-var systemVersion = ""
 
 type MyService struct {
 }
 
 func (instance *MyService) OnStart() error {
 	if err := broadcast.Init(); err != nil {
+		return err
+	}
+	if err := system_updater.Init(); err != nil {
 		return err
 	}
 
@@ -31,7 +32,10 @@ func (instance *MyService) OnStart() error {
 	global.AppController.RPC.OnRecieved(global.UNINSTALL_PACKAGE, instance.rpc_onuninstall)
 	global.AppController.RPC.OnRecieved(global.CANCEL_INSTALL_PACKAGE, instance.rpc_oncancelinstall)
 	global.AppController.RPC.OnRecieved(global.RETRIEVE_SYS_VERSION, instance.rpc_onRetrieveSysVersion)
-	//go RetrieveAllApps(false)
+
+	// system updater
+	global.AppController.RPC.OnRecieved(global.AC_DOWNLOAD_UPDATE, instance.rpc_onDownloadUpdate)
+	global.AppController.RPC.OnRecieved(global.AC_INSTALL_UPDATE, instance.rpc_onInstallUpdate)
 	return nil
 }
 
@@ -89,20 +93,36 @@ func (instance *MyService) rpc_oncancelinstall(client protocol.ClientInterface, 
 	return rpc.CreateSuccessResponse("cancelled")
 }
 
+var tmpMap = make(map[string]interface{})
+
 func (instance *MyService) rpc_onRetrieveSysVersion(client protocol.ClientInterface, action data.Action) string {
-	// load json file from SYS_INFO_PATH
-	if systemVersion == "" {
-		contents, err := os.ReadFile(global.SYS_INFO_PATH)
-		if err != nil {
-			return rpc.CreateResponse(rpc.SYSTEMERR_CODE, "unable to readfile "+err.Error())
-		}
-		pkg := adata.DefaultPackage()
-		if err := pkg.LoadFromBytes(contents); err != nil {
-			return rpc.CreateResponse(rpc.INVALID_CODE, err.Error())
-		}
-		systemVersion = pkg.Version
+	curver := system_updater.GetCurrentSysVersion()
+	latver := system_updater.GetLatestSysVersion()
+	tmpMap["current"] = curver
+	tmpMap["latest"] = latver
+	content, err := json.Marshal(tmpMap)
+	if err != nil {
+		return rpc.CreateResponse(rpc.SYSTEMERR_CODE, err.Error())
 	}
-	return rpc.CreateSuccessResponse(systemVersion)
+	return rpc.CreateSuccessResponse(string(content))
+}
+
+func (instance *MyService) rpc_onRetrieveUpdateData(client protocol.ClientInterface, action data.Action) string {
+	return ""
+}
+
+func (*MyService) rpc_onDownloadUpdate(client protocol.ClientInterface, action data.Action) string {
+	if err := system_updater.DownloadLatest(); err != nil {
+		return rpc.CreateResponse(rpc.SYSTEMERR_CODE, err.Error())
+	}
+	return rpc.CreateSuccessResponse("downloading")
+}
+
+func (*MyService) rpc_onInstallUpdate(client protocol.ClientInterface, action data.Action) string {
+	if err := system_updater.InstallUpdate(); err != nil {
+		return rpc.CreateResponse(rpc.SYSTEMERR_CODE, err.Error())
+	}
+	return rpc.CreateSuccessResponse("installing")
 }
 
 func (instance *MyService) IsRunning() bool {

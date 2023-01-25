@@ -35,7 +35,7 @@ type ActivityGroupConfig struct {
 }
 
 type ServiceGroupConfig struct {
-	Export  bool `json:"export"`  // true if run package services
+	Export  bool `json:"export"`  // true if run package services by the system
 	Visible bool `json:"visible"` // true if service will be invisible to dashboard
 }
 

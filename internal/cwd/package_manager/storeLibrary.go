@@ -47,7 +47,10 @@ func RetrieveAllApps(includeHidden bool) ([]data.PackageInfo, error) {
 	for _, task := range installer.GetAllTasks() {
 		if task.Status == global.Downloading || task.Status == global.Installing {
 			tmp := task.Definition.ToPackageInfo()
-			previews = append(previews, tmp)
+			// TODO: temporary fix
+			if tmp.Id != "ela.system" {
+				previews = append(previews, tmp)
+			}
 		}
 	}
 	// sort preview by name
@@ -64,14 +67,11 @@ func RetrieveApp(pkgId string, storehubId string) (*data.PackageInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err != nil {
-		return nil, err
-	}
 	if pkg == nil {
 		return nil, nil
 	}
 	var pkgInfo = data.PackageInfo{}
-	//pkgInfo.AddInfo(pkg, storehubPkg, true)
+	pkgInfo.AddInfo(pkg, nil, true)
 	enabled, err := app.GetServiceStatus(pkgId)
 	if err != nil {
 		return nil, errors.New("failed to check if package is enable " + pkgId)
@@ -85,7 +85,7 @@ func RetrieveApp(pkgId string, storehubId string) (*data.PackageInfo, error) {
 
 // use to download and install app
 func DownloadInstallApp(link data.InstallDef, dependencies []data.InstallDef) error {
-	task, err := installer.CreateInstallTask(link, dependencies)
+	task, err := installer.CreateInstallTask(link, dependencies, true)
 	if err != nil {
 		return err
 	}

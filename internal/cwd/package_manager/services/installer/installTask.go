@@ -77,7 +77,9 @@ func (instance *Task) GetDownloadPath() string {
 func (instance *Task) download(restart bool) {
 	instance.setStatus(global.Downloading)
 	if instance.downloadTask == nil {
-		instance.downloadTask = downloader.AddDownload(instance.Id, instance.Url, downloader.IPFS)
+		// identify which mode
+		mode := downloader.IdentifyDownloadMode(instance.Url)
+		instance.downloadTask = downloader.AddDownload(instance.Id, instance.Url, mode)
 		instance.downloadTask.OnStateChanged = instance.onDownloadStateChanged
 		instance.downloadTask.OnProgressChanged = instance.onDownloadProgressChanged
 	} else {
@@ -85,11 +87,11 @@ func (instance *Task) download(restart bool) {
 			instance.downloadTask.Reset()
 		}
 	}
-	//if err := instance.downloadTask.Start(); err != nil {
-	// commented - duplicate onError will be called automatically by onDownloadStateChanged
-	//instance.onError(global.DOWNLOAD_ERROR, err.Error())
-	//instance.setStatus(global.UnInstalled)
-	//}
+	if err := instance.downloadTask.Start(); err != nil {
+		// commented - duplicate onError will be called automatically by onDownloadStateChanged
+		//instance.onError(global.DOWNLOAD_ERROR, err.Error())
+		//instance.setStatus(global.UnInstalled)
+	}
 }
 
 // callback when download task state changed
@@ -212,7 +214,7 @@ func (instance *Task) waitForDependencies() error {
 			}
 			// install it now
 			if !isreg {
-				currentDep, err = CreateInstallTask(deps[0], nil)
+				currentDep, err = CreateInstallTask(deps[0], nil, true)
 				if err != nil {
 					return err
 				}

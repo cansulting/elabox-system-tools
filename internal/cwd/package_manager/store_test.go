@@ -57,7 +57,7 @@ func Test_RetrieveAppDetail(t *testing.T) {
 // install app test
 func Test_InstallPackage(t *testing.T) {
 	logger.Init("ela.store.test")
-	task, err := installer.CreateInstallTask(data.InstallDef{}, nil)
+	task, err := installer.CreateInstallTask(data.InstallDef{}, nil, true)
 	if err != nil {
 		t.Error("unable to create install task. inner: " + err.Error())
 		return

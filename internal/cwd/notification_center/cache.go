@@ -1,15 +1,8 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
-	"log"
-	"time"
-
 	"github.com/cansulting/elabox-system-tools/foundation/path"
 )
-
 
 var notifQueue []NotifData
 
@@ -29,6 +22,16 @@ func initQueue() error {
 	// sample
 	//notifQueue = append(notifQueue, NotifData{Title: "Test", Message: "This is sample", Status: Unread})
 	// load notification here
+	// content, err := ioutil.ReadFile(FILE_NAME)
+	// if err != nil {
+	// 	//log.Fatal(err)
+	// 	fmt.Println("File Does Not Exist")
+	// 	return err
+	// }
+	// err = json.Unmarshal(content, &notifQueue)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 	return nil
 }
 
@@ -46,18 +49,17 @@ func AddNotif(data NotifData) error {
 		notifQueue = notifQueue[1:]
 	}
 	notifQueue = append(notifQueue, data)
+
+	// // add notif
+	// notifQueue, err := json.Marshal(notifQueue)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// err = ioutil.WriteFile(FILE_NAME, notifQueue, 0644)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 	return nil
-
-	// add notif
-	notifQueue, err := json.Marshal(notifQueue)
-	if err != nil {
-		panic(err)
-	}
-	err = ioutil.WriteFile(FILE_NAME, notifQueue, 0644)
-	if err != nil {
-		log.Fatal(err)
-	}
-
 }
 
 // retrieve queue of
@@ -82,20 +84,4 @@ func RetrieveNotif(page uint, length uint) ([]NotifData, error) {
 	}
 	result := notifQueue[startI:endI]
 	return result, nil
-
-	// retrieve notif
-
-	content, err := ioutil.ReadFile(FILE_NAME)
-
-	if err != nil {
-		//log.Fatal(err)
-		fmt.Println("File Does Not Exist")
-	} else {
-		err = json.Unmarshal(content, &notifQueue)
-		if err != nil {
-			log.Fatal(err)
-		}
-		return
-		//fmt.Printf("%s\n", content)
-	}	
 }
