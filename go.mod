@@ -4,7 +4,6 @@ go 1.16
 
 require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
-	github.com/golang-jwt/jwt/v4 v4.4.3 // indirect
 	github.com/graarh/golang-socketio v0.0.0-20170510162725-2c44953b9b5f
 	github.com/ipfs/go-ipfs-files v0.2.0
 	github.com/ipfs/go-ipfs-http-client v0.4.0

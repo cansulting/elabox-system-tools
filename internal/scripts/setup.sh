@@ -3,8 +3,8 @@
 
 echo "Setting development pipeline for goolang"
 echo "Optional commandline params -o(target) -a(arch))"
-cos=linux                 
-carc=arm64
+cos=$(go env GOOS)                  
+carc=$(go env GOARCH) 
 
 # CHMOD
 sudo chmod +x ./upload.sh
@@ -28,6 +28,15 @@ done
 curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash -
 echo 'Y' | sudo apt update 
 echo 'Y' | sudo apt install nodejs
+
+# for json bash parsing
+if [ "$cos" == "linux" ]; then
+    echo 'Y' | sudo apt install jq python zip
+elif [ "$cos" == "darwin" ]; then
+    brew install jq
+    brew install zip
+    brew install python
+fi
 
 # download go lang
 if [ ! -d "/usr/local/go" ]; then 
@@ -59,7 +68,6 @@ fi
 echo "Do you want to setup environment for package uploading? (y/n)"
 read answer
 if [[ "$answer" == "y" ]]; then
-    sudo apt install python zip
     cw=$PWD
     cd ~
     echo "Setting up GCP storage for packages"
@@ -72,9 +80,6 @@ if [[ "$answer" == "y" ]]; then
     echo ""export PATH=$PATH:/usr/local/go/bin:$PWD/google-cloud-sdk/bin"" >> ~/.bashrc
     . ~/.bashrc
     cd $cw
-
-    # for json bash parsing
-    echo 'Y' | sudo apt install jq
 fi
 
 ######################################

@@ -3,6 +3,8 @@
 go env -u GOOS
 go env -u GOARCH
 go env -u GO111MODULE
+go env -u CC
+go env -u CXX
 
 PROJ_HOME=../../..
 ELA_SRC=$PROJ_HOME/Elastos.ELA
@@ -85,7 +87,8 @@ buildpath=../builds/$target
 echo "Building " $packager
 mkdir -p $buildpath/packager
 eval "$gobuild" -o $buildpath/packager/$packager ../cwd/$packager
-ln -sf $PWD/$buildpath/packager/$packager /bin/$packager
+
+ln -sf $PWD/$buildpath/packager/$packager /usr/local/bin/$packager
 
 #####################
 # build system binaries
@@ -98,7 +101,7 @@ if [ "$target" == "linux" ]; then
         # intel
         go env -w CC=i686-linux-gnu-gcc
     fi
-else
+elif [ "$target" == "windows" ]; then 
     # windows intel
     if [ "$arch" == "386" ]; then
         go env -w CXX=i686-w64-mingw32-g++ 
@@ -115,7 +118,7 @@ go env -w GOARCH=$arch
 echo "Building " $packageinstaller
 mkdir -p $buildpath/$packageinstaller/bin
 eval "$gobuild" -o $buildpath/$packageinstaller/bin ../cwd/$packageinstaller
-ln -sf $PWD/$buildpath/$packageinstaller/bin/$packageinstaller /bin/$packageinstaller
+ln -sf $PWD/$buildpath/$packageinstaller/bin/$packageinstaller /usr/local/bin/$packageinstaller
 echo "Building Elabox System"
 eval "$gobuild" -o $buildpath/$system_name/bin ../cwd/$system_name
 programName=$(jq ".program" $buildpath/$system_name/info.json | sed 's/\"//g')
