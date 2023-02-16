@@ -86,3 +86,8 @@ func saveEnv() error {
 	}
 	return nil
 }
+
+// is system already configured/setup?
+func IsConfig() bool {
+	return GetEnv("config") == "1"
+}

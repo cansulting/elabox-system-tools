@@ -22,7 +22,7 @@ const SAMPLE_PASSWORD = "elabox"
 // }
 
 func Test_AuthenticateSystemAccount(t *testing.T) {
-	err, success := AuthenticateSystemAccount(SAMPLE_USERNAME, SAMPLE_PASSWORD)
+	err, success := AuthenticateSystemPassword(SAMPLE_USERNAME, SAMPLE_PASSWORD)
 	if err != nil {
 		t.Error(err)
 		return

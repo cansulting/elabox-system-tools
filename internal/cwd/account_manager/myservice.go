@@ -22,6 +22,7 @@ func (instance *MyService) IsRunning() bool {
 func (instance *MyService) OnStart() error {
 	Controller.RPC.OnRecieved(AC_AUTH_DID, instance.onAuthDidAction)
 	Controller.RPC.OnRecieved(AC_AUTH_SYSTEM, instance.onAuthSystem)
+	Controller.RPC.OnRecieved(AC_SETUP_ACCOUNT, instance.onSetupUserAccount)
 	Controller.RPC.OnRecieved(AC_SETUP_CHECK, instance.onCheckSetup)
 	Controller.RPC.OnRecieved(AC_SETUP_DID, instance.onSetupDid)
 	Controller.RPC.OnRecieved(constants.ACTION_RETRIEVE_PUBKEY, instance.onPublicKey)
@@ -46,7 +47,7 @@ func (instance *MyService) onAuthSystem(client protocol.ClientInterface, action 
 	// authenticate account
 	username := params["username"].(string)
 	pass := params["pass"].(string)
-	err, isValid := AuthenticateSystemAccount(username, pass)
+	err, isValid := AuthenticateSystemPassword(username, pass)
 	if err != nil {
 		return rpc.CreateResponse(rpc.SYSTEMERR_CODE, err.Error())
 	}
@@ -78,16 +79,19 @@ func (instance *MyService) onAuthDidAction(client protocol.ClientInterface, acti
 	}
 	// step: compare with the existing hash
 	did := presentation["holder"].(string)
-	if _, valid := AuthenticateDid(did); !valid {
+	if _, valid := AuthenticateDid(DEFAULT_USERNAME, did); !valid {
 		return rpc.CreateResponse(rpc.INVALID_CODE, "incorrect did credentials")
 	}
-	acc := GetAccount()
+	acc, err := GetAccount(DEFAULT_USERNAME)
+	if err != nil {
+		return rpc.CreateResponse(rpc.SYSTEMERR_CODE, err.Error())
+	}
 	return rpc.CreateJsonResponse(rpc.SUCCESS_CODE, acc)
 }
 
 // use to check whether the elabox was setup already. return "setup" if already setup
 func (instance *MyService) onCheckSetup(client protocol.ClientInterface, action data.Action) string {
-	acc := GetAccount()
+	acc, _ := GetAccount(DEFAULT_USERNAME)
 	if acc != nil && acc.Did != "" {
 		return rpc.CreateSuccessResponse("setup")
 	} else {
@@ -106,15 +110,18 @@ func (instance *MyService) onSetupDid(client protocol.ClientInterface, action da
 		return rpc.CreateResponse(rpc.INVALID_PARAMETER_PROVIDED, "no presentation provided")
 	}
 
-	// step: authenticate for existing did setup
-	acc := GetAccount()
+	// step: authenticate for existing did setup. this means it will replace the old creds
+	acc, err := GetAccount(DEFAULT_USERNAME)
+	if err != nil {
+		return rpc.CreateResponse(rpc.SYSTEMERR_CODE, err.Error())
+	}
 	if acc.Did != "" {
 		if acData["username"] == nil || acData["password"] == nil {
 			return rpc.CreateResponse(rpc.INVALID_PARAMETER_PROVIDED, "username and password is required")
 		}
 		pass := acData["password"].(string)
 		username := acData["username"].(string)
-		err, success := AuthenticateSystemAccount(username, pass)
+		err, success := AuthenticateSystemPassword(username, pass)
 		if err != nil {
 			return rpc.CreateResponse(rpc.SYSTEMERR_CODE, err.Error())
 		}
@@ -128,17 +135,16 @@ func (instance *MyService) onSetupDid(client protocol.ClientInterface, action da
 		return rpc.CreateResponse(rpc.SYSTEMERR_CODE, "no holder provider in presentation")
 	}
 	did := presentation["holder"].(string)
-	if err := UpdateDid(did); err != nil {
+	if err := UpdateDid(DEFAULT_USERNAME, did); err != nil {
 		return rpc.CreateResponse(rpc.SYSTEMERR_CODE, "failed to setup did, "+err.Error())
 	}
 	// step: update wallet address
 	if presentation["esc"] == nil {
 		return rpc.CreateResponse(rpc.INVALID_CODE, "no esc wallet address provided")
 	}
-	if err := UpdateWalletAddress("esc", presentation["esc"].(string)); err != nil {
+	if err := UpdateWalletAddress(DEFAULT_USERNAME, "esc", presentation["esc"].(string)); err != nil {
 		return rpc.CreateResponse(rpc.INVALID_CODE, "failed updating esc wallet, "+err.Error())
 	}
-	SaveAccount()
 	return rpc.CreateSuccessResponse("success")
 }
 
@@ -166,4 +172,21 @@ func (instance *MyService) onValidateToken(client protocol.ClientInterface, acti
 		validStr = "invalid"
 	}
 	return rpc.CreateSuccessResponse(validStr)
+}
+
+func (instance *MyService) onSetupUserAccount(client protocol.ClientInterface, action data.Action) string {
+	data, err := action.DataToMap()
+	// step: validate inputs
+	if err != nil {
+		return rpc.CreateResponse(rpc.INVALID_PARAMETER_PROVIDED, "invalid parameters provided, "+err.Error())
+	}
+	if data["pass"] == nil {
+		return rpc.CreateResponse(rpc.INVALID_PARAMETER_PROVIDED, "password not provided")
+	}
+	pass := data["pass"].(string)
+	_, err = SetupAccount(DEFAULT_USERNAME, pass, "Elabox")
+	if err != nil {
+		return rpc.CreateResponse(rpc.SYSTEMERR_CODE, err.Error())
+	}
+	return rpc.CreateSuccessResponse("success")
 }

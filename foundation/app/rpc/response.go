@@ -24,6 +24,10 @@ type ResponseMessage struct {
 	Message string  `json:"message"`
 }
 
+func (instance ResponseMessage) IsSuccess() bool {
+	return instance.Code == 200
+}
+
 type Response struct {
 	Value interface{}
 }

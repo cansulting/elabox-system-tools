@@ -2,9 +2,6 @@ package main
 
 import (
 	"crypto/rsa"
-	"os"
-	"os/exec"
-	"strings"
 	"time"
 
 	"github.com/cansulting/elabox-system-tools/foundation/account"
@@ -37,41 +34,6 @@ func init() {
 	}
 	privateKey = priv
 	account.SetPublicKey(&priv.PublicKey)
-}
-
-// use to authenticate specific password
-func AuthenticateSystemAccount(username string, password string) (error, bool) {
-	contents, err := os.ReadFile(SHADOW_FILE)
-	if err != nil {
-		return err, false
-	}
-	hashContent := Grep(username, string(contents))
-	// unable to find specific user account
-	if hashContent == "" {
-		return nil, false
-	}
-	creds := strings.Split(hashContent, "$")
-	salt := creds[2]
-	savedHash := strings.Split(hashContent, ":")[1]
-	encryptType := creds[1]
-	// generate hash
-	cmd := exec.Command(
-		"/usr/bin/openssl",
-		"passwd", "-"+encryptType,
-		"-salt", salt,
-		password,
-	)
-	hash, err := cmd.CombinedOutput()
-	if err != nil {
-		return err, false
-	}
-	// password is correct
-	strHash := string(hash)
-	strHash = strings.TrimRight(strHash, "\n")
-	if savedHash == strHash {
-		return nil, true
-	}
-	return nil, false
 }
 
 // use to create token for a given user
