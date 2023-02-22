@@ -14,18 +14,19 @@ package path
 // Constant and variables used by the system.
 // Reference: https://help.ubuntu.com/community/LinuxFilesystemTreeOverview
 
-const PATH_SYSTEM = "."                              // where ela binaries will be stored
-const PATH_CACHES = "./caches"                       // dir where caches will be saved
-const PATH_HOME = "./home"                           // the root path for elabox. the root directory for non system apps and data
-const PATH_SYSTEM_DATA = "./data"                    // dir where system data will be persist
+const PATH_SYSTEM = "./Elabox"                       // where ela binaries will be stored
+const PATH_CACHES = PATH_SYSTEM + "/caches"          // dir where caches will be saved
+const PATH_HOME = PATH_SYSTEM + "/home"              // the root path for elabox. the root directory for non system apps and data
+const PATH_SYSTEM_DATA = PATH_SYSTEM + "/data"       // dir where system data will be persist
 const PATH_HOME_APPS = PATH_HOME + "/apps"           // where non system bin/apps will be installed
 const PATH_HOME_DATA = PATH_HOME + "/data"           // where non system bin/apps data will be persist
 const PATH_DOWNLOADS = PATH_HOME_DATA + "/downloads" // where downloaded files will be stored
-const PATH_SYSTEM_WWW = "./www"                      //
+const PATH_SYSTEM_WWW = PATH_SYSTEM + "/www"         //
 const PATH_EXTERNAL_WWW = PATH_HOME + "/www"         //
-const PATH_LIB = "./lib"                             //
-const PATH_USERS = "./users"                         // users directory
+const PATH_LIB = PATH_SYSTEM + "/lib"                //
+const PATH_USERS = PATH_SYSTEM + "/users"            // users directory
 const PATH_HOME_DOCUMENTS = PATH_HOME + "/documents"
+const PATH_LOG = PATH_SYSTEM + "/log"
 
 func GetSystemAppDir() string {
 	return PATH_SYSTEM

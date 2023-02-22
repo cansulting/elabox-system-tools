@@ -1,11 +1,11 @@
 package env
 
 import (
+	"github.com/cansulting/elabox-system-tools/foundation/app/data"
 	"github.com/cansulting/elabox-system-tools/foundation/constants"
 	"github.com/cansulting/elabox-system-tools/foundation/errors"
 	"github.com/cansulting/elabox-system-tools/foundation/logger"
 	"github.com/cansulting/elabox-system-tools/foundation/system"
-	"github.com/cansulting/elabox-system-tools/registry/app"
 )
 
 const ELAENV = "ELAENV"         // environment variable for build mode
@@ -20,7 +20,8 @@ func Init() error {
 	if err := system.SetEnv(ELAENV, string(system.BuildMode)); err != nil {
 		return errors.SystemNew("System Config Environment error", err)
 	}
-	pkg, err := app.RetrievePackage(constants.SYSTEM_SERVICE_ID)
+	pkg := data.DefaultPackage()
+	err := pkg.LoadFromLocation(constants.SYSTEM_SERVICE_ID, data.SYSTEM)
 	if pkg == nil {
 		err = errors.SystemNew("unable to load package", nil)
 	}

@@ -127,12 +127,13 @@ func processInstallCommand(targetPk string, restart bool, logging bool, runCusto
 				pkconst.Logger.Fatal().Err(err)
 				return
 			}
-		} else {
-			if err := utils.StartSystem(); err != nil {
-				pkconst.Logger.Fatal().Err(err)
-				return
-			}
 		}
+		// else {
+		// 	if err := utils.StartSystem(); err != nil {
+		// 		pkconst.Logger.Fatal().Err(err)
+		// 		return
+		// 	}
+		// }
 		time.Sleep(time.Millisecond * 200)
 		os.Exit(0)
 	}
