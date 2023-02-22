@@ -203,7 +203,7 @@ if [ "$built" == "1" ]; then
 fi
 
 ##################################
-# build landing page
+# build system landing page
 ##################################
 if [ "$answerLand" == "y" ]; then
     wd=$PWD
@@ -211,7 +211,8 @@ if [ "$answerLand" == "y" ]; then
     sudo npm install
     sudo npm run build
     cd $wd
-    rm -r $buildpath/system/www && mkdir -p $buildpath/system/www
+    rm -r $buildpath/system/www 
+    mkdir -p $buildpath/system/www
     cp -r $ELA_LANDING/build/* $buildpath/system/www
 fi
 
@@ -263,6 +264,12 @@ if [ "$answerEla" == "y" ]; then
     # carrier
     carrierlib=$buildpath/carrier/bin
     chmod +x $carrierlib/ela-bootstrapd
+
+    packager $buildpath/eid/packager.json
+    packager $buildpath/esc/packager.json
+    packager $buildpath/carrier/packager.json
+    packager $buildpath/feeds/packager.json
+    packager $buildpath/mainchain/packager.json
 fi
 
 #########################
@@ -314,15 +321,10 @@ fi
 # Packaging
 #########################
 echo "Start packaging..."
-packager $buildpath/eid/packager.json
-packager $buildpath/esc/packager.json
-packager $buildpath/carrier/packager.json
-packager $buildpath/mainchain/packager.json
 packager $buildpath/$packageinstaller/packager.json
 packager $buildpath/account_manager/packager.json
 packager $buildpath/notification_center/packager.json
 packager $buildpath/package_manager/packager.json
-packager $buildpath/feeds/packager.json
 packager $buildpath/$system_name/packager.json
 
 go env -u CGO_ENABLED
