@@ -17,8 +17,6 @@
     ],
     "customInstaller": "../packageinstaller/bin/packageinstaller",
     "lib": "",
-    "postinstall":"./scripts/postinstall.sh",
-    "preinstall":"./scripts/preinstall.sh",
     "continueOnMissing": false,
     "icons": {
         "medium": "icon.png"
