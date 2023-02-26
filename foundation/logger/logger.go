@@ -17,6 +17,7 @@ import (
 	"os"
 
 	"github.com/cansulting/elabox-system-tools/foundation/constants"
+	"github.com/cansulting/elabox-system-tools/foundation/path"
 	"github.com/cansulting/elabox-system-tools/foundation/perm"
 
 	"github.com/rs/zerolog"
@@ -36,6 +37,7 @@ func Init(packageId string) *zerolog.Logger {
 func InitFromFile(packageId string, srcLog string) *zerolog.Logger {
 	//if instanceLogger == nil {
 	// init logfile
+	os.MkdirAll(path.PATH_LOG, perm.PUBLIC)
 	if srcLog == "" {
 		srcLog = constants.LOG_FILE
 	} else {

@@ -10,6 +10,8 @@
 
 package constants
 
+import "github.com/cansulting/elabox-system-tools/foundation/path"
+
 // CONNECTION CONFIG
 const PORT = 80
 const TIMEOUT = 20        // transmit timeout
@@ -17,7 +19,7 @@ const RECONNECT = true    // true if enable reconnection when reconnecting to so
 const PACKAGE_EXT = "box" // extension of packaged file
 const CUSTOMINSLLER = "custominstaller"
 
-const LOG_FILE = "/var/log/elabox.log" // the system log file path
+const LOG_FILE = path.PATH_LOG + "/elabox.log" // the system log file path
 
 // package ids
 const SYSTEM_SERVICE_ID = "ela.system"

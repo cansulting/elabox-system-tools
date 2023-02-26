@@ -26,8 +26,3 @@ const APP_TERMINATE_COUNTDOWN = 3 // number of seconds to wait before terminatin
 const CONFIG_ENV = "config"       // env name for config, value is "1" if elabox was already configured
 const DEFAULT_DASHBOARD = "ela.dashboard"
 
-var CONFIG_PKGS = []string{ // packages that are initially required for system configuration
-	"ela.setup",
-	"ela.companion",
-	"ela.account",
-	"ela.rewards"}

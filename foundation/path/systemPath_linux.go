@@ -26,6 +26,7 @@ const PATH_EXTERNAL_WWW = PATH_HOME + "/www"         //
 const PATH_LIB = "/usr/local/lib/ela"                //
 const PATH_USERS = "/usr/ela/users"                  // users directory
 const PATH_HOME_DOCUMENTS = PATH_HOME + "/documents"
+const PATH_LOG = "/var/log"
 
 func GetSystemAppDir() string {
 	return PATH_SYSTEM

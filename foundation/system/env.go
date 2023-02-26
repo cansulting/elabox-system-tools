@@ -3,6 +3,7 @@ package system
 import (
 	"encoding/json"
 	"os"
+	ospath "path"
 
 	"github.com/cansulting/elabox-system-tools/foundation/constants"
 	"github.com/cansulting/elabox-system-tools/foundation/errors"
@@ -11,9 +12,9 @@ import (
 )
 
 /*
-	Structure for handling system environment variables.
-	This structure includes serialization and deserialization.
-	TODO: optimize serialization. Currently this serializes everytime theres a changes with environment variable
+Structure for handling system environment variables.
+This structure includes serialization and deserialization.
+TODO: optimize serialization. Currently this serializes everytime theres a changes with environment variable
 */
 var singleton *Env
 
@@ -31,6 +32,11 @@ func initEnv() error {
 	if singleton == nil {
 		singleton = &Env{}
 		envsrc := getSourceLoc()
+		// init env file
+		if _, err := os.Stat(envsrc); err != nil {
+			os.MkdirAll(ospath.Dir(envsrc), perm.PUBLIC_VIEW)
+			saveEnv()
+		}
 		if _, err := os.Stat(envsrc); err == nil {
 			// load from file
 			bytes, err := os.ReadFile(envsrc)
