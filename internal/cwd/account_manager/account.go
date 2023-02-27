@@ -86,7 +86,7 @@ func GetAccount(username string) (*Account, error) {
 	}
 	acc := &Account{}
 	err2 := json.Unmarshal(contents, acc)
-	if err2 != nil {
+	if err2 == nil {
 		lastActive = acc
 	}
 	return acc, err2
@@ -113,6 +113,9 @@ func UpdateWalletAddress(username string, walletId string, address string) error
 	if err != nil {
 		return err
 	}
+	if acc.Wallets == nil {
+		acc.Wallets = make(map[string]string)
+	}
 	acc.Wallets[walletId] = address
 	saveAccount(acc)
 	return nil
@@ -128,7 +131,7 @@ func UpdateDid(username string, did string) error {
 		return err
 	}
 	acc.Did = did
-	return nil
+	return saveAccount(acc)
 }
 
 // check authorization for specific DID, return true if DID is authorized
