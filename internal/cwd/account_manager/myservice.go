@@ -82,11 +82,21 @@ func (instance *MyService) onAuthDidAction(client protocol.ClientInterface, acti
 	if _, valid := AuthenticateDid(DEFAULT_USERNAME, did); !valid {
 		return rpc.CreateResponse(rpc.INVALID_CODE, "incorrect did credentials")
 	}
-	acc, err := GetAccount(DEFAULT_USERNAME)
+	// acc, err := GetAccount(DEFAULT_USERNAME)
+
+	// if err != nil {
+	// 	return rpc.CreateResponse(rpc.SYSTEMERR_CODE, err.Error())
+	// }
+	token, err := CreateToken(DEFAULT_USERNAME, "origin")
 	if err != nil {
-		return rpc.CreateResponse(rpc.SYSTEMERR_CODE, err.Error())
+		return rpc.CreateResponse(rpc.SYSTEMERR_CODE, "failed generating token, "+err.Error())
 	}
-	return rpc.CreateJsonResponse(rpc.SUCCESS_CODE, acc)
+	ac := Account{
+		Token:       token,
+		DisplayName: "elabox",
+		Status:      "active",
+	}
+	return rpc.CreateSuccessResponse(ac.ToJson())
 }
 
 // use to check whether the elabox was setup already. return "setup" if already setup
