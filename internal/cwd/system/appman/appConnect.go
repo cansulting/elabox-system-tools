@@ -32,7 +32,7 @@ import (
 )
 
 /*
-	struct that connects that connects and communicate to specific app
+struct that connects that connects and communicate to specific app
 */
 type AppConnect struct {
 	Location string
@@ -288,7 +288,7 @@ func asyncRun(app *AppConnect, cmd *exec.Cmd) {
 
 // callback when system has log
 func (n *AppConnect) Write(data []byte) (int, error) {
-	global.Logger.Debug().Msg(string(data))
+	global.Logger.Debug().Str("package", n.PackageId).Msg(string(data))
 	return len(data), nil
 }
 

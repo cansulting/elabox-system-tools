@@ -50,6 +50,10 @@ func InitFromFile(packageId string, srcLog string) *zerolog.Logger {
 		fmt.Println("Error opening logfile "+srcLog, err)
 		panic(err)
 	}
+	if logfile == nil {
+		fmt.Println("unable to open file")
+		panic("unable to open file")
+	}
 	fmt.Println("Log file opened @", srcLog)
 	var writer io.Writer = logfile
 	if ConsoleOut {

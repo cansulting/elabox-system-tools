@@ -17,6 +17,7 @@
 package main
 
 import (
+	"net/http"
 	"os"
 
 	"github.com/cansulting/elabox-system-tools/foundation/constants"
@@ -25,6 +26,7 @@ import (
 	"github.com/cansulting/elabox-system-tools/foundation/event/protocol"
 	"github.com/cansulting/elabox-system-tools/foundation/system"
 	"github.com/cansulting/elabox-system-tools/registry/app"
+	"github.com/cansulting/elabox-system-tools/server/config"
 )
 
 // process commandline
@@ -64,11 +66,11 @@ func terminate(timeout int16) {
 	println("Terminating...")
 	// step: check theres an existing connection with the system server.
 	// if nothing then its terminated already
-	con := connectToSystem()
-	if con == nil {
+	if isSystemRunning() {
 		println("System already terminated.")
 		return
 	}
+	con := connectToSystem()
 	res, err := con.SendSystemRequest(
 		constants.SYSTEM_SERVICE_ID,
 		data.NewAction(constants.SYSTEM_TERMINATE, "", timeout))
@@ -77,6 +79,15 @@ func terminate(timeout int16) {
 		return
 	}
 	println("Terminate", res)
+}
+
+// connect to system. return connector if success
+func isSystemRunning() bool {
+	res, err := http.Get("http://localhost:" + config.PORT)
+	if err != nil || res.StatusCode != http.StatusOK {
+		return false
+	}
+	return true
 }
 
 // connect to system. return connector if success

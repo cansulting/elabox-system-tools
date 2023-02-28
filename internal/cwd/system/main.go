@@ -21,7 +21,7 @@ func main() {
 		return
 	}
 	// step: skip if system already running
-	if connectToSystem() != nil {
+	if isSystemRunning() {
 		println("System already running.")
 		return
 	}

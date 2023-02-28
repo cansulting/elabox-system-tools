@@ -14,9 +14,6 @@ const AC_VALIDATE_TOKEN = PACKAGE_ID + ".actions.VALIDATE_TOKEN" // use to valid
 const AC_AUTH_SYSTEM = PACKAGE_ID + ".actions.AUTH_SYSTEM"       // authenticate via system
 
 const PACKAGE_ID = "ela.account"
-const HOME_DIR = "/home/elabox"
-const DID_DATA_DIR = HOME_DIR + "/data/" + PACKAGE_ID
-const DID_HASH_PATH = DID_DATA_DIR + "/did.dat"
 const KEYSTORE_PATH = "/home/elabox/documents/ela.mainchain/keystore.dat"
 const DEFAULT_USERNAME = "elabox"
 
