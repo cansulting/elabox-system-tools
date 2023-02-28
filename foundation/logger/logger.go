@@ -37,7 +37,7 @@ func Init(packageId string) *zerolog.Logger {
 func InitFromFile(packageId string, srcLog string) *zerolog.Logger {
 	//if instanceLogger == nil {
 	// init logfile
-	os.MkdirAll(path.PATH_LOG, perm.PUBLIC)
+	os.MkdirAll(path.PATH_LOG, perm.PUBLIC_WRITE)
 	if srcLog == "" {
 		srcLog = constants.LOG_FILE
 	} else {
@@ -48,7 +48,7 @@ func InitFromFile(packageId string, srcLog string) *zerolog.Logger {
 	logfile, err = os.OpenFile(srcLog, os.O_CREATE|os.O_RDWR|os.O_APPEND, perm.PUBLIC_WRITE)
 	if err != nil {
 		fmt.Println("Error opening logfile "+srcLog, err)
-		return nil
+		panic(err)
 	}
 	fmt.Println("Log file opened @", srcLog)
 	var writer io.Writer = logfile
