@@ -1,3 +1,6 @@
+//go:build darwin
+// +build darwin
+
 package path
 
 // Copyright 2021 The Elabox Authors
@@ -14,7 +17,7 @@ package path
 // Constant and variables used by the system.
 // Reference: https://help.ubuntu.com/community/LinuxFilesystemTreeOverview
 
-const PATH_SYSTEM = "./Elabox"                       // where ela binaries will be stored
+const PATH_SYSTEM = "/usr/local/elabox"              // where ela binaries will be stored
 const PATH_CACHES = PATH_SYSTEM + "/caches"          // dir where caches will be saved
 const PATH_HOME = PATH_SYSTEM + "/home"              // the root path for elabox. the root directory for non system apps and data
 const PATH_SYSTEM_DATA = PATH_SYSTEM + "/data"       // dir where system data will be persist

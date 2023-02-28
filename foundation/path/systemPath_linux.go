@@ -1,3 +1,6 @@
+//go:build linux
+// +build linux
+
 package path
 
 // Copyright 2021 The Elabox Authors
