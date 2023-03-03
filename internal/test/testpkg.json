@@ -1,0 +1,19 @@
+{
+	"name": "Test package",
+	"description": "This is a test package",
+	"packageId": "ela.test",
+	"build": 3,
+	"version": "0.3.1",
+	"program": "ela.test",
+	"permissions": null,
+	"exportService": false,
+	"activities": null,
+	"actionListener": null,
+	"location": "system",
+	"nodejs": false,
+	"ext": {
+		"sampleStr": "this is sample string",
+		"sampleInt": 12
+	},
+	"packagerVersion": "0.1.0"
+}
