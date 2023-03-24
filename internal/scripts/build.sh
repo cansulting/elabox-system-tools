@@ -11,7 +11,6 @@ ELA_SRC=$PROJ_HOME/Elastos.ELA
 EID_SRC=$PROJ_HOME/Elastos.ELA.SideChain.EID
 ESC_SRC=$PROJ_HOME/Elastos.ELA.SideChain.ESC
 GLIDE_SRC=$PROJ_HOME/glide-frontend
-ELA_COMPANION=$PROJ_HOME/elabox-companion
 ELA_LANDING=$PROJ_HOME/elabox-companion-landing
 ELA_REWARDS=$PROJ_HOME/elabox-rewards
 ELA_LOGS=$PROJ_HOME/elabox-logs
@@ -61,8 +60,6 @@ echo "cgo enabled"
 #####################
 # Questions
 #####################
-echo "Rebuild companion client & server? 1 - All, 2 - Client, 3 - Server, Enter - none"
-read answerComp
 echo "Rebuild elabox landing page? (y/n)"
 read answerLand
 echo "Rebuild elastos binaries? (y/n)"
@@ -164,43 +161,6 @@ fi
 # unset env variables
 go env -u CC
 go env -u CXX
-
-
-#########################
-# build companion app?
-#########################
-built=0
-# client building
-if [[ "$answerComp" == "1" || "$answerComp" == "2" ]]; then 
-    echo "Start building client companion app, please wait this will take awhile..." 
-    initDir=$PWD
-    cd $ELA_COMPANION/src_client
-    sudo yarn
-    sudo npm run build
-    cd $initDir
-    if [[ -d "$buildpath/companion/www" ]]; then
-        rm -r $buildpath/companion/www && mkdir -p $buildpath/companion/www
-    fi
-    cp -r $ELA_COMPANION/src_client/build/* $buildpath/companion/www
-    built=1
-fi
-# server building
-if [[ "$answerComp" == "1" || "$answerComp" == "3" ]]; then 
-    echo "Start building server companion app, please wait this will take awhile..." 
-    initDir=$PWD
-    cd $ELA_COMPANION/src_server
-    sudo npm install
-    cd $initDir
-    mkdir -p $buildpath/companion/nodejs
-    rm -r $buildpath/companion/nodejs && mkdir -p $buildpath/companion/nodejs
-    cp -r $ELA_COMPANION/src_server/* $buildpath/companion/nodejs
-    built=1
-fi
-if [ "$built" == "1" ]; then 
-    echo "Build success!"
-    echo "Packaging..."
-    packager $buildpath/companion/packager.json
-fi
 
 ##################################
 # build system landing page
