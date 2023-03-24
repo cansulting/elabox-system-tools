@@ -9,12 +9,21 @@ import (
 	"github.com/cansulting/elabox-system-tools/internal/cwd/package_manager/global"
 )
 
+// broadcast that theres a new installation
+func PublishNewInstall(pkid string) error {
+	val := `{"packageId":"` + pkid + `"}`
+	_, err := global.RPC.CallBroadcast(sdata.NewAction(global.NEW_INSTALL, global.PackageId, val))
+	return err
+}
+
+// broadcast that theres a new progress with the install
 func PublishInstallProgress(progress uint, itemId string) error {
 	val := `{"progress":` + strconv.Itoa(int(progress)) + `,"packageId":"` + itemId + `"}`
 	_, err := global.RPC.CallBroadcast(sdata.NewAction(global.INSTALL_PROGRESS, global.PackageId, val))
 	return err
 }
 
+// broadcast that theres new update available
 func PublishNewUpdateAvailable(updates []*data.PackageListingCache) error {
 	log.Println("updates found: " + strconv.Itoa((len(updates))))
 	// create json from updates
@@ -30,6 +39,7 @@ func PublishNewUpdateAvailable(updates []*data.PackageListingCache) error {
 	return err
 }
 
+// broadcast for error
 func PublishError(pkid string, code int, msg string) error {
 	val := `{"code":` + strconv.Itoa(code) + `,"error":"` + msg + `", "packageId":"` + pkid + `"}`
 	_, err := global.RPC.CallBroadcast(sdata.NewAction(global.BROADCAST_ERROR, global.PackageId, val))

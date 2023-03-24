@@ -11,7 +11,6 @@
         "../account_manager/ela.account.box",
         "../notification_center/ela.notification.box",
         "../package_manager/ela.pkgmgr.box",
-        "../companion/ela.companion.box",
         "../carrier/ela.carrier.box", 
         "../../../../../elabox-dashboard/build/ela.dashboard.box",
         "../../../../../elabox-dapp-store/build/ela.store/ela.store.box",

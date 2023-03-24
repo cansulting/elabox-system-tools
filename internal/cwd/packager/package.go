@@ -100,11 +100,6 @@ func (c *Package) Compile(destdir string) error {
 		return errors.SystemNew("Compile() create zip file failed.", err)
 	}
 	zipwriter := zip.NewWriter(file)
-	// add config
-	if err := addFile(constants.APP_CONFIG_NAME, c.PackageConfig, zipwriter); err != nil {
-		log.Println("Compile() adding package info")
-		return errors.SystemNew("Compile() add config file failed.", err)
-	}
 	// add icons
 	if c.Icons != nil {
 		pkconfig.Icons = &data.Icons{}
@@ -213,15 +208,21 @@ func (c *Package) Compile(destdir string) error {
 			return errors.SystemNew("failed adding script "+c.UnInstall, err)
 		}
 	}
-	// close
-	if err := zipwriter.Close(); err != nil {
-		return errors.SystemNew("Compile() close failed.", err)
-	}
 	// update package info version
 	pkconfig.PackagerVersion = VERSION
 	if err := os.WriteFile(pkconfig.Source, []byte(pkconfig.ToJson()), perm.PUBLIC); err != nil {
 		return errors.SystemNew("Updating package config "+pkconfig.Source+"Failed", err)
 	}
+	// add config
+	if err := addFile(constants.APP_CONFIG_NAME, c.PackageConfig, zipwriter); err != nil {
+		log.Println("Compile() adding package info")
+		return errors.SystemNew("Compile() add config file failed.", err)
+	}
+	// close
+	if err := zipwriter.Close(); err != nil {
+		return errors.SystemNew("Compile() close failed.", err)
+	}
+
 	log.Println("Package success", pkconfig.PackageId)
 	return nil
 }

@@ -119,6 +119,7 @@ func CreateTask(
 	if def.Url != "" {
 		task.Url = def.Url
 	}
+	broadcast.PublishNewInstall(def.Id)
 	//task.Start()
 	return task
 }

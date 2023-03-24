@@ -94,12 +94,6 @@ read answer
 if [ "$answer" != "" ]; then 
     wd=$answer
 fi
-
-if [ ! -d "elabox-companion" ]; then
-    git clone https://github.com/cansulting/elabox-companion.git
-    cd "./elabox-companion"
-    git switch Development
-fi 
 if [ ! -d "elabox-companion-landing" ]; then
     cd $wd
     git clone https://github.com/cansulting/elabox-companion-landing.git

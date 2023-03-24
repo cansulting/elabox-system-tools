@@ -36,6 +36,7 @@ const INSTALL_PROGRESS = PackageId + ".broadcast.INSTALL_PROGRESS"
 const BROADCAST_ERROR = PackageId + ".broadcast.ERROR"
 const INSTALL_STATE = PackageId + ".broadcast.INSTALL_STATE"
 const RETRIEVE_SYS_VERSION = PackageId + ".actions.RETRIEVE_SYSTEM_VERSION"
+const NEW_INSTALL = PackageId + ".broadcast.NEW_INSTALL" // created/scheduled a new install
 
 // installer actions
 const INSTALLER_PROGRESS = "ela.installer.broadcast.PROGRESS"
