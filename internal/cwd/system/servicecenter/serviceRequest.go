@@ -86,6 +86,8 @@ func OnRecievedRequest(
 		return terminate(0)
 	case constants.SYSTEM_CONFIGURED:
 		return configureSystem()
+	case constants.ACTION_VERSION_TYPE:
+		return rpc.CreateSuccessResponse(global.VERSION_TYPE)
 	default:
 		return rpc.CreateResponse(rpc.NOT_IMPLEMENTED, "request for action "+action.Id+" was not implemented.")
 	}

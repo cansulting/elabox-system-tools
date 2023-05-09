@@ -19,3 +19,4 @@ const ACTION_APP_LAUNCH = "ela.action.APP_LAUNCH"             // called when app
 const ACTION_APP_INSTALL = "ela.action.INSTALL"               // called to launch app installer
 const ACTION_APP_UNINSTALL = "ela.action.UNINSTALL"           // call to uninstall app via ela.installer
 const ACTION_APP_SYSTEM_INSTALL = "ela.action.SYSTEM_INSTALL" // called to initiate system installation
+const ACTION_VERSION_TYPE = "ela.action.CHECK_VERSION_TYPE"   // check if the system is lite version or not
