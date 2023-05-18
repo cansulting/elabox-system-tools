@@ -2,7 +2,7 @@
 	"name": "Glide Finance",
 	"description": "Glide Finance",
 	"packageId": "glide",
-	"build": 1,
+	"build": 2,
 	"version": "0.1.0",
 	"program": "",
 	"programArgs": null,
