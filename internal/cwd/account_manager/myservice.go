@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/base64"
+	"encoding/json"
 
 	"github.com/cansulting/elabox-system-tools/foundation/account"
 	"github.com/cansulting/elabox-system-tools/foundation/app/rpc"
@@ -140,20 +141,8 @@ func (instance *MyService) onSetupDid(client protocol.ClientInterface, action da
 		}
 	}
 	presentation := acData["presentation"].(map[string]interface{})
-	// step: validate presentation
-	if presentation["holder"] == nil {
-		return rpc.CreateResponse(rpc.SYSTEMERR_CODE, "no holder provider in presentation")
-	}
-	did := presentation["holder"].(string)
-	if err := UpdateDid(DEFAULT_USERNAME, did); err != nil {
-		return rpc.CreateResponse(rpc.SYSTEMERR_CODE, "failed to setup did, "+err.Error())
-	}
-	// step: update wallet address
-	if presentation["esc"] == nil {
-		return rpc.CreateResponse(rpc.INVALID_CODE, "no esc wallet address provided")
-	}
-	if err := UpdateWalletAddress(DEFAULT_USERNAME, "esc", presentation["esc"].(string)); err != nil {
-		return rpc.CreateResponse(rpc.INVALID_CODE, "failed updating esc wallet, "+err.Error())
+	if err := UpdateAccount(presentation); err != nil {
+		return rpc.CreateResponse(rpc.INVALID_CODE, err.Error())
 	}
 	return rpc.CreateSuccessResponse("success")
 }
@@ -197,6 +186,14 @@ func (instance *MyService) onSetupUserAccount(client protocol.ClientInterface, a
 	_, err = SetupAccount(DEFAULT_USERNAME, pass, "Elabox")
 	if err != nil {
 		return rpc.CreateResponse(rpc.SYSTEMERR_CODE, err.Error())
+	}
+	if data["presentation"] != nil {
+		str := data["presentation"].(string)
+		presentation := make(map[string]interface{})
+		json.Unmarshal([]byte(str), &presentation)
+		if err := UpdateAccount(presentation); err != nil {
+			return rpc.CreateResponse(rpc.SYSTEMERR_CODE, err.Error())
+		}
 	}
 	return rpc.CreateSuccessResponse("success")
 }

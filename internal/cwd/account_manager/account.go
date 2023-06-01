@@ -117,8 +117,7 @@ func UpdateWalletAddress(username string, walletId string, address string) error
 		acc.Wallets = make(map[string]string)
 	}
 	acc.Wallets[walletId] = address
-	saveAccount(acc)
-	return nil
+	return saveAccount(acc)
 }
 
 // set the current device did
@@ -132,6 +131,24 @@ func UpdateDid(username string, did string) error {
 	}
 	acc.Did = did
 	return saveAccount(acc)
+}
+
+func UpdateAccount(presentation map[string]interface{}) error {
+	if presentation["holder"] == nil {
+		return errors.New("no holder provider in presentation")
+	}
+	did := presentation["holder"].(string)
+	if err := UpdateDid(DEFAULT_USERNAME, did); err != nil {
+		return errors.New("failed to setup did, " + err.Error())
+	}
+	// step: update wallet address
+	if presentation["esc"] == nil {
+		return errors.New("no esc wallet address provided")
+	}
+	if err := UpdateWalletAddress(DEFAULT_USERNAME, "esc", presentation["esc"].(string)); err != nil {
+		return errors.New("failed updating esc wallet, " + err.Error())
+	}
+	return nil
 }
 
 // check authorization for specific DID, return true if DID is authorized
