@@ -7,4 +7,4 @@ var CONFIG_PKGS = []string{ // packages that are initially required for system c
 	"ela.rewards",
 }
 
-const VERSION_TYPE = "standard"
+const VERSION_TYPE = "lite"

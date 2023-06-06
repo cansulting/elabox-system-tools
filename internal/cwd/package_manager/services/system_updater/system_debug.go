@@ -12,10 +12,11 @@ import (
 )
 
 func GetLatestSysVersion() *SysVer {
-	return &SysVer{
-		Build:   latestSysVerInfo.Build + 1,
-		Version: "samplever",
-	}
+	// return &SysVer{
+	// 	Build:   latestSysVerInfo.Build + 1,
+	// 	Version: "samplever",
+	// }
+	return latestSysVerInfo
 }
 
 func DownloadLatest() error {
