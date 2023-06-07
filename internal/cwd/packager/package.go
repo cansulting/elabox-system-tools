@@ -19,9 +19,9 @@ import (
 const VERSION = "0.1.0"
 
 /*
-	package.go
-	This struct handles the packaging.
-	Config file needs to be loaded first before it can be used.
+package.go
+This struct handles the packaging.
+Config file needs to be loaded first before it can be used.
 */
 type Package struct {
 	Cwd               string      `json:"cwd"`               // current working directory
