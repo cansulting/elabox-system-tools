@@ -1,3 +1,4 @@
+//go:generate goversioninfo -icon=favicon.ico -platform-specific=true
 package main
 
 import (
