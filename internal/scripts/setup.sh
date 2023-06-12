@@ -106,12 +106,6 @@ if [ ! -d "elabox-logs" ]; then
     cd elabox-logs
     git switch Development
 fi
-if [ ! -d "mastodon-hub" ]; then
-    cd $wd
-    git clone https://github.com/cansulting/mastodon-hub
-    cd mastodon-hub
-    git switch development
-fi
 if [ ! -d "Elastos.ELA" ]; then 
     cd $wd
     git clone https://github.com/elastos/Elastos.ELA.git

@@ -20,8 +20,8 @@ import (
 )
 
 /*
-	installer.go
-	structure for installing packages to ela system
+installer.go
+structure for installing packages to ela system
 */
 type installer struct {
 	backup            *utils.Backup       // backup instance
@@ -137,7 +137,8 @@ func (instance *installer) Start() error {
 						}
 					}
 					if err := Filter.Save(newPath, reader); err != nil {
-						return errors.SystemNew("Unable to save "+file.Name, err)
+						//return errors.SystemNew("Unable to save "+file.Name, err)
+						pkconst.Logger.Warn().Msg("Unable to save " + file.Name + "." + err.Error())
 					}
 				}
 				break
