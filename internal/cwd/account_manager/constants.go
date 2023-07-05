@@ -12,6 +12,7 @@ const AC_SETUP_DID = "account.actions.DID_SETUP"                 // use to setup
 const AC_SETUP_ACCOUNT = "account.actions.ACC_SETUP"             // use to setup user account
 const AC_VALIDATE_TOKEN = PACKAGE_ID + ".actions.VALIDATE_TOKEN" // use to validate token
 const AC_AUTH_SYSTEM = PACKAGE_ID + ".actions.AUTH_SYSTEM"       // authenticate via system
+const AC_PASS_CHANGE = PACKAGE_ID + ".actions.PASS_CHANGE"       // use to update password
 
 const PACKAGE_ID = "ela.account"
 const KEYSTORE_PATH = "/home/elabox/documents/ela.mainchain/keystore.dat"

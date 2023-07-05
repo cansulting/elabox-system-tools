@@ -19,7 +19,7 @@ func System(val NotificationData) error {
 		constants.NOTIFICATION_CENTER_ID,
 		val,
 	)
-	if _, err := rpcInst.CallSystem(notifData); err != nil {
+	if _, err := rpcInst.CallRPC(constants.NOTIFICATION_CENTER_ID, notifData); err != nil {
 		return err
 	}
 	return nil

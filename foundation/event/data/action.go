@@ -119,11 +119,19 @@ func (a *Action) DataToMap() (map[string]interface{}, error) {
 }
 
 func (a *Action) DataToObj(obj interface{}) error {
-	str := a.DataToString()
-	if str != "" {
-		return json.Unmarshal([]byte(str), obj)
+	if a.Data != nil {
+		switch a.Data.(type) {
+		case string:
+			str := a.DataToString()
+			if str != "" {
+				return json.Unmarshal([]byte(str), obj)
+			}
+			return errors.SystemNew("data is empty", nil)
+		case map[string]interface{}:
+			return mapstructure.Decode(a.Data, obj)
+		}
 	}
-	return errors.SystemNew("data is empty", nil)
+	return nil
 }
 
 func (a *Action) DataToAppState() (*data.AppState, error) {

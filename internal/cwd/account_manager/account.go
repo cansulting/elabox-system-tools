@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/cansulting/elabox-system-tools/foundation/logger"
+	"github.com/cansulting/elabox-system-tools/foundation/notify"
 	"github.com/cansulting/elabox-system-tools/foundation/perm"
 	"github.com/cansulting/elabox-system-tools/foundation/system"
 )
@@ -102,6 +103,35 @@ func saveAccount(acc *Account) error {
 		return err
 	}
 	return os.WriteFile(getAccountPath(acc.UserName), contents, perm.PRIVATE)
+}
+
+func UpdatePassword(username string, oldPass string, newPass string) error {
+	acc, err := GetAccount(username)
+	if err != nil {
+		return err
+	}
+	// validate from old password
+	hash := md5.Sum([]byte(oldPass))
+	if acc.PassHash != hex.EncodeToString(hash[:]) {
+		return errors.New("Invalid password")
+	}
+	// update password
+	hash = md5.Sum([]byte(newPass))
+	hashStr := hex.EncodeToString(hash[:])
+	if hashStr == acc.PassHash {
+		return errors.New("new password shouldn't be the same with old password")
+	}
+	acc.PassHash = hashStr
+	err = saveAccount(acc)
+	if err == nil {
+		if err := notify.System(notify.NotificationData{
+			Title:   "System",
+			Message: "System password was changed.",
+		}); err != nil {
+			logger.GetInstance().Err(err).Msg("failed to notify password changed")
+		}
+	}
+	return err
 }
 
 // use to update wallet address for specific user

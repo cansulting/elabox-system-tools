@@ -28,6 +28,7 @@ func (instance *MyService) OnStart() error {
 	Controller.RPC.OnRecieved(AC_SETUP_DID, instance.onSetupDid)
 	Controller.RPC.OnRecieved(constants.ACTION_RETRIEVE_PUBKEY, instance.onPublicKey)
 	Controller.RPC.OnRecieved(AC_VALIDATE_TOKEN, instance.onValidateToken)
+	Controller.RPC.OnRecieved(AC_PASS_CHANGE, instance.onPasswordChanged)
 	return nil
 }
 
@@ -173,6 +174,7 @@ func (instance *MyService) onValidateToken(client protocol.ClientInterface, acti
 	return rpc.CreateSuccessResponse(validStr)
 }
 
+// callback when user setup elabox. This setup user with system password
 func (instance *MyService) onSetupUserAccount(client protocol.ClientInterface, action data.Action) string {
 	data, err := action.DataToMap()
 	// step: validate inputs
@@ -183,6 +185,16 @@ func (instance *MyService) onSetupUserAccount(client protocol.ClientInterface, a
 		return rpc.CreateResponse(rpc.INVALID_PARAMETER_PROVIDED, "password not provided")
 	}
 	pass := data["pass"].(string)
+
+	// step: avoid double setup for user. if account already setup return issue
+	ac, err := GetAccount(DEFAULT_USERNAME)
+	if err != nil {
+		return rpc.CreateResponse(rpc.SYSTEMERR_CODE, err.Error())
+	}
+	if ac.PassHash != "" {
+		return rpc.CreateResponse(rpc.INVALID_CODE, "account was already setup, skipping.")
+	}
+
 	_, err = SetupAccount(DEFAULT_USERNAME, pass, "Elabox")
 	if err != nil {
 		return rpc.CreateResponse(rpc.SYSTEMERR_CODE, err.Error())
@@ -194,6 +206,32 @@ func (instance *MyService) onSetupUserAccount(client protocol.ClientInterface, a
 		if err := UpdateAccount(presentation); err != nil {
 			return rpc.CreateResponse(rpc.SYSTEMERR_CODE, err.Error())
 		}
+	}
+	return rpc.CreateSuccessResponse("success")
+}
+
+// called when rpc was requested to change user password
+func (instance *MyService) onPasswordChanged(client protocol.ClientInterface, action data.Action) string {
+	dat, err := action.DataToMap()
+	if err != nil {
+		return rpc.CreateResponse(rpc.SYSTEMERR_CODE, err.Error())
+	}
+	if dat["oldpass"] == nil {
+		return rpc.CreateResponse(rpc.INVALID_PARAMETER_PROVIDED, "old password was not provided")
+	}
+	if dat["newpass"] == nil {
+		return rpc.CreateResponse(rpc.INVALID_PARAMETER_PROVIDED, "new password was not provided")
+	}
+
+	if dat["token"] == nil {
+		return rpc.CreateResponse(rpc.INVALID_CODE, "please provide valid token")
+	}
+	if valid, _ := account.ValidateToken(dat["token"].(string)); !valid {
+		return rpc.CreateResponse(rpc.INVALID_CODE, "please provide valid token")
+	}
+
+	if err := UpdatePassword(DEFAULT_USERNAME, dat["oldpass"].(string), dat["newpass"].(string)); err != nil {
+		return rpc.CreateResponse(rpc.SYSTEMERR_CODE, err.Error())
 	}
 	return rpc.CreateSuccessResponse("success")
 }

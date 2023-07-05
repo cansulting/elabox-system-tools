@@ -131,7 +131,7 @@ func onAppOff(
 	return rpc.CreateSuccessResponse("app is now off")
 }
 
-//use to on the app
+// use to on the app
 func onAppOn(
 	client protocol.ClientInterface,
 	action data.Action) interface{} {
@@ -149,6 +149,8 @@ func onAppOn(
 	}
 	return rpc.CreateSuccessResponse("app is now on")
 }
+
+// use to check application status
 func onAppCheckStatus(client protocol.ClientInterface, action data.Action) interface{} {
 	appid := action.PackageId
 	if appid == "" {
