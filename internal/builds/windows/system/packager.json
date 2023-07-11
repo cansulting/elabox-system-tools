@@ -1,0 +1,23 @@
+{
+    "cwd": "",
+    "config": "info.json",
+    "binDir": "./bin",
+    "bin": "",
+    "www": "./www",
+    "packages": [
+        "../packageinstaller/ela.installer.box", 
+        "../account_manager/ela.account.box",
+        "../../../../../elabox-rewards/build/ela.rewards.box",
+        "../notification_center/ela.notification.box",
+        "../package_manager/ela.pkgmgr.box",
+        "../../../../../elabox-dashboard/build/ela.dashboard.box",
+        "../../../../../elabox-dapp-store/build/ela.store/ela.store.box",
+        "../../../../../elabox-setup-wizard/build/ela.setup.box"
+    ],
+    "customInstaller": "../packageinstaller/bin/packageinstaller.exe",
+    "lib": "",
+    "continueOnMissing": false,
+    "icons": {
+        "medium": "icon.png"
+    }
+}

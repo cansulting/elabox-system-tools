@@ -17,3 +17,4 @@ internal/builds/linux/eid/bin/geth
 internal/builds/linux/esc/bin/esc
 internal/builds/linux/mainchain/bin/ela
 internal/builds/linux/mainchain/bin/ela-cli
+internal/builds/windows/system/www/*

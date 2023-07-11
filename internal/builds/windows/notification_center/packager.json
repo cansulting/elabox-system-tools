@@ -1,0 +1,11 @@
+{
+    "cwd": "",
+    "config": "info.json",
+    "binDir": "",
+    "bin": "./bin/ela.notification.exe",
+    "packages": [],
+    "customInstaller": "",
+    "icons": {
+        "medium": "icon.png"
+    }
+}
