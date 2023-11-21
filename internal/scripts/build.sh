@@ -8,7 +8,6 @@ go env -u CXX
 
 PROJ_HOME=../../..
 ELA_SRC=$PROJ_HOME/Elastos.ELA
-EID_SRC=$PROJ_HOME/Elastos.ELA.SideChain.EID
 ESC_SRC=$PROJ_HOME/Elastos.ELA.SideChain.ESC
 GLIDE_SRC=$PROJ_HOME/glide-frontend
 ELA_LANDING=$PROJ_HOME/elabox-companion-landing
@@ -188,18 +187,12 @@ buildELA() {
 }
 if [ "$answerEla" == "y" ]; then
     buildELA
-    echo "Building EID from source..."
-    go env -w GO111MODULE=off
-    cd $wd
-    cd $EID_SRC
-    make geth
-    cd $wd
+
     echo "Building ESC from source..."
     cd $wd
     cd $ESC_SRC
     make geth
     cd $wd
-    go env -u GO111MODULE
 
     targetdir=$buildpath
     echo "Copying mainchain, eid and cli "
@@ -209,12 +202,6 @@ if [ "$answerEla" == "y" ]; then
     cp $ELA_SRC/ela-cli $mainchainlib
     cp $ELA_SRC/ela $mainchainlib
     chmod +x $mainchainlib/ela $mainchainlib/ela-cli
-    # eid
-    eidbin=$buildpath/eid/bin
-    mkdir -p $eidbin
-    cp ${EID_SRC}/build/bin/geth $eidbin
-    chmod +x $eidbin/geth
-    mv $eidbin/geth $eidbin/ela.eid
     # esc
     escbin=$buildpath/esc/bin
     mkdir -p $escbin
@@ -225,7 +212,6 @@ if [ "$answerEla" == "y" ]; then
     carrierlib=$buildpath/carrier/bin
     chmod +x $carrierlib/ela-bootstrapd
 
-    packager $buildpath/eid/packager.json
     packager $buildpath/esc/packager.json
     packager $buildpath/carrier/packager.json
     packager $buildpath/feeds/packager.json

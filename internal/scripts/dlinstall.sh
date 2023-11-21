@@ -8,8 +8,9 @@ fi
 
 os=linux
 arch=!arch
-installer=https://storage.googleapis.com/!bucket/installer/$os/$arch/packageinstaller
-pkg=https://storage.googleapis.com/!bucket/packages/$build.box
+bucket=!bucket
+installer=https://storage.googleapis.com/$bucket/installer/$os/$arch/packageinstaller
+pkg=https://storage.googleapis.com/$bucket/packages/$build.box
 gen=1  # current generation of device
 
 envpath=/var/ela/data/ela.system/env.json
